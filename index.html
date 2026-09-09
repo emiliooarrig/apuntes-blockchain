@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
+<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-eth" viewBox="0 0 24 24"><path d="M12 2.5 5.5 13 12 16.8 18.5 13 12 2.5Z"/><path d="m5.5 14.6 6.5 6.9 6.5-6.9L12 18.4 5.5 14.6Z"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-defi" viewBox="0 0 24 24"><path d="M3.5 19.5h17M6 19.5v-6M11 19.5V8M16 19.5v-9"/><path d="m5 10 5.6-5.2 4 2.6 4.6-4.1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.3 9.8h17.4M3.3 14.2h17.4"/><path d="M12 3c-2.6 2.6-3.9 5.6-3.9 9s1.3 6.4 3.9 9c2.6-2.6 3.9-5.6 3.9-9S14.6 5.6 12 3Z"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#intro">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="#inicio" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
+        <li><a class="nav__link" href="#intro">Introducción</a></li>
+        <li><a class="nav__link" href="#temas">Temario</a></li>
+        <li><a class="nav__link" href="#equipo">Equipo</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
+        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <span class="badge anim" style="--d:0ms">
+        <span class="badge__dot"></span> Portafolio académico · Ciclo 2026
+      </span>
+
+      <h1 class="hero__title anim" style="--d:90ms">
+        Apuntes de <span class="grad">Blockchain</span><br>
+        explicados <span class="underlined">bloque a bloque</span>
+      </h1>
+
+      <p class="hero__lead anim" style="--d:180ms">
+        Una colección viva de notas, diagramas y ejemplos de código sobre criptografía,
+        consenso distribuido, contratos inteligentes y Web3. Hecho por estudiantes,
+        para quien quiera entender la tecnología sin humo.
+      </p>
+
+      <div class="hero__actions anim" style="--d:270ms">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="#temas">
+          Explorar el temario <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="#intro">¿De qué va esto?</a>
+      </div>
+
+      <ul class="hero__chips anim" style="--d:360ms">
+        <li>Solidity</li><li>EVM</li><li>Consenso</li><li>DeFi</li><li>ZK Rollups</li>
+      </ul>
+    </div>
+
+    <div class="hero__visual anim anim--scale" style="--d:240ms" aria-hidden="true">
+      <div class="chain">
+        <article class="clay-card block block--1">
+          <header class="block__head"><span class="dot dot--mint"></span> Bloque #001</header>
+          <p class="block__hash">0x8f2a…c41e</p>
+          <div class="block__bars"><i style="--w:88%"></i><i style="--w:64%"></i><i style="--w:76%"></i></div>
+          <footer class="block__foot">Génesis</footer>
+        </article>
+
+        <span class="chain__link"><i></i><i></i><i></i></span>
+
+        <article class="clay-card block block--2">
+          <header class="block__head"><span class="dot dot--violet"></span> Bloque #002</header>
+          <p class="block__hash">0xc41e…19b7</p>
+          <div class="block__bars"><i style="--w:72%"></i><i style="--w:91%"></i><i style="--w:58%"></i></div>
+          <footer class="block__foot">Validado</footer>
+        </article>
+
+        <span class="chain__link"><i></i><i></i><i></i></span>
+
+        <article class="clay-card block block--3">
+          <header class="block__head"><span class="dot dot--coral"></span> Bloque #003</header>
+          <p class="block__hash">0x19b7…7de0</p>
+          <div class="block__bars"><i style="--w:60%"></i><i style="--w:80%"></i><i style="--w:95%"></i></div>
+          <footer class="block__foot">Minando…</footer>
+        </article>
+      </div>
+
+      <div class="float-tag float-tag--a"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> SHA-256</div>
+      <div class="float-tag float-tag--b"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Red P2P</div>
+      <div class="float-tag float-tag--c"><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> gas: 21 000</div>
+    </div>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true"><span></span>desliza</div>
+</section>
+
+<!-- ============ INTRODUCCIÓN ============ -->
+<section class="section intro" id="intro">
+  <div class="container">
+    <div class="intro__grid">
+      <div class="intro__text reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Introducción rápida</span>
+        <h2 class="section__title">¿Qué encontrarás en este portafolio?</h2>
+        <p class="section__lead">
+          Blockchain suele explicarse con metáforas vagas. Aquí hacemos lo contrario:
+          empezamos por la estructura de datos, seguimos por la criptografía que la
+          hace confiable y terminamos escribiendo contratos que corren sobre ella.
+        </p>
+        <p class="muted-p">
+          Cada tema del temario incluye apuntes teóricos, un diagrama explicativo,
+          ejemplos de código comentados y ejercicios resueltos. Todo el material nace
+          de las sesiones de clase y se revisa entre pares antes de publicarse.
+        </p>
+
+        <ul class="check-list">
+          <li><span class="check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span> Teoría en lenguaje claro, sin sacrificar precisión técnica</li>
+          <li><span class="check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span> Diagramas propios de cada mecanismo: hashing, Merkle, consenso</li>
+          <li><span class="check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span> Código en Solidity y JavaScript probado en testnet</li>
+          <li><span class="check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span> Glosario y referencias a los papers originales</li>
+        </ul>
+      </div>
+
+      <div class="intro__cards">
+        <article class="clay-card feature reveal" style="--d:60ms">
+          <span class="feature__icon feature__icon--violet"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <h3>Desde cero</h3>
+          <p>No asumimos conocimientos previos de criptografía ni de redes distribuidas.</p>
+        </article>
+        <article class="clay-card feature reveal" style="--d:140ms">
+          <span class="feature__icon feature__icon--mint"><svg viewBox="0 0 24 24"><use href="#i-code"/></svg></span>
+          <h3>Con código real</h3>
+          <p>Contratos desplegables, no pseudocódigo. Cada ejemplo se puede compilar.</p>
+        </article>
+        <article class="clay-card feature reveal" style="--d:220ms">
+          <span class="feature__icon feature__icon--coral"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>
+          <h3>Con criterio</h3>
+          <p>Señalamos límites, riesgos y casos donde blockchain simplemente no aplica.</p>
+        </article>
+        <article class="clay-card feature reveal" style="--d:300ms">
+          <span class="feature__icon feature__icon--amber"><svg viewBox="0 0 24 24"><use href="#i-globe"/></svg></span>
+          <h3>Siempre abierto</h3>
+          <p>Material público y editable. Las correcciones de la comunidad son bienvenidas.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="stats clay-card reveal">
+      <div class="stat">
+        <strong class="stat__num" data-count="12">0</strong>
+        <span class="stat__label">Temas documentados</span>
+      </div>
+      <span class="stats__sep" aria-hidden="true"></span>
+      <div class="stat">
+        <strong class="stat__num" data-count="84" data-suffix="+">0</strong>
+        <span class="stat__label">Páginas de apuntes</span>
+      </div>
+      <span class="stats__sep" aria-hidden="true"></span>
+      <div class="stat">
+        <strong class="stat__num" data-count="37">0</strong>
+        <span class="stat__label">Ejemplos de código</span>
+      </div>
+      <span class="stats__sep" aria-hidden="true"></span>
+      <div class="stat">
+        <strong class="stat__num" data-count="5">0</strong>
+        <span class="stat__label">Autores</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEMARIO ============ -->
+<section class="section topics" id="temas">
+  <div class="container">
+    <header class="section__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Temario</span>
+      <h2 class="section__title">Los temas que cubrimos</h2>
+      <p class="section__lead section__lead--center">
+        Doce módulos ordenados de lo fundamental a lo aplicado. Puedes seguirlos en
+        orden como un curso, o entrar directo al que necesitas.
+      </p>
+    </header>
+
+    <div class="topics__grid">
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--violet)">
+        <span class="topic__num">01</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+        <h3 class="topic__title">Fundamentos de Blockchain</h3>
+        <p class="topic__desc">Qué es realmente una cadena de bloques: estructura de datos enlazada por hashes, inmutabilidad, libro mayor distribuido y el problema del doble gasto.</p>
+        <ul class="topic__tags"><li>Bloques</li><li>Hash</li><li>Ledger</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--mint); --d:60ms">
+        <span class="topic__num">02</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg></span>
+        <h3 class="topic__title">Criptografía aplicada</h3>
+        <p class="topic__desc">Funciones hash SHA-256 y Keccak, criptografía asimétrica, firmas ECDSA y árboles de Merkle como prueba compacta de integridad.</p>
+        <ul class="topic__tags"><li>SHA-256</li><li>ECDSA</li><li>Merkle</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--sky); --d:120ms">
+        <span class="topic__num">03</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg></span>
+        <h3 class="topic__title">Redes P2P y nodos</h3>
+        <p class="topic__desc">Cómo se propagan bloques y transacciones, tipos de nodo, mempool, sincronización y por qué la topología de la red importa tanto.</p>
+        <ul class="topic__tags"><li>Gossip</li><li>Mempool</li><li>Full node</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--coral); --d:180ms">
+        <span class="topic__num">04</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg></span>
+        <h3 class="topic__title">Mecanismos de consenso</h3>
+        <p class="topic__desc">Proof of Work, Proof of Stake y variantes BFT. Tolerancia a fallos bizantinos, finalidad probabilística frente a determinista y el ataque del 51 %.</p>
+        <ul class="topic__tags"><li>PoW</li><li>PoS</li><li>BFT</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--amber)">
+        <span class="topic__num">05</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg></span>
+        <h3 class="topic__title">Bitcoin y el modelo UTXO</h3>
+        <p class="topic__desc">Anatomía de una transacción, Script, minería y dificultad, halving y política monetaria programada. El diseño original de Satoshi.</p>
+        <ul class="topic__tags"><li>UTXO</li><li>Minería</li><li>Script</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--violet); --d:60ms">
+        <span class="topic__num">06</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-eth"/></svg></span>
+        <h3 class="topic__title">Ethereum y la EVM</h3>
+        <p class="topic__desc">Del ledger al ordenador mundial: cuentas EOA y de contrato, estado global, ciclo de ejecución de la EVM y economía del gas.</p>
+        <ul class="topic__tags"><li>EVM</li><li>Gas</li><li>Estado</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--mint); --d:120ms">
+        <span class="topic__num">07</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-code"/></svg></span>
+        <h3 class="topic__title">Smart Contracts en Solidity</h3>
+        <p class="topic__desc">Tipos, almacenamiento, modificadores, eventos y errores personalizados. Patrones de diseño, proxies actualizables y pruebas con Hardhat.</p>
+        <ul class="topic__tags"><li>Solidity</li><li>Hardhat</li><li>Proxy</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--sky); --d:180ms">
+        <span class="topic__num">08</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg></span>
+        <h3 class="topic__title">Tokens y estándares</h3>
+        <p class="topic__desc">ERC-20, ERC-721 y ERC-1155 explicados desde su interfaz. Fungibilidad, metadatos, royalties y errores comunes al implementarlos.</p>
+        <ul class="topic__tags"><li>ERC-20</li><li>NFT</li><li>ERC-1155</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--coral)">
+        <span class="topic__num">09</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-defi"/></svg></span>
+        <h3 class="topic__title">DeFi: finanzas programables</h3>
+        <p class="topic__desc">Creadores de mercado automáticos y la fórmula x·y=k, préstamos colateralizados, stablecoins, oráculos y pérdida impermanente.</p>
+        <ul class="topic__tags"><li>AMM</li><li>Lending</li><li>Oráculos</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--amber); --d:60ms">
+        <span class="topic__num">10</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg></span>
+        <h3 class="topic__title">Escalabilidad y Capa 2</h3>
+        <p class="topic__desc">El trilema de escalabilidad, rollups optimistas y de conocimiento cero, sidechains, canales de estado y sharding.</p>
+        <ul class="topic__tags"><li>Rollups</li><li>ZK</li><li>Sharding</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--violet); --d:120ms">
+        <span class="topic__num">11</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>
+        <h3 class="topic__title">Seguridad y auditoría</h3>
+        <p class="topic__desc">Reentrancy, control de acceso roto, manipulación de oráculos y MEV. Metodología de auditoría y herramientas de análisis estático.</p>
+        <ul class="topic__tags"><li>Reentrancy</li><li>MEV</li><li>Slither</li></ul>
+      </article>
+
+      <article class="clay-card topic reveal" data-tilt style="--accent:var(--mint); --d:180ms">
+        <span class="topic__num">12</span>
+        <span class="topic__icon"><svg viewBox="0 0 24 24"><use href="#i-globe"/></svg></span>
+        <h3 class="topic__title">Web3, dApps y casos de uso</h3>
+        <p class="topic__desc">Wallets, ethers.js, almacenamiento en IPFS, DAOs e identidad descentralizada. Casos reales en logística, salud y sector público.</p>
+        <ul class="topic__tags"><li>dApps</li><li>IPFS</li><li>DAO</li></ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ EQUIPO ============ -->
+<section class="section team" id="equipo">
+  <div class="container">
+    <header class="section__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Sobre nosotros</span>
+      <h2 class="section__title">Quiénes escriben estos apuntes</h2>
+      <p class="section__lead section__lead--center">
+        Somos estudiantes de Ingeniería en Sistemas y cada quien se hizo responsable
+        de documentar los módulos que más le apasionan.
+      </p>
+    </header>
+
+    <div class="team__grid">
+
+      <article class="clay-card person reveal" data-tilt>
+        <div class="person__avatar" style="--a1:var(--violet); --a2:var(--sky)"><span>EA</span></div>
+        <h3 class="person__name">Emilio Aguilar</h3>
+        <p class="person__role">Coordinación · Smart Contracts</p>
+        <p class="person__bio">Responsable de los módulos de Solidity y de la revisión técnica de todo el material publicado.</p>
+        <ul class="person__topics"><li>06</li><li>07</li><li>11</li></ul>
+        <div class="person__links">
+          <a href="#" aria-label="GitHub de Emilio Aguilar"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web de Emilio Aguilar"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo de Emilio Aguilar"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </article>
+
+      <article class="clay-card person reveal" data-tilt style="--d:80ms">
+        <div class="person__avatar" style="--a1:var(--mint); --a2:var(--sky)"><span>MR</span></div>
+        <h3 class="person__name">María Rivas</h3>
+        <p class="person__role">Criptografía · Consenso</p>
+        <p class="person__bio">Escribió los apuntes de hashing, firmas digitales y la comparativa entre algoritmos de consenso.</p>
+        <ul class="person__topics"><li>02</li><li>04</li></ul>
+        <div class="person__links">
+          <a href="#" aria-label="GitHub de María Rivas"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web de María Rivas"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo de María Rivas"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </article>
+
+      <article class="clay-card person reveal" data-tilt style="--d:160ms">
+        <div class="person__avatar" style="--a1:var(--coral); --a2:var(--amber)"><span>DL</span></div>
+        <h3 class="person__name">Daniel Lozano</h3>
+        <p class="person__role">Bitcoin · Redes P2P</p>
+        <p class="person__bio">Documentó el modelo UTXO, la minería y la propagación de bloques en la red.</p>
+        <ul class="person__topics"><li>03</li><li>05</li></ul>
+        <div class="person__links">
+          <a href="#" aria-label="GitHub de Daniel Lozano"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web de Daniel Lozano"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo de Daniel Lozano"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </article>
+
+      <article class="clay-card person reveal" data-tilt style="--d:240ms">
+        <div class="person__avatar" style="--a1:var(--amber); --a2:var(--coral)"><span>SC</span></div>
+        <h3 class="person__name">Sofía Contreras</h3>
+        <p class="person__role">DeFi · Tokenización</p>
+        <p class="person__bio">A cargo de los apuntes de AMMs, stablecoins y de los estándares de tokens.</p>
+        <ul class="person__topics"><li>08</li><li>09</li></ul>
+        <div class="person__links">
+          <a href="#" aria-label="GitHub de Sofía Contreras"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web de Sofía Contreras"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo de Sofía Contreras"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </article>
+
+      <article class="clay-card person reveal" data-tilt style="--d:320ms">
+        <div class="person__avatar" style="--a1:var(--sky); --a2:var(--violet)"><span>JT</span></div>
+        <h3 class="person__name">Javier Torres</h3>
+        <p class="person__role">Capa 2 · Web3</p>
+        <p class="person__bio">Investigó rollups y conocimiento cero, y construyó las dApps de ejemplo del portafolio.</p>
+        <ul class="person__topics"><li>10</li><li>12</li></ul>
+        <div class="person__links">
+          <a href="#" aria-label="GitHub de Javier Torres"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web de Javier Torres"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo de Javier Torres"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </article>
+
+      <article class="clay-card person person--cta reveal" style="--d:400ms">
+        <span class="person__plus" aria-hidden="true">+</span>
+        <h3 class="person__name">¿Quieres colaborar?</h3>
+        <p class="person__bio">El repositorio está abierto a correcciones, traducciones y nuevos módulos.</p>
+        <a class="clay-btn clay-btn--primary" href="#contacto">Escríbenos <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></a>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-band" id="contacto">
+  <div class="container">
+    <div class="clay-card cta reveal">
+      <div class="cta__text">
+        <h2>Lleva el temario completo contigo</h2>
+        <p>Descarga los apuntes en PDF o clona el repositorio para leerlos sin conexión.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="#temas">Descargar PDF <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></a>
+        <a class="clay-btn clay-btn--lg" href="#"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg> Ver repositorio</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="#inicio">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#intro">Introducción</a></li>
+          <li><a href="#temas">Temario</a></li>
+          <li><a href="#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="#temas">Fundamentos</a></li>
+          <li><a href="#temas">Criptografía</a></li>
+          <li><a href="#temas">Smart Contracts</a></li>
+          <li><a href="#temas">DeFi</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="#">Glosario</a></li>
+          <li><a href="#">Papers citados</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
