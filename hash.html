@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
-<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<title>Funciones hash y sus aplicaciones — ChainNotes</title>
+<meta name="description" content="Apunte 01: funciones hash. Avalancha, las tres resistencias, Damgard-Merkle y extension de longitud, ataque del cumpleanos, arboles de Merkle, compromisos y prueba de trabajo, con ocho laboratorios interactivos.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/apuntes.css">
 </head>
 <body>
 
@@ -37,22 +38,24 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#intro">Saltar al contenido</a>
+<a class="skip-link" href="#fundamentos">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
   <div class="container header__inner">
-    <a class="brand" href="#inicio" aria-label="ChainNotes, ir al inicio">
+    <a class="brand" href="index.html" aria-label="ChainNotes, ir al inicio">
       <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
 
     <nav class="nav" id="nav" aria-label="Navegación principal">
       <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
+        <li><a class="nav__link" href="index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#fundamentos">Fundamentos</a></li>
+        <li><a class="nav__link" href="#resistencias">Resistencias</a></li>
+        <li><a class="nav__link" href="#cumpleanos">Ataques</a></li>
+        <li><a class="nav__link" href="#merkle">Merkle</a></li>
+        <li><a class="nav__link" href="#sintesis">Síntesis</a></li>
       </ul>
     </nav>
 
@@ -61,8 +64,8 @@
         <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
       </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      <a class="clay-btn clay-btn--primary header__cta" href="#fundamentos">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
@@ -73,14 +76,1304 @@
 
 <main>
 
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
 
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>01 · Hash</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 01 · Criptografía aplicada
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Funciones <span class="grad">hash</span><br>
+        y sus <span class="underlined">aplicaciones</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Una huella de 256 bits para cualquier cosa que exista: un nombre, una película,
+        una biblioteca entera. De ese único truco cuelgan la firma digital, el árbol de
+        Merkle, el compromiso, el minado y la inmutabilidad de la cadena. Aquí lo
+        desarmamos pieza por pieza, con laboratorios que corren en tu navegador.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> SHA-256</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Merkle</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Colisiones</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 8 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 1: espejo de bits, dentro de la cabecera -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg> Espejo de bits</h2>
+        <span class="lab__tag">en vivo · 16 × 16 = 256</span>
+      </div>
+      <p class="lab__intro">
+        Escribe algo. La retícula es su hash SHA-256, bit por bit. Cambia una sola
+        letra y mira cuántas celdas se voltean.
+      </p>
+
+      <div class="field field--wide" style="margin-bottom:14px">
+        <label class="field__label" for="mirrorInput">Mensaje de entrada</label>
+        <input type="text" id="mirrorInput" value="Satoshi Nakamoto" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="bitgrid" id="mirrorGrid" aria-hidden="true"></div>
+
+      <div class="legend">
+        <span><i style="background:linear-gradient(150deg,var(--violet),var(--violet-deep))"></i> bit en 1</span>
+        <span><i style="background:color-mix(in srgb,var(--ink) 10%,transparent)"></i> bit en 0</span>
+        <span><i style="background:linear-gradient(150deg,var(--coral),#ff5f6d)"></i> se volteó</span>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--coral" id="mirrorFlips">—</span>
+          <span class="metric__label">Bits volteados</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="mirrorPct">—</span>
+          <span class="metric__label">Porcentaje del digest</span>
+        </div>
+      </div>
+
+      <code class="hashout hashout--sm" id="mirrorHash" style="margin-top:12px"></code>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#fundamentos"><span class="toc__n">01</span> Qué hace una función hash</a></li>
+        <li><a href="#resistencias"><span class="toc__n">02</span> Las tres resistencias</a></li>
+        <li><a href="#construccion"><span class="toc__n">03</span> Cómo está construida por dentro</a></li>
+        <li><a href="#cumpleanos"><span class="toc__n">04</span> El ataque del cumpleaños</a></li>
+        <li><a href="#algoritmos"><span class="toc__n">05</span> Cuáles usar hoy</a></li>
+        <li><a href="#contrasenas"><span class="toc__n">06</span> Contraseñas: sal y coste</a></li>
+        <li><a href="#merkle"><span class="toc__n">07</span> Árboles de Merkle</a></li>
+        <li><a href="#blockchain"><span class="toc__n">08</span> Compromisos y cadena</a></li>
+        <li><a href="#sintesis"><span class="toc__n">09</span> Qué se rompe si falla</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · FUNDAMENTOS ============ -->
+<section class="section note" id="fundamentos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">Qué hace exactamente una función hash</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> reconocer las cuatro propiedades observables
+        —determinismo, longitud fija, uniformidad y avalancha— y distinguir un hash
+        criptográfico de uno que no lo es.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Piensa en una licuadora industrial. Metes lo que sea —una palabra, una película,
+          la Biblioteca Nacional— y siempre sale exactamente un litro de puré. Siempre un
+          litro: ni más si metes más, ni menos si metes menos. Y el puré de una manzana
+          nunca se parece al puré de dos manzanas: no hay “casi igual”.
+        </p>
+
+        <h3>Tres cosas que la licuadora cumple</h3>
+        <ul class="plain-list">
+          <li><strong>Es determinista.</strong> La misma manzana, el mismo puré, hoy y en diez
+            años, en tu máquina y en la mía.</li>
+          <li style="--accent:var(--coral)"><strong>No se puede des-licuar.</strong> Del puré no
+            recuperas la manzana.</li>
+          <li style="--accent:var(--mint)"><strong>Es discontinua a propósito.</strong> Quitarle un
+            pixel a una foto no cambia “un poquito” el resultado: lo cambia por completo. Eso es el
+            <strong>efecto avalancha</strong>, y es la propiedad que vuelve útil a un hash para
+            detectar alteraciones.</li>
+        </ul>
+
+        <p>
+          Esa última propiedad es la que estás viendo en la retícula de arriba: la mitad de las
+          celdas se voltea aunque sólo toques una tecla. No hay nada de mágico en ello; es el
+          resultado buscado de sesenta y cuatro rondas de sumas, rotaciones y XOR.
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">La consecuencia incómoda: las colisiones existen</span>
+          Las entradas posibles son infinitas y las salidas son 2<sup>256</sup>. Por el
+          principio del palomar, hay infinitos pares de mensajes distintos con el mismo hash.
+          La criptografía no los elimina —no puede—: sólo los vuelve <em>inencontrables</em>.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Definición formal</span>
+        <p>Una función hash es una aplicación</p>
+        <span class="eq">
+          H : {0,1}<sup>*</sup> ⟶ {0,1}<sup><var>n</var></sup>
+          <small>de cadenas de longitud arbitraria a cadenas de longitud fija <var>n</var></small>
+        </span>
+        <p>a la que se le exige:</p>
+        <ul class="plain-list">
+          <li><strong>Eficiencia.</strong> Calcular H(<var>x</var>) cuesta poco: lineal en
+            |<var>x</var>| en la práctica.</li>
+          <li style="--accent:var(--sky)"><strong>Uniformidad.</strong> Para <var>x</var> al azar,
+            H(<var>x</var>) se distribuye aproximadamente uniforme sobre {0,1}<sup><var>n</var></sup>.
+            El modelo idealizado se llama <em>oráculo aleatorio</em>.</li>
+          <li style="--accent:var(--coral)"><strong>Avalancha.</strong> Si <var>x</var> y
+            <var>x</var>′ difieren en un bit, cada bit de H(<var>x</var>) ⊕ H(<var>x</var>′) vale 1
+            con probabilidad ≈ ½.</li>
+        </ul>
+        <span class="eq">
+          𝔼[ d<sub>H</sub>( H(<var>x</var>), H(<var>x</var>′) ) ] ≈ <var>n</var> / 2
+          <small>distancia de Hamming esperada entre dos digests vecinos</small>
+        </span>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Laboratorio 1.1 — Medidor de avalancha</h2>
+        <span class="lab__tag">bit-flip test · AC · patrones</span>
+      </div>
+      <p class="lab__intro">
+        Vas a comprobar que <strong>el 50 % no basta</strong>: CRC32 también lo alcanza. El
+        laboratorio toma 400 mensajes aleatorios, les voltea <em>siempre el mismo bit</em> y mide
+        la distancia de Hamming entre los dos digests. Compara SHA-256 con tres funciones que no
+        son criptográficas y fíjate en la segunda métrica, no en la primera.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="avFunc">Función</label>
+          <select id="avFunc">
+            <option value="sha256">SHA-256 (criptográfica)</option>
+            <option value="crc32">CRC32 (suma de comprobación)</option>
+            <option value="suma">Suma de bytes (juguete)</option>
+            <option value="xor">XOR de palabras (lineal)</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="avBtn" type="button">
+            Medir avalancha <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="bars" id="avBars" role="img" aria-label="Distribución de bits cambiados"></div>
+      <p class="lab__note">
+        Cada barra cuenta cuántas pruebas cambiaron esa fracción del digest. Lo ideal es una
+        campana centrada en <var>n</var>/2 con desviación √<var>n</var>/2: eso es lanzar una moneda
+        por cada bit de salida. <strong>Una barra única significa varianza cero</strong>, y eso es
+        el sello de una función lineal.
+      </p>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="avAC">—</span>
+          <span class="metric__label">AC promedio (ideal 50 %)</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="avPat">—</span>
+          <span class="metric__label">Patrones de diferencia distintos</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="avSD">—</span>
+          <span class="metric__label">Desviación σ / esperada</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="avN">—</span>
+          <span class="metric__label">Longitud de salida</span>
+        </div>
+      </div>
+
+      <div class="callout callout--warn" style="margin-bottom:0">
+        <span class="callout__title">Qué observar</span>
+        CRC32 da un AC de aspecto respetable, cerca del 50 %, y aun así produce
+        <strong>un solo patrón de diferencia</strong> con desviación σ = 0: voltear ese bit cambia
+        siempre exactamente los mismos bits de salida, sin importar el mensaje. Eso no es mezcla,
+        es una ecuación que el atacante puede resolver. SHA-256 produce 400 patrones distintos en
+        400 pruebas y una σ cercana a √<var>n</var>/2. <strong>El promedio miente; los patrones
+        no.</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · LAS TRES RESISTENCIAS ============ -->
+<section class="section note" id="resistencias">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Las tres resistencias, y por qué no son la misma</h2>
+      <p class="section__lead">
+        Tres preguntas distintas, tres dificultades distintas. Lo único que las separa es
+        <strong>qué recibe el adversario y qué queda libre para que él lo elija</strong>.
+      </p>
+    </header>
+
+    <div class="resist">
+      <article class="clay-card resist__card reveal" style="--accent:var(--sky)">
+        <span class="resist__cost">2<sup>n</sup></span>
+        <h3>Preimagen</h3>
+        <p class="resist__sub">one-way</p>
+        <p class="resist__quote">“Aquí está el hash: dime qué lo produjo.”</p>
+        <div class="resist__flow">
+          <span class="resist__box resist__box--given">y dado</span>
+          <span>→</span>
+          <span class="resist__box resist__box--find">hallar M</span>
+        </div>
+        <p>Te doy una huella dactilar y te pido encontrar al dueño. El adversario no elige nada
+          del enunciado: sólo el mensaje.</p>
+      </article>
+
+      <article class="clay-card resist__card reveal" style="--accent:var(--amber); --d:80ms">
+        <span class="resist__cost">2<sup>n</sup></span>
+        <h3>Segunda preimagen</h3>
+        <p class="resist__sub">target collision</p>
+        <p class="resist__quote">“Este contrato ya está firmado: fabrica otro con el mismo hash.”</p>
+        <div class="resist__flow">
+          <span class="resist__box resist__box--given">M dado</span>
+          <span>→</span>
+          <span class="resist__box resist__box--find">hallar M′ ≠ M</span>
+        </div>
+        <p>Te doy una persona concreta y te pido otra con su misma huella. El objetivo está
+          fijado de antemano: por eso es más difícil que una colisión.</p>
+      </article>
+
+      <article class="clay-card resist__card reveal" style="--accent:var(--coral); --d:160ms">
+        <span class="resist__cost">2<sup>n/2</sup></span>
+        <h3>Colisión</h3>
+        <p class="resist__sub">collision-free · cumpleaños</p>
+        <p class="resist__quote">“Fabrica dos documentos, los que tú quieras, con el mismo hash.”</p>
+        <div class="resist__flow">
+          <span class="resist__box resist__box--free">M libre</span>
+          <span class="resist__box resist__box--free">M′ libre</span>
+          <span>→</span>
+          <span class="resist__box resist__box--find">H(M) = H(M′)</span>
+        </div>
+        <p>Cualesquiera dos personas que compartan huella. Es la más fácil para el atacante
+          porque escoge ambos lados, y por eso es la primera que cae.</p>
+      </article>
+    </div>
+
+    <div class="callout callout--note">
+      <span class="callout__title">La consecuencia que hay que memorizar</span>
+      <strong>MD5 y SHA-1 están rotas en colisión, no en preimagen.</strong> Siguen siendo
+      irreversibles; lo que ya no pueden hacer es garantizar que dos documentos distintos tengan
+      huellas distintas. Por eso una contraseña vieja en SHA-1 no se recupera de golpe, pero una
+      firma sobre SHA-1 no vale nada.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <aside class="clay-card formal reveal">
+        <span class="formal__tag">Proposición 1</span>
+        <p><strong>Si H es resistente a colisiones, entonces es resistente a segunda preimagen.</strong></p>
+        <p class="muted-p" style="font-size:.9rem">Demostración por contrapuesta:</p>
+        <ul class="plain-list" style="font-size:.92rem">
+          <li>Supongamos que existe un algoritmo eficiente 𝒜 que, dado cualquier
+            <var>x<sub>i</sub></var>, devuelve <var>x<sub>j</sub></var> ≠ <var>x<sub>i</sub></var>
+            con H(<var>x<sub>i</sub></var>) = H(<var>x<sub>j</sub></var>).</li>
+          <li>Elegimos <var>x<sub>i</sub></var> al azar y ejecutamos 𝒜(<var>x<sub>i</sub></var>).</li>
+          <li>El par (<var>x<sub>i</sub></var>, <var>x<sub>j</sub></var>) es, por definición, una
+            colisión hallada eficientemente. Luego H no es resistente a colisiones. ∎</li>
+        </ul>
+        <p class="muted-p" style="font-size:.9rem;margin-bottom:0">
+          <strong>Consecuencia práctica:</strong> al romperse la resistencia a colisión todavía
+          puede sobrevivir la de segunda preimagen —es el caso de SHA-1 hoy—, pero nunca al revés.
+        </p>
+      </aside>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Proposición 2</span>
+        <p><strong>El recíproco falla:</strong> existe <var>h</var> resistente a colisiones que
+          no es resistente a preimagen.</p>
+        <p class="muted-p" style="font-size:.9rem">Sea <var>g</var> resistente a colisiones con
+          salida de <var>n</var> bits. Definimos:</p>
+        <span class="eq" style="font-size:.98rem">
+          h(<var>x</var>) = 1 ‖ <var>x</var> &nbsp;si |<var>x</var>| = <var>n</var><br>
+          h(<var>x</var>) = 0 ‖ g(<var>x</var>) &nbsp;en otro caso
+        </span>
+        <ul class="plain-list" style="font-size:.92rem">
+          <li><strong>Es resistente a colisiones.</strong> Si h(<var>x</var>) = h(<var>y</var>),
+            ambas salidas empiezan igual. Si empiezan con 1 entonces <var>x</var> = <var>y</var>,
+            contradicción; si empiezan con 0 entonces g colisiona, contradicción.</li>
+          <li style="--accent:var(--coral)"><strong>No es resistente a preimagen.</strong> Si
+            <var>y</var> empieza con 1, la preimagen se lee directamente: es el resto de
+            <var>y</var>. ∎</li>
+        </ul>
+        <p class="muted-p" style="font-size:.9rem;margin-bottom:0">
+          <strong>Moraleja de diseño:</strong> las tres propiedades deben pedirse por separado.
+          La única implicación gratuita es la de la Proposición 1.
+        </p>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Laboratorio 2.1 — Caza de ataques sobre un hash truncado</h2>
+        <span class="lab__tag">n ajustable · 8–26 bits</span>
+      </div>
+      <p class="lab__intro">
+        Con SHA-256 completo nadie de esta clase encontrará una colisión, hoy ni en un millón de
+        años de cómputo. <strong>La seguridad no es magia: es tamaño.</strong> Aquí truncamos el
+        digest a <var>n</var> bits para que el ataque quepa en un navegador. Reduce
+        <var>n</var> y compruébalo tú mismo.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="colBits">Bits de salida — <span id="colBitsLabel">16 bits</span></label>
+          <input type="range" id="colBits" min="8" max="26" value="16" step="1">
+        </div>
+        <div class="field field--auto">
+          <span class="field__label">Objetivo del ataque</span>
+          <div class="seg" id="colModes">
+            <button type="button" data-mode="colision" aria-pressed="true">Colisión</button>
+            <button type="button" data-mode="segunda" aria-pressed="false">2ª preimagen</button>
+            <button type="button" data-mode="preimagen" aria-pressed="false">Preimagen</button>
+          </div>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="colStart" type="button">Atacar</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="colStop" type="button" disabled>Detener</button>
+        </div>
+      </div>
+
+      <div class="readout" style="margin-top:0">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="colTries">0</span>
+          <span class="metric__label">Intentos</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="colTheory">—</span>
+          <span class="metric__label">Predicción teórica</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="colTime">—</span>
+          <span class="metric__label">Tiempo</span>
+        </div>
+      </div>
+
+      <div class="log" id="colLog"><p class="dim">Sin resultados todavía.</p></div>
+
+      <p class="lab__note">
+        Observa el contraste al cambiar de modo: la colisión aparece cerca de
+        2<sup>n/2</sup> intentos; la preimagen exige 2<sup>n</sup>. Con <var>n</var> = 24 son
+        4 mil frente a 16 millones. Ésa es toda la diferencia entre los módulos 02 y 04.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · CONSTRUCCIÓN ============ -->
+<section class="section note" id="construccion">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">Cómo está construida por dentro, y qué se rompe por eso</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender la construcción iterada de
+        Damgård–Merkle y descubrir el ataque de extensión de longitud, que es la razón de
+        existir de HMAC.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un hash no procesa el mensaje completo de golpe: lo corta en <strong>bloques de 64
+          bytes</strong> y los va digiriendo uno tras otro. Cada bloque se mezcla con el resultado
+          del anterior, como una masa que se amasa por tandas. El estado final, después del último
+          bloque, es el digest.
+        </p>
+        <p>
+          Esa arquitectura tiene una consecuencia que casi nadie ve venir: <strong>si conoces el
+          digest, conoces el estado interno con el que quedó la máquina</strong>. Y con el estado
+          en la mano puedes seguir amasando —añadir texto al final del mensaje— sin conocer el
+          principio.
+        </p>
+
+        <h3>El ataque de extensión de longitud</h3>
+        <p>
+          Un servidor autentica peticiones con <var>t</var> = H(<var>k</var> ‖ <var>m</var>),
+          creyendo que sin la clave nadie puede producir un <var>t</var> válido. El atacante ve
+          <var>m</var> y <var>t</var>, nunca la clave — y aun así puede calcular la etiqueta
+          válida de <var>m</var> ‖ relleno ‖ <var>z</var> para el texto <var>z</var> que se le
+          antoje. Le basta con reanudar SHA-256 desde el estado que <var>t</var> le revela.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">Caso documentado</span>
+          En 2009 se falsificaron firmas de la API de Flickr exactamente así, sobre un MAC
+          artesanal de la forma H(secreto ‖ m). El error no estaba en SHA-1: estaba en creer que
+          un hash de Damgård–Merkle se comporta como un oráculo aleatorio.
+        </div>
+
+        <h3>La construcción correcta: HMAC</h3>
+        <p>
+          El doble anidamiento de HMAC hace que el estado interno final no sea el de un prefijo
+          del mensaje, y la extensión de longitud muere ahí. Es lo que usan TLS, JWT y la
+          derivación de monederos jerárquicos BIP32 —con HMAC-SHA-512— precisamente por este motivo.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Damgård–Merkle</span>
+        <p>Sea <var>f</var> : {0,1}<sup><var>n</var></sup> × {0,1}<sup><var>b</var></sup> →
+          {0,1}<sup><var>n</var></sup> una <em>función de compresión</em>. Tras aplicar un relleno
+          inyectivo que codifica la longitud (<em>MD-strengthening</em>):</p>
+        <span class="eq">
+          H<sub>0</sub> = IV &nbsp;·&nbsp; H<sub>i</sub> = f(H<sub>i−1</sub>, x<sub>i</sub>)
+          &nbsp;·&nbsp; h(x) = g(H<sub>t</sub>)
+        </span>
+
+        <p><strong>Teorema.</strong> Si <var>f</var> es resistente a colisiones, entonces
+          <var>h</var> también lo es.</p>
+        <ul class="plain-list" style="font-size:.92rem">
+          <li>Si los mensajes tienen distinto número de bloques, el relleno codifica longitudes
+            distintas en el último bloque: colisión de <var>f</var>.</li>
+          <li>Si tienen el mismo número, se recorre la cadena hacia atrás; existe un primer índice
+            donde las entradas de <var>f</var> difieren pero las salidas coinciden: colisión de
+            <var>f</var>. ∎</li>
+        </ul>
+
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">El teorema sólo transfiere colisión</span>
+          No dice nada sobre el comportamiento de <var>h</var> como oráculo aleatorio, y ahí es
+          exactamente donde aparece la extensión de longitud.
+        </div>
+
+        <span class="eq" style="margin-bottom:0">
+          HMAC<sub>k</sub>(m) = H( (k ⊕ opad) ‖ H( (k ⊕ ipad) ‖ m ) )
+          <small>RFC 2104</small>
+        </span>
+      </aside>
+    </div>
+
+    <div class="callout callout--key">
+      <span class="callout__title">SHA-3 abandona esta arquitectura</span>
+      Keccak usa una <strong>construcción de esponja</strong> con permutación
+      <span class="mono">Keccak-f[1600]</span>, absorción a razón <var>r</var> y capacidad
+      <var>c</var> = 2<var>n</var>. No sufre extensión de longitud, y ésa fue una de las razones
+      de la elección del NIST en 2012. Bitcoin resuelve el mismo problema por otra vía: aplica
+      <strong>doble SHA-256</strong> a los encabezados de bloque.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · CUMPLEAÑOS ============ -->
+<section class="section note" id="cumpleanos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">El ataque del cumpleaños: por qué 256 bits valen 128</h2>
+      <p class="section__lead">
+        En un salón con 23 personas la probabilidad de que dos compartan cumpleaños supera el
+        50 %. La intuición falla porque uno se pregunta por sí mismo, cuando la pregunta real es
+        por <strong>todos los pares posibles</strong>: con 23 personas hay 253 pares.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Traducido a hashes: no cuesta 2<sup>256</sup> romper SHA-256 por colisión, cuesta
+          2<sup>128</sup>. <strong>La raíz cuadrada es el precio de que el atacante pueda elegir
+          ambos mensajes.</strong>
+        </p>
+        <p>
+          Ésta es la razón por la que ningún diseño moderno se conforma con 128 bits de salida:
+          128 bits de digest son sólo 64 bits de seguridad frente a colisión, y 2<sup>64</sup> es
+          alcanzable. Es exactamente la historia de MD5.
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">Consecuencia operativa</span>
+          Una función hash de <var>n</var> bits tiene seguridad ideal si hallar una colisión
+          cuesta Θ(2<sup>n/2</sup>) y hallar una preimagen cuesta Θ(2<sup>n</sup>).
+          <strong>Todo ataque publicado que baje de esa cota se considera una rotura</strong>,
+          aunque siga siendo impracticable. Es la única cifra que permite decidir si una noticia
+          de criptoanálisis importa o no.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Derivación de la cota</span>
+        <p>Sea <var>N</var> = 2<sup><var>n</var></sup> el número de salidas y <var>k</var> el de
+          mensajes hasheados al azar. La probabilidad de <em>no</em> colisión es</p>
+        <span class="eq">
+          Pr[sin colisión] = ∏<sub>i=0</sub><sup>k−1</sup> (N − i)/N
+        </span>
+        <p>Usando 1 − <var>t</var> ≤ e<sup>−t</sup> con <var>t</var> = <var>i</var>/<var>N</var>:</p>
+        <span class="eq">
+          Pr[colisión] ≈ 1 − e<sup>−k(k−1)/2N</sup>
+        </span>
+        <p>Imponiendo probabilidad ½ y aproximando <var>k</var>(<var>k</var>−1) ≈
+          <var>k</var><sup>2</sup>:</p>
+        <span class="eq">
+          k = √(2 ln 2) · √N ≈ 1.1774 · 2<sup>n/2</sup>
+          <small>el número mágico del ataque del cumpleaños</small>
+        </span>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Laboratorio 4.1 — La paradoja, en personas y en bits</h2>
+        <span class="lab__tag">exacto vs. aproximación</span>
+      </div>
+      <p class="lab__intro">
+        El mismo cálculo sirve para un salón de clases y para un espacio de digests. Cambia el
+        espacio y mueve el número de elementos: la probabilidad exacta y la aproximación
+        exponencial casi no se distinguen, y ése es el punto.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="bdSpace">Espacio de salidas</label>
+          <select id="bdSpace">
+            <option value="365">365 días del año</option>
+            <option value="256">2⁸ = 256 salidas</option>
+            <option value="65536">2¹⁶ = 65 536 salidas</option>
+            <option value="16777216">2²⁴ = 16 777 216 salidas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bdK">Elementos — <span id="bdKLabel">23 elementos</span></label>
+          <input type="range" id="bdK" min="2" max="114" value="23" step="1">
+        </div>
+      </div>
+
+      <div class="decay__track"><span class="decay__fill" id="bdBar" style="--accent:var(--violet)"></span></div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="bdExact">—</span>
+          <span class="metric__label">Probabilidad exacta</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="bdApprox">—</span>
+          <span class="metric__label">Aproximación 1 − e<sup>−k(k−1)/2N</sup></span>
+        </div>
+        <div class="metric">
+          <span class="metric__num metric__num--mint" id="bdHalf">—</span>
+          <span class="metric__label">k para el 50 % (1.1774·√N)</span>
+        </div>
+      </div>
+
+      <p class="lab__note">
+        Con 365 días y 23 personas la probabilidad exacta es 50.7 %. Sube el espacio a
+        2<sup>24</sup> y verás que hacen falta unas 4 800 muestras, no 8 millones:
+        <strong>la raíz cuadrada, otra vez</strong>.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · ALGORITMOS ============ -->
+<section class="section note" id="algoritmos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Cuáles usar hoy, cuáles ya cayeron, y cuándo</h2>
+      <p class="section__lead">
+        Ninguna función hash muere de golpe. Primero alguien publica un ataque que cuesta un poco
+        menos que la fuerza bruta —nadie se alarma—, luego el costo baja lo suficiente para un
+        laboratorio, y un día aparecen dos archivos distintos con el mismo hash, descargables por
+        cualquiera. En ese momento la función ya llevaba años muerta en los papers.
+      </p>
+    </header>
+
+    <div class="clay-card lab reveal" style="margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-defi"/></svg> Línea del deterioro</h2>
+        <span class="lab__tag">log₂ del costo de la mejor colisión conocida</span>
+      </div>
+      <p class="lab__intro">
+        La distancia entre la seguridad ideal 2<sup>n/2</sup> y la mejor colisión publicada es la
+        medida objetiva del deterioro. Todo lo que quede por debajo de ≈ 2<sup>64</sup> está al
+        alcance de un adversario bien financiado.
+      </p>
+
+      <div class="decay">
+        <div class="decay__row">
+          <span class="decay__name">MD5 <small>ideal 2⁶⁴</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="19" data-label="2^24.1" style="--accent:var(--coral)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">SHA-0 <small>ideal 2⁸⁰</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="30" data-label="2^39" style="--accent:var(--coral)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">SHA-1 <small>ideal 2⁸⁰</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="49" data-label="2^63.1 · SHAttered" style="--accent:var(--amber)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">SHA-256 <small>ideal 2¹²⁸</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="100" data-label="2^128 · sin rotura" style="--accent:var(--mint)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">SHA3-256 <small>ideal 2¹²⁸</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="100" data-label="2^128 · sin rotura" style="--accent:var(--mint)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <caption class="center muted-p" style="padding:.8em;font-size:.85rem">
+          Estado del arte a agosto de 2026. La cifra que importa no es la longitud de la salida,
+          sino la <strong>longitud de seguridad</strong>: log₂ del costo del mejor ataque publicado.
+        </caption>
+        <thead>
+          <tr>
+            <th>Algoritmo</th>
+            <th>Seguridad</th>
+            <th>Mejor ataque conocido</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SHA-256</strong><br><span class="muted-p" style="font-size:.82rem">SHA-2 · FIPS 180-4</span></td>
+            <td class="num">128 colisión<br>256 preimagen</td>
+            <td>Cumpleaños genérico. El criptoanálisis dedicado no rebasa 31 de las 64 rondas.</td>
+            <td><span class="status status--ok">vigente</span></td>
+          </tr>
+          <tr>
+            <td><strong>SHA3-256</strong><br><span class="muted-p" style="font-size:.82rem">Keccak · FIPS 202</span></td>
+            <td class="num">128 colisión<br>256 preimagen</td>
+            <td>No supera 6 de las 24 rondas de Keccak-<em>f</em>. La esponja es inmune a extensión de longitud.</td>
+            <td><span class="status status--ok">vigente</span></td>
+          </tr>
+          <tr>
+            <td><strong>SHA-1</strong><br><span class="muted-p" style="font-size:.82rem">retirada por el NIST</span></td>
+            <td class="num">≈ 63 efectivos</td>
+            <td>Colisión de prefijo elegido: 2<sup>63.4</sup>, ejecutada en 2020 por ≈ 45 000 USD de GPU rentada.</td>
+            <td><span class="status status--bad">rota</span></td>
+          </tr>
+          <tr>
+            <td><strong>MD5</strong><br><span class="muted-p" style="font-size:.82rem">RFC 1321</span></td>
+            <td class="num">&lt; 32 efectivos</td>
+            <td>Colisión diferencial de Wang: segundos en una laptop. Con prefijo elegido, ≈ 2<sup>39</sup>.</td>
+            <td><span class="status status--bad">rota</span></td>
+          </tr>
+          <tr>
+            <td><strong>CRC32</strong><br><span class="muted-p" style="font-size:.82rem">suma de comprobación</span></td>
+            <td class="num">0</td>
+            <td>Invertible en tiempo lineal. Segunda preimagen y colisiones triviales.</td>
+            <td><span class="status status--bad">no criptográfica</span></td>
+          </tr>
+          <tr>
+            <td><strong>Argon2id</strong><br><span class="muted-p" style="font-size:.82rem">PHC 2015 · RFC 9106</span></td>
+            <td class="num">parametrizable</td>
+            <td>Función de derivación de claves: memoria y tiempo configurables. No es para integridad.</td>
+            <td><span class="status status--ok">contraseñas</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--note">
+      <span class="callout__title">Dos precisiones que suelen citarse mal</span>
+      La cifra 2<sup>39</sup> corresponde a <strong>SHA-0</strong>, no a SHA-1. Y SHA-3 fue
+      <strong>seleccionado en octubre de 2012</strong> y publicado como FIPS 202 en agosto de 2015;
+      no son la misma fecha.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · CONTRASEÑAS ============ -->
+<section class="section note" id="contrasenas">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Contraseñas: por qué un hash rápido es un defecto</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender qué protege la sal, qué protege el
+        factor de trabajo, y por qué SHA-256 es la elección equivocada para almacenar contraseñas.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Guardar SHA-256(contraseña) parece prudente: si roban la base, no hay contraseñas en
+          claro. Pero el atacante no necesita invertir el hash. Le basta con hashear las diez mil
+          contraseñas más comunes y buscar coincidencias — y como el hash es determinista,
+          <strong>una sola tabla sirve para todos los usuarios de todas las bases de datos del
+          mundo</strong>. Eso es una tabla arcoíris.
+        </p>
+        <p>
+          La <strong>sal</strong> rompe esa reutilización: un valor aleatorio distinto por usuario
+          obliga a rehacer la tabla para cada uno. El <strong>factor de trabajo</strong> ataca lo
+          otro: hace que cada intento cueste 100 ms en lugar de 0.000002 s.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">Caso documentado</span>
+          LinkedIn, 2012: 6.5 millones de hashes SHA-1 <em>sin sal</em>. La mayoría se recuperó en
+          días. De ahí salieron bcrypt, scrypt y Argon2.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Los tres escenarios</span>
+        <ul class="plain-list" style="font-size:.93rem">
+          <li style="--accent:var(--coral)"><strong>Ingenuo:</strong> <var>v</var> = H(<var>p</var>).
+            El adversario invierte |D| evaluaciones una sola vez y ataca a <var>u</var> usuarios en
+            O(|D| + <var>u</var>).</li>
+          <li style="--accent:var(--amber)"><strong>Con sal:</strong> <var>v</var> =
+            H(<var>s</var> ‖ <var>p</var>), con <var>s</var> aleatoria pública de al menos 128 bits.
+            El costo pasa a O(<var>u</var> · |D|): la precomputación deja de amortizarse.</li>
+          <li style="--accent:var(--mint)"><strong>Con hash adaptativo:</strong> <var>v</var> =
+            KDF(<var>p</var>, <var>s</var>, <var>τ</var>). El defensor paga <var>c</var> por
+            autenticación; el atacante paga |D| · <var>c</var> <em>por usuario</em>.</li>
+        </ul>
+        <span class="eq">
+          costo<sub>atacante</sub> = u · |D| · c(τ, m)
+          <small>Argon2 añade coste en memoria, que penaliza a GPU y ASIC</small>
+        </span>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">Criterio de diseño</span>
+          Ajusta <var>τ</var> para que una verificación legítima cueste entre 50 y 250 ms en tu
+          hardware de producción. Ése es el punto en que el usuario no lo nota y el atacante sí.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 5 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 6.1 — Tabla arcoíris contra sal</h2>
+        <span class="lab__tag">ataque por diccionario</span>
+      </div>
+      <p class="lab__intro">
+        Ocho usuarios ficticios eligieron contraseñas de un diccionario de uso común. Ejecuta el
+        ataque, y luego repítelo <em>exactamente igual</em> con la sal activada.
+        <strong>Fíjate en la columna de hashes calculados, no en la de cuentas rotas.</strong>
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="saltOn">
+            <span class="switch__track" aria-hidden="true"></span>
+            Usar sal aleatoria por usuario
+          </label>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="saltBtn" type="button">
+            Ejecutar ataque <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="readout" style="margin-top:0">
+        <div class="metric">
+          <span class="metric__num metric__num--coral" id="saltCracked">—</span>
+          <span class="metric__label">Cuentas comprometidas</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="saltHashes">—</span>
+          <span class="metric__label">Hashes calculados</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="saltTime">—</span>
+          <span class="metric__label">Tiempo</span>
+        </div>
+      </div>
+
+      <div class="log" id="saltLog"><p class="dim">Sin ejecutar.</p></div>
+
+      <p class="lab__note">
+        La sal no impide adivinar una contraseña débil concreta: <strong>impide atacar a todos a
+        la vez con el mismo trabajo</strong>. Con ocho usuarios el atacante paga ocho veces más;
+        con ocho millones, ocho millones de veces más.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · MERKLE ============ -->
+<section class="section note" id="merkle">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Árboles de Merkle: probar pertenencia sin descargar todo</h2>
+      <p class="section__lead">
+        Un bloque de Bitcoin puede contener miles de transacciones. Tu teléfono no va a descargar
+        600 GB para comprobar que te pagaron.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El árbol de Merkle resuelve exactamente eso: hashea las transacciones por parejas, luego
+          los resultados por parejas, y así hasta quedarse con un único valor —la
+          <strong>raíz</strong>— que resume todo el conjunto.
+        </p>
+        <p>
+          Lo elegante es la prueba: para convencerte de que tu transacción está adentro, sólo hace
+          falta darte los hashes <em>hermanos</em> del camino hasta la raíz. Con 1 048 576
+          transacciones son <strong>20 hashes: 640 bytes en lugar de gigabytes</strong>. El ahorro
+          es logarítmico, y por eso la verificación simplificada de pagos es posible.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">La duplicación de la última hoja</span>
+          Cuando un nivel tiene un número impar de nodos, el último se duplica. Ésa es la fuente de
+          la vulnerabilidad <strong>CVE-2012-2459</strong> de Bitcoin: dos listas de transacciones
+          distintas podían producir la misma raíz. Buen ejercicio de clase: explicar por qué la
+          duplicación rompe la inyectividad.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Construcción</span>
+        <p>Dadas <var>m</var> hojas, el nivel base es L₀ = (dSHA(T₁), …, dSHA(T<sub>m</sub>)) con
+          dSHA(x) = SHA256(SHA256(x)), y recursivamente:</p>
+        <span class="eq">
+          L<sub>j+1</sub>[i] = dSHA( L<sub>j</sub>[2i] ‖ L<sub>j</sub>[2i+1] )
+          <small>duplicando el último elemento cuando el nivel es impar</small>
+        </span>
+        <p>Una prueba de inclusión para T<sub>i</sub> es la lista de hermanos
+          π = (σ₀, …, σ<sub>d−1</sub>) con <var>d</var> = ⌈log₂ <var>m</var>⌉, y el verificador
+          recomputa:</p>
+        <span class="eq">
+          r₀ = dSHA(T<sub>i</sub>) &nbsp;·&nbsp;
+          r<sub>j+1</sub> = dSHA( orden(r<sub>j</sub>, σ<sub>j</sub>) )
+          <small>acepta si r<sub>d</sub> = raíz</small>
+        </span>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">Seguridad</span>
+          Falsificar una prueba implica hallar una colisión de dSHA en algún nivel. La seguridad
+          del árbol <strong>se reduce a la resistencia a colisión de la función base</strong>: es
+          el mismo argumento que el de Damgård–Merkle del módulo 03.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 6 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 7.1 — Constructor de árbol y prueba de inclusión</h2>
+        <span class="lab__tag">doble SHA-256 · SPV</span>
+      </div>
+      <p class="lab__intro">
+        Escribe una transacción por línea, construye el árbol y pide la prueba de inclusión de
+        cualquiera de ellas. Después altera esa misma transacción y observa la cascada hasta la raíz.
+      </p>
+
+      <div class="controls">
+        <div class="field field--wide">
+          <label class="field__label" for="mkTxs">Transacciones, una por línea</label>
+          <textarea id="mkTxs" spellcheck="false">Tx1: Alice paga 2 BTC a Bob
+Tx2: Bob paga 0.5 BTC a Carol
+Tx3: Carol paga 1 BTC a Dave
+Tx4: Dave paga 0.1 BTC a Erin
+Tx5: Erin paga 3 BTC a Alice</textarea>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="mkBuild" type="button">Construir árbol</button>
+        </div>
+        <div class="field">
+          <label class="field__label" for="mkPick">Probar inclusión de</label>
+          <select id="mkPick"></select>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="mkProof" type="button">Generar prueba</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="mkTamper" type="button">Alterar esa transacción</button>
+        </div>
+      </div>
+
+      <div class="merkle" id="mkTree"></div>
+
+      <div class="legend">
+        <span><i style="background:linear-gradient(150deg,var(--violet),var(--violet-deep))"></i> raíz</span>
+        <span><i style="background:color-mix(in srgb,var(--mint) 32%,transparent)"></i> camino que recomputa el verificador</span>
+        <span><i style="background:color-mix(in srgb,var(--amber) 38%,transparent)"></i> hermanos: la prueba</span>
+        <span><i style="background:color-mix(in srgb,var(--coral) 34%,transparent)"></i> hoja alterada</span>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="mkRoot" style="font-size:.9rem">—</span>
+          <span class="metric__label">Raíz de Merkle</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="mkLeaves">—</span>
+          <span class="metric__label">Hojas</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="mkHeight">—</span>
+          <span class="metric__label">Altura del árbol</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num metric__num--mint" id="mkSize">—</span>
+          <span class="metric__label">Tamaño de la prueba</span>
+        </div>
+      </div>
+
+      <div class="log" id="mkLog"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · COMPROMISOS Y CADENA ============ -->
+<section class="section note" id="blockchain">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Compromisos, prueba de trabajo y la cadena</h2>
+      <p class="section__lead">
+        Un compromiso es un sobre cerrado: pones dentro tu decisión, entregas el sobre, y más
+        tarde lo abres. Quien lo tiene no puede leerlo (<strong>ocultamiento</strong>) y tú ya no
+        puedes cambiar lo que hay dentro (<strong>vinculación</strong>).
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un hash hace las dos cosas a la vez… siempre que recuerdes meter un valor aleatorio
+          junto con tu decisión. Sin ese valor, el ocultamiento se pierde por completo cuando el
+          espacio de mensajes es pequeño: el adversario simplemente hashea todas las opciones.
+          Con dos opciones —águila o sol— le toma dos hashes.
+        </p>
+
+        <h3>Minar es resolver una preimagen parcial</h3>
+        <p>
+          La prueba de trabajo pide hallar un <span class="mono">nonce</span> tal que
+          H(bloque ‖ nonce) &lt; objetivo. Es el único problema difícil de esta lista que
+          <strong>se resuelve por fuerza bruta a propósito</strong>: la dificultad es el producto,
+          no el defecto. Y como cada bloque incluye el hash del anterior, alterar uno invalida
+          todos los siguientes.
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">Por qué SHA-256 se ejecuta en masa</span>
+          Un equipo comercial de minado ronda los 580 TH/s: en un segundo calcula lo que un núcleo
+          de tu procesador tardaría más de medio año. SHA-256 es el sueño de un diseñador de
+          circuitos —64 rondas fijas, sin memoria ni bifurcaciones— y por eso un ASIC entrega un
+          hash por ciclo de reloj. Las funciones <em>memory-hard</em> como Argon2 o RandomX
+          invierten el argumento: si el cuello de botella es la memoria y no la aritmética, el
+          fabricante de silicio pierde su ventaja, porque la DRAM se la vende el mismo proveedor
+          a todo el mundo.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Esquema de compromiso</span>
+        <ul class="plain-list" style="font-size:.93rem">
+          <li><strong>Compromiso.</strong> El emisor elige <var>m</var> y
+            <var>r</var> ← {0,1}<sup>λ</sup> aleatorio, calcula
+            <var>c</var> = H(<var>m</var> ‖ <var>r</var>) y publica <var>c</var>.</li>
+          <li style="--accent:var(--mint)"><strong>Apertura.</strong> Revela (<var>m</var>,
+            <var>r</var>); el verificador recomputa y compara con <var>c</var>.</li>
+        </ul>
+        <p><strong>Ocultamiento:</strong> <var>c</var> no revela información sobre <var>m</var>;
+          se apoya en la resistencia a preimagen y en que <var>r</var> tenga suficiente entropía.</p>
+        <p><strong>Vinculación:</strong> hallar (<var>m</var>′, <var>r</var>′) ≠ (<var>m</var>,
+          <var>r</var>) con el mismo <var>c</var> equivale a una colisión de H.</p>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">Advertencia</span>
+          Sin <var>r</var>, el ocultamiento no existe cuando el espacio de <var>m</var> es
+          pequeño. El laboratorio siguiente lo hace explícito en milisegundos.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 7 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Laboratorio 8.1 — El volado por teléfono</h2>
+        <span class="lab__tag">ocultamiento y vinculación</span>
+      </div>
+      <p class="lab__intro">
+        Alice y Bob deciden algo a distancia sin poder confiar el uno en el otro. Ejecuta el
+        protocolo; luego quita el valor aleatorio y observa cómo Bob rompe el compromiso al instante.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <span class="field__label">Alice elige</span>
+          <div class="seg" id="cmChoice">
+            <button type="button" data-choice="aguila" aria-pressed="true">Águila</button>
+            <button type="button" data-choice="sol" aria-pressed="false">Sol</button>
+          </div>
+        </div>
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="cmUseR" checked>
+            <span class="switch__track" aria-hidden="true"></span>
+            Incluir valor aleatorio r
+          </label>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="cmCommit" type="button">Fase 1: comprometer</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="cmReveal" type="button" disabled>Fase 2: revelar</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="cmAttack" type="button" disabled>Bob intenta adivinar</button>
+        </div>
+      </div>
+
+      <code class="hashout hashout--sm" id="cmOut">— sin compromiso publicado —</code>
+      <div class="log" id="cmLog"><p class="dim">Ejecuta la fase 1 para empezar.</p></div>
+    </div>
+
+    <!-- LAB 8 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> Laboratorio 8.2 — Prueba de trabajo y cadena de bloques</h2>
+        <span class="lab__tag">preimagen parcial</span>
+      </div>
+      <p class="lab__intro">
+        Mina los tres bloques, y después <strong>edita el contenido de cualquiera</strong>.
+        Verás la cascada de invalidación: para volver a hacer válida la cadena tienes que reminar
+        ese bloque <em>y todos los posteriores</em>. Eso es el costo de reescribir la historia.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="powDiff">Dificultad — <span id="powDiffLabel">3 ceros hexadecimales</span></label>
+          <input type="range" id="powDiff" min="1" max="5" value="3" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="powMine" type="button">Minar la cadena</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="powStop" type="button" disabled>Detener</button>
+        </div>
+        <div class="field field--auto">
+          <span class="field__label">Trabajo realizado</span>
+          <span class="mono" id="powStats" style="font-size:.9rem;color:var(--muted)">—</span>
+        </div>
+      </div>
+
+      <div class="chainlab" id="powChain"></div>
+
+      <p class="lab__note">
+        Cada cero hexadecimal adicional multiplica por 16 el trabajo esperado. La red de Bitcoin
+        opera hoy alrededor de 19 ceros: por eso el ajuste de dificultad mide trabajo real y no
+        buena suerte.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Síntesis</span>
+      <h2 class="section__title">Qué se rompe exactamente cuando falla cada propiedad</h2>
+      <p class="section__lead">
+        Hasta aquí las propiedades se enunciaron por separado. Conviene ahora invertir la
+        pregunta: si mañana alguien rompe la resistencia a colisión de la función que estás usando,
+        <strong>¿qué deja de funcionar y qué sigue en pie?</strong> La respuesta no es «todo».
+      </p>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">El caso canónico: la firma digital</span>
+      Nadie firma un documento: <strong>se firma su hash</strong>. Si el atacante consigue dos
+      textos con la misma huella —uno inocuo y otro fraudulento— basta con hacer firmar el primero
+      para quedarse con una firma válida sobre el segundo. La clave privada nunca se compromete y,
+      aun así, la firma es falsificable. Ésa es la consecuencia exacta de perder la resistencia a
+      colisión — y es lo que ocurrió con el certificado de CA falso construido sobre MD5 en 2008 y
+      con el malware Flame en 2012.
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <thead>
+          <tr>
+            <th>Propiedad</th>
+            <th>Si falla, el adversario puede…</th>
+            <th>Dónde duele primero</th>
+            <th>Costo ideal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Preimagen</strong><br><span class="muted-p" style="font-size:.82rem">one-way</span></td>
+            <td>Invertir huellas publicadas: recuperar contraseñas de un volcado, <strong>leer el
+              contenido de un compromiso antes de que lo abran</strong>.</td>
+            <td>Ocultamiento del compromiso · contraseñas · direcciones</td>
+            <td class="num">2<sup>n</sup></td>
+          </tr>
+          <tr>
+            <td><strong>Segunda preimagen</strong><br><span class="muted-p" style="font-size:.82rem">target collision</span></td>
+            <td>Sustituir un objeto <em>ya publicado y aceptado</em> por otro sin alterar ningún
+              hash previamente difundido.</td>
+            <td>Encadenamiento de bloques · prueba de Merkle · documento firmado</td>
+            <td class="num">2<sup>n</sup></td>
+          </tr>
+          <tr>
+            <td><strong>Colisión</strong><br><span class="muted-p" style="font-size:.82rem">collision-free</span></td>
+            <td>Fabricar de antemano dos objetos intercambiables: <strong>hacer firmar uno y
+              exhibir el otro</strong>, o abrir un mismo compromiso de dos maneras.</td>
+            <td>Firma digital · vinculación del compromiso · raíz de Merkle</td>
+            <td class="num">2<sup>n/2</sup></td>
+          </tr>
+          <tr>
+            <td><strong>Colisión de prefijo elegido</strong><br><span class="muted-p" style="font-size:.82rem">chosen-prefix</span></td>
+            <td>Dar a las dos versiones un encabezado realista fijado de antemano —nombres, montos,
+              campos de un certificado X.509—, no dos archivos basura.</td>
+            <td>Documentos con formato · certificados · PGP</td>
+            <td class="num">≥ 2<sup>n/2</sup></td>
+          </tr>
+          <tr>
+            <td><strong>Inmunidad a extensión de longitud</strong><br><span class="muted-p" style="font-size:.82rem">propiedad de la construcción</span></td>
+            <td>Forjar etiquetas de autenticación para mensajes que nunca vio,
+              <strong>sin conocer la clave</strong>, si el MAC es el ingenuo H(k ‖ m).</td>
+            <td>MAC artesanal · APIs firmadas · BIP32</td>
+            <td class="num">—</td>
+          </tr>
+          <tr>
+            <td><strong>Salida indistinguible de aleatoria</strong><br><span class="muted-p" style="font-size:.82rem">avalancha · uniformidad</span></td>
+            <td>Sesgar o anticipar valores derivados del hash: el nonce ganador, el resultado de un
+              sorteo, la clave hija de un monedero jerárquico.</td>
+            <td>Prueba de trabajo · aleatoriedad pública · HMAC</td>
+            <td class="num">—</td>
+          </tr>
+          <tr>
+            <td><strong>Costo de evaluación controlable</strong><br><span class="muted-p" style="font-size:.82rem">sólo para KDF</span></td>
+            <td>Evaluar miles de millones de candidatos por segundo en GPU o ASIC: la velocidad,
+              virtud en todo lo demás, aquí es el defecto.</td>
+            <td>Almacenamiento de contraseñas · cifrado de monederos</td>
+            <td class="num">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--note reveal">
+      <span class="callout__title">La regla que ordena la tabla</span>
+      Una propiedad rota no derriba el sistema entero: derriba <strong>los elementos cuya
+      seguridad se reduce a ella</strong>. Preimagen protege lo que debe permanecer oculto;
+      segunda preimagen protege lo que ya fue publicado y aceptado; colisión protege lo que será
+      elegido por el propio adversario.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3>Una nota sobre el adversario cuántico</h3>
+        <p>
+          El algoritmo de Grover reduce la búsqueda de preimagen de 2<sup>n</sup> a
+          ≈ 2<sup>n/2</sup>, y el de Brassard–Høyer–Tapp llevaría las colisiones a
+          2<sup>n/3</sup> — pero exigiendo memoria cuántica de acceso aleatorio en una escala que
+          hoy nadie considera realista. Bajo modelos con memoria acotada, la ventaja cuántica sobre
+          colisiones casi desaparece.
+        </p>
+        <p>
+          La consecuencia práctica es sencilla: <strong>SHA-256 conserva del orden de 128 bits
+          frente a preimagen cuántica y no es la pieza urgente</strong>. La presión post-cuántica
+          está en la firma —ECDSA cae ante Shor—, no en la función hash. De hecho, los esquemas de
+          firma construidos exclusivamente con hash (FIPS 205, SLH-DSA) son la respuesta, no el
+          problema.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag">Proposición 3 · hash-then-sign</span>
+        <p>Sea Σ un esquema de firma seguro frente a falsificación existencial, y Σ<sup>H</sup> el
+          esquema que firma H(<var>m</var>) en lugar de <var>m</var>. Para todo falsificador 𝒜:</p>
+        <span class="eq" style="font-size:.95rem">
+          Adv<sup>euf-cma</sup><sub>Σ<sup>H</sup></sub>(𝒜) ≤
+          Adv<sup>euf-cma</sup><sub>Σ</sub>(ℬ) + Adv<sup>col</sup><sub>H</sub>(𝒞)
+        </span>
+        <p class="muted-p" style="font-size:.9rem;margin-bottom:0">
+          <strong>La lectura importante es la contrapuesta.</strong> La desigualdad sólo garantiza
+          seguridad mientras el segundo término sea despreciable; en cuanto la ventaja de colisión
+          deja de serlo, la cota se vacía y la falsificación es efectiva. Eso es exactamente lo que
+          ocurrió con MD5 y con SHA-1.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Siguiente módulo: esquemas de compromiso</h2>
+        <p>Del sobre cerrado al compromiso de Pedersen: sumar sin revelar los montos.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="compromisos.html">
+          Continuar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
   <div class="container">
     <div class="footer__grid">
       <div class="footer__brand">
-        <a class="brand" href="#inicio">
+        <a class="brand" href="index.html">
           <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
           <span class="brand__text">Chain<em>Notes</em></span>
         </a>
@@ -95,20 +1388,20 @@
       <nav class="footer__col" aria-label="Navegación del pie">
         <h3>Navegación</h3>
         <ul>
-          <li><a href="#inicio">Inicio</a></li>
-          <li><a href="#intro">Introducción</a></li>
-          <li><a href="#temas">Temario</a></li>
-          <li><a href="#equipo">Equipo</a></li>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="index.html#intro">Introducción</a></li>
+          <li><a href="index.html#temas">Temario</a></li>
+          <li><a href="index.html#equipo">Equipo</a></li>
         </ul>
       </nav>
 
       <nav class="footer__col" aria-label="Módulos destacados">
         <h3>Módulos</h3>
         <ul>
-          <li><a href="#temas">Fundamentos</a></li>
-          <li><a href="#temas">Criptografía</a></li>
-          <li><a href="#temas">Smart Contracts</a></li>
-          <li><a href="#temas">DeFi</a></li>
+          <li><a href="index.html#temas">Fundamentos</a></li>
+          <li><a href="index.html#temas">Criptografía</a></li>
+          <li><a href="index.html#temas">Smart Contracts</a></li>
+          <li><a href="index.html#temas">DeFi</a></li>
         </ul>
       </nav>
 
@@ -118,7 +1411,7 @@
           <li><a href="#">Glosario</a></li>
           <li><a href="#">Papers citados</a></li>
           <li><a href="#">Repositorio de código</a></li>
-          <li><a href="#contacto">Contacto</a></li>
+          <li><a href="index.html#contacto">Contacto</a></li>
         </ul>
       </div>
     </div>
@@ -131,5 +1424,6 @@
 </footer>
 
 <script src="assets/js/main.js" defer></script>
+<script src="assets/js/hash.js" defer></script>
 </body>
 </html>
