@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
-<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<title>Propagación de bloques y Red P2P — ChainNotes</title>
+<meta
+  name="description"
+  content="Apunte sobre propagación de bloques, redes P2P, minería, sincronización y resolución de conflictos en una blockchain distribuida.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="stylesheet" href="../assets/css/apuntes.css">
 </head>
 <body>
 
@@ -47,22 +50,23 @@
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="Navegación principal">
-      <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
-      </ul>
-    </nav>
+<nav class="nav" id="nav" aria-label="Navegación principal">
+    <ul class="nav__list">
+      <li><a class="nav__link" href="../index.html">Inicio</a></li>
+      <li><a class="nav__link is-active" href="#p2p">Red P2P</a></li>
+      <li><a class="nav__link" href="#propagacion">Propagación</a></li>
+      <li><a class="nav__link" href="#conflictos">Conflictos</a></li>
+      <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+    </ul>
+</nav>
 
     <div class="header__actions">
       <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
         <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
       </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      <a class="clay-btn clay-btn--primary header__cta" href="#p2p">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
@@ -74,60 +78,163 @@
 <main>
 
   <!-- ============ HERO ============ -->
-  <section class="topic-hero" id="inicio">
-    <div class="container topic-hero__inner">
+  <!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
 
-      <div>
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
 
-        <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
 
-          <a href="../index.html">Apuntes</a>
+  <div class="container topic-hero__inner">
 
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <use href="#i-arrow"/>
+    <div>
+
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+
+        <a href="../index.html">Apuntes</a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <a href="../index.html#temas">Temario</a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <span>03 · Red P2P</span>
+
+      </nav>
+
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span>
+        Módulo 03 · Redes distribuidas
+      </span>
+
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Propagación de bloques<br>
+        <span class="grad">en la red</span>
+      </h1>
+
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Encontrar un bloque no sirve de mucho si el resto de la red
+        nunca se entera. Una blockchain distribuida necesita transmitir
+        los nuevos bloques entre nodos, sincronizar distintas visiones
+        de la cadena y resolver qué ocurre cuando aparecen bloques
+        competidores al mismo tiempo.
+      </p>
+
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-nodes"/>
           </svg>
+          Red P2P
+        </li>
 
-          <a href="../index.html#temas">Temario</a>
-
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <use href="#i-arrow"/>
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-globe"/>
           </svg>
+          Propagación
+        </li>
 
-          <span>03 · Red P2P</span>
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-layers"/>
+          </svg>
+          Consenso
+        </li>
 
-        </nav>
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-check"/>
+          </svg>
+          4 ejercicios
+        </li>
 
-
-        <span class="badge anim" style="--d:60ms">
-
-          <span class="badge__dot"></span>
-
-          Módulo 03 · Red P2P
-
-        </span>
-
-
-        <h1 class="topic-hero__title anim" style="--d:120ms">
-
-          Propagación de bloques
-          <span class="grad">en la red</span>
-
-        </h1>
-
-
-        <p class="topic-hero__lead anim" style="--d:180ms">
-
-          Una blockchain distribuida necesita que los bloques producidos
-          puedan compartirse entre múltiples participantes.
-          La red P2P permite difundir esta información y mantener
-          una visión común de la cadena.
-
-        </p>
-
-      </div>
+      </ul>
 
     </div>
-  </section>
+
+  </div>
+
+
+  <!-- ============ ÍNDICE ============ -->
+  <div class="container">
+
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+
+      <h2>Contenido del apunte</h2>
+
+      <ul class="toc__list">
+
+        <li>
+          <a href="#p2p">
+            <span class="toc__n">01</span>
+            Por qué hace falta una red P2P
+          </a>
+        </li>
+
+        <li>
+          <a href="#propagacion">
+            <span class="toc__n">02</span>
+            Cómo se propaga un bloque
+          </a>
+        </li>
+
+        <li>
+          <a href="#mineria-red">
+            <span class="toc__n">03</span>
+            Relación entre minería y red
+          </a>
+        </li>
+
+        <li>
+          <a href="#conflictos">
+            <span class="toc__n">04</span>
+            Qué ocurre si aparecen dos bloques
+          </a>
+        </li>
+
+        <li>
+          <a href="#blockchain-real">
+            <span class="toc__n">05</span>
+            De cadena artesanal a red distribuida
+          </a>
+        </li>
+
+        <li>
+          <a href="#resumen">
+            <span class="toc__n">06</span>
+            Síntesis
+          </a>
+        </li>
+
+        <li>
+          <a href="#ejercicios">
+            <span class="toc__n">07</span>
+            Ejercicios
+          </a>
+        </li>
+
+      </ul>
+
+    </nav>
+
+  </div>
+
+</section>
 
 
   <!-- ============ RED P2P ============ -->
