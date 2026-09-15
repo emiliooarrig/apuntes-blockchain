@@ -73,6 +73,490 @@
 
 <main>
 
+  <!-- ============ HERO ============ -->
+  <section class="topic-hero" id="inicio">
+    <div class="container topic-hero__inner">
+
+      <div>
+        <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+          <a href="index.html">Apuntes</a>
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-arrow"/>
+          </svg>
+
+          <a href="index.html#temas">Temario</a>
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-arrow"/>
+          </svg>
+
+          <span>05 · Bitcoin</span>
+        </nav>
+
+        <span class="badge anim" style="--d:60ms">
+          <span class="badge__dot"></span>
+          Módulo 05 · Bitcoin
+        </span>
+
+        <h1 class="topic-hero__title anim" style="--d:120ms">
+          Modelo UTXO y <span class="grad">minería</span>
+        </h1>
+
+        <p class="topic-hero__lead anim" style="--d:180ms">
+          Dos elementos fundamentales para comprender cómo una blockchain
+          basada en Bitcoin representa las salidas disponibles y cómo utiliza
+          Proof of Work para incorporar nuevos bloques a la cadena.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ MODELO UTXO ============ -->
+  <section class="section note" id="utxo">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Modelo UTXO
+        </span>
+
+        <h2 class="section__title">
+          Salidas no gastadas
+        </h2>
+
+        <div class="goal">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-check"/>
+          </svg>
+
+          <p style="margin:0">
+            <strong>Objetivo:</strong>
+            comprender que el estado monetario puede representarse mediante
+            el conjunto de salidas que continúan disponibles y que todavía
+            no han sido gastadas.
+          </p>
+        </div>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            El modelo <strong>UTXO</strong> se relaciona con las
+            <strong>salidas de transacción que todavía no han sido gastadas</strong>.
+            En lugar de considerar únicamente todo el historial de operaciones,
+            el estado relevante puede representarse mediante el conjunto de
+            salidas que continúan disponibles.
+          </p>
+
+          <p>
+            Los materiales proporcionados muestran esta idea al estudiar
+            <strong>Mimblewimble</strong>. En este diseño, cuando una salida
+            fue creada y posteriormente gastada, puede cancelarse del historial.
+            Las salidas que siguen sin gastarse permanecen como parte del
+            estado actual.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Idea principal
+            </span>
+
+            Una salida creada que todavía no ha sido gastada forma parte
+            del conjunto UTXO. Cuando posteriormente se consume,
+            deja de formar parte de ese conjunto.
+
+          </div>
+
+
+          <h3>Flujo simplificado</h3>
+
+          <p>
+            El proceso puede entenderse de la siguiente manera:
+          </p>
+
+          <ol>
+            <li>
+              Una transacción genera una nueva salida.
+            </li>
+
+            <li>
+              Mientras esa salida no sea utilizada posteriormente,
+              permanece dentro del conjunto de salidas no gastadas.
+            </li>
+
+            <li>
+              Cuando la salida se utiliza, deja de formar parte del
+              conjunto UTXO.
+            </li>
+
+            <li>
+              Las nuevas salidas producidas por las transacciones
+              pasan a formar parte del nuevo estado.
+            </li>
+          </ol>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              UTXO en una línea
+            </span>
+
+            <strong>
+              Salida creada → salida disponible → salida gastada →
+              nuevas salidas disponibles
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ POR QUÉ IMPORTA UTXO ============ -->
+  <section class="section note" id="utxo-importancia">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Estado de la cadena
+        </span>
+
+        <h2 class="section__title">
+          ¿Por qué importa el conjunto UTXO?
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            El material sobre esquemas de compromiso utiliza Mimblewimble
+            como ejemplo de una arquitectura en la que el tamaño de la
+            blockchain puede relacionarse con el
+            <strong>estado actual</strong> y, particularmente, con el
+            <strong>conjunto UTXO</strong>, en lugar de depender
+            exclusivamente de conservar todo el historial completo.
+          </p>
+
+          <p>
+            Como las salidas creadas y después gastadas pueden cancelarse,
+            sobreviven principalmente las salidas que continúan sin gastar
+            y los elementos necesarios para verificar la validez de las
+            transacciones.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Concepto clave
+            </span>
+
+            El conjunto UTXO representa las salidas que continúan
+            formando parte del estado actual porque aún no han sido
+            utilizadas.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ MINERÍA ============ -->
+  <section class="section note" id="mineria">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Minería
+        </span>
+
+        <h2 class="section__title">
+          Proof of Work en Bitcoin
+        </h2>
+
+        <p class="section__lead">
+          Bitcoin utiliza funciones hash como parte del mecanismo
+          que permite producir nuevos bloques mediante prueba de trabajo.
+        </p>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            Bitcoin utiliza <strong>SHA-256 aplicado dos veces</strong>,
+            también conocido como <strong>double-SHA256</strong>,
+            tanto en su estructura de bloques como en su mecanismo
+            de <strong>Proof of Work</strong>.
+          </p>
+
+          <p>
+            Durante la minería, los mineros buscan un valor que permita
+            que el hash del encabezado del bloque cumpla una condición
+            determinada por la dificultad de la red.
+          </p>
+
+          <p>
+            Uno de los valores que se modifica durante este proceso es
+            el <strong>nonce</strong>. Cada cambio produce un nuevo resultado
+            al aplicar la función hash.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Condición de Proof of Work
+            </span>
+
+            El objetivo es encontrar un nonce para el cual el
+            <strong>hash del encabezado del bloque quede por debajo
+            del umbral de dificultad establecido</strong>.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ PROCESO DE MINERÍA ============ -->
+  <section class="section note" id="proceso-mineria">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Proceso
+        </span>
+
+        <h2 class="section__title">
+          Búsqueda de un bloque válido
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <ol>
+
+            <li>
+              Se construye un bloque candidato con la información
+              necesaria para formar su encabezado.
+            </li>
+
+            <li>
+              El minero utiliza un valor de <strong>nonce</strong>.
+            </li>
+
+            <li>
+              Sobre el encabezado se aplica
+              <strong>double-SHA256</strong>.
+            </li>
+
+            <li>
+              Se obtiene un hash.
+            </li>
+
+            <li>
+              El resultado se compara contra el
+              <strong>umbral de dificultad</strong>.
+            </li>
+
+            <li>
+              Si el hash no cumple la condición, se realiza un
+              nuevo intento.
+            </li>
+
+            <li>
+              Cuando el hash queda por debajo del umbral,
+              se ha encontrado una solución válida para la
+              prueba de trabajo.
+            </li>
+
+          </ol>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Flujo simplificado
+            </span>
+
+            <strong>
+              Encabezado del bloque → nonce → double-SHA256 →
+              comparar con dificultad → repetir o aceptar
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ BLOCKCHAIN ARTESANAL VS REAL ============ -->
+  <section class="section note" id="blockchain-real">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          De cadena artesanal a blockchain
+        </span>
+
+        <h2 class="section__title">
+          ¿Qué aporta la minería?
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            El ejemplo de blockchain artesanal de los materiales utiliza
+            funciones hash, firmas digitales, encadenamiento y sellado
+            de tiempo para construir bloques.
+          </p>
+
+          <p>
+            Sin embargo, ese modelo se presenta explícitamente
+            <strong>sin minería, sin consenso distribuido y sin red P2P</strong>.
+          </p>
+
+          <p>
+            Para pasar de ese esquema educativo a una blockchain real
+            con múltiples participantes, se necesita incorporar
+            mecanismos de consenso como <strong>Proof of Work</strong>
+            y una red que permita compartir los nuevos bloques.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Diferencia importante
+            </span>
+
+            El encadenamiento criptográfico explica cómo se relacionan
+            los bloques. La minería añade un mecanismo de Proof of Work
+            para un sistema distribuido con múltiples participantes.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ RESUMEN ============ -->
+  <section class="section note" id="resumen">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Resumen
+        </span>
+
+        <h2 class="section__title">
+          UTXO + minería
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <ul>
+
+            <li>
+              El conjunto UTXO está formado por salidas que continúan
+              sin gastarse.
+            </li>
+
+            <li>
+              Al gastarse una salida, deja de formar parte del
+              conjunto de salidas disponibles.
+            </li>
+
+            <li>
+              Bitcoin utiliza double-SHA256 en su mecanismo
+              de Proof of Work.
+            </li>
+
+            <li>
+              Los mineros buscan un nonce que produzca un hash
+              por debajo del umbral de dificultad.
+            </li>
+
+            <li>
+              La minería es uno de los mecanismos que diferencia
+              una cadena criptográfica artesanal de una blockchain
+              distribuida real.
+            </li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+</main>
 
 
 <!-- ============ FOOTER ============ -->
