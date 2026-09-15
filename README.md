@@ -9,13 +9,29 @@ que presenta un portafolio de apuntes de Blockchain. Diseño inspirado en
 
 ```
 apuntes-blockchain/
-├─ index.html              # Toda la maquetación de la landing
-├─ assets/
-│  ├─ favicon.svg          # Icono de pestaña
-│  ├─ css/styles.css       # Sistema de diseño + secciones + responsive
-│  └─ js/main.js           # Interacciones y animaciones
+├─ index.html                   # Landing / punto de entrada del sitio
+├─ temas/                       # Una página de apuntes por tema del temario
+│  ├─ hash.html                 # 01 · Hash y sus aplicaciones
+│  ├─ compromisos.html          # 02 · Esquemas y aplicaciones de compromiso
+│  ├─ firma-digital.html        # 03 · Firma digital
+│  ├─ encadenamiento.html       # 04 · Encadenamiento
+│  └─ timestamping.html         # 05 · Time stamping
+├─ assets/                      # Recursos estáticos compartidos por todas las páginas
+│  ├─ favicon.svg               # Icono de pestaña
+│  ├─ css/                      # Hojas de estilo
+│  │  ├─ styles.css             # Sistema de diseño + secciones + responsive
+│  │  └─ apuntes.css            # Estilos propios de las páginas de tema
+│  └─ js/                       # Scripts del sitio
+│     ├─ main.js                # Interacciones y animaciones globales
+│     └─ hash.js                # Laboratorios interactivos del tema de hash
+├─ latex/                       # Documento LaTeX de los apuntes (en elaboración)
 └─ README.md
 ```
+
+- **Raíz**: solo `index.html`, que es lo que sirve GitHub Pages al abrir el sitio.
+- **`temas/`**: todas las páginas de tema; enlazan a `assets/` e `index.html` con el prefijo `../`.
+- **`assets/`**: CSS, JavaScript e iconos compartidos; no contiene contenido de los apuntes.
+- **`latex/`**: versión en LaTeX de los apuntes, independiente del sitio estático.
 
 ## Secciones
 
