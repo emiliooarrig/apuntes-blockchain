@@ -41,7 +41,7 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#intro">Saltar al contenido</a>
+<a class="skip-link" href="#utxo">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
@@ -51,34 +51,54 @@
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="Navegación principal">
-      <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
-      </ul>
-    </nav>
-
-    <div class="header__actions">
-      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
-        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
-      </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+     <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
       </button>
     </div>
-  </div>
+  </div><<nav class="nav" id="nav" aria-label="Navegación principal">
+  <ul class="nav__list">
+
+    <li>
+      <a class="nav__link" href="../index.html">
+        Inicio
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link is-active" href="#utxo">
+        UTXO
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#mineria">
+        Minería
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#proceso-mineria">
+        Proof of Work
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#ejercicios">
+        Ejercicios
+      </a>
+    </li>
+
+  </ul>
+</nav>
 </header>
 
 <main>
 
   <!-- ============ HERO ============ -->
   <!-- ============ CABECERA DEL TEMA ============ -->
+<!-- ============ CABECERA DEL TEMA ============ -->
 <section class="topic-hero" id="inicio">
 
   <div class="blobs" aria-hidden="true">
@@ -88,24 +108,35 @@
     <span class="blob blob--4" data-parallax="-0.05"></span>
   </div>
 
+
   <div class="container topic-hero__inner">
 
     <div>
 
-      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
-        <a href="../index.html">Apuntes</a>
+      <nav class="crumbs anim"
+           style="--d:0ms"
+           aria-label="Ruta de navegación">
+
+        <a href="../index.html">
+          Apuntes
+        </a>
 
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <use href="#i-arrow"/>
         </svg>
 
-        <a href="../index.html#temas">Temario</a>
+        <a href="../index.html#temas">
+          Temario
+        </a>
 
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <use href="#i-arrow"/>
         </svg>
 
-        <span>05 · Bitcoin</span>
+        <span>
+          05 · Bitcoin
+        </span>
+
       </nav>
 
 
@@ -116,17 +147,24 @@
 
 
       <h1 class="topic-hero__title anim" style="--d:120ms">
-        Modelo <span class="grad">UTXO</span><br>
-        y <span class="underlined">minería</span>
+
+        Modelo
+        <span class="grad">UTXO</span><br>
+
+        y
+        <span class="underlined">minería</span>
+
       </h1>
 
 
       <p class="topic-hero__lead anim" style="--d:200ms">
-        ¿Cómo sabe Bitcoin qué monedas siguen disponibles?
-        ¿Y cómo consigue una red distribuida decidir qué bloque
-        puede añadirse a la cadena? El modelo UTXO representa
-        las salidas no gastadas y Proof of Work convierte la
-        búsqueda de un hash válido en el mecanismo de minería.
+
+        ¿Cómo sabe Bitcoin qué salidas siguen disponibles y cuáles
+        ya fueron gastadas? El modelo UTXO representa el estado
+        disponible de la red, mientras que la minería utiliza
+        Proof of Work para encontrar bloques que cumplan con las
+        reglas de dificultad del protocolo.
+
       </p>
 
 
@@ -170,23 +208,27 @@
   <!-- ============ ÍNDICE ============ -->
   <div class="container">
 
-    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+    <nav class="clay-card toc reveal"
+         aria-label="Contenido del apunte">
 
-      <h2>Contenido del apunte</h2>
+      <h2>
+        Contenido del apunte
+      </h2>
+
 
       <ul class="toc__list">
 
         <li>
           <a href="#utxo">
             <span class="toc__n">01</span>
-            Qué es el modelo UTXO
+            ¿Qué es el modelo UTXO?
           </a>
         </li>
 
         <li>
-          <a href="#utxo-importancia">
+          <a href="#estado-utxo">
             <span class="toc__n">02</span>
-            Por qué importa el conjunto UTXO
+            Importancia del conjunto UTXO
           </a>
         </li>
 
@@ -200,7 +242,182 @@
         <li>
           <a href="#proceso-mineria">
             <span class="toc__n">04</span>
-            Cómo se encuentra un bloque válido
+            Búsqueda de un bloque válido
+          </a>
+        </li>
+
+        <li>
+          <a href="#blockchain-real">
+            <span class="toc__n">05</span>
+            De cadena artesanal a blockchain
+          </a>
+        </li>
+
+        <li>
+          <a href="#resumen">
+            <span class="toc__n">06</span>
+            Síntesis
+          </a>
+        </li>
+
+        <li>
+          <a href="#ejercicios">
+            <span class="toc__n">07</span>
+            Ejercicios
+          </a>
+        </li>
+
+      </ul>
+
+    </nav>
+
+  </div>
+
+</section><!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+
+  <div class="container topic-hero__inner">
+
+    <div>
+
+      <nav class="crumbs anim"
+           style="--d:0ms"
+           aria-label="Ruta de navegación">
+
+        <a href="../index.html">
+          Apuntes
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <a href="../index.html#temas">
+          Temario
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <span>
+          05 · Bitcoin
+        </span>
+
+      </nav>
+
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span>
+        Módulo 05 · Bitcoin
+      </span>
+
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+
+        Modelo
+        <span class="grad">UTXO</span><br>
+
+        y
+        <span class="underlined">minería</span>
+
+      </h1>
+
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+
+        ¿Cómo sabe Bitcoin qué salidas siguen disponibles y cuáles
+        ya fueron gastadas? El modelo UTXO representa el estado
+        disponible de la red, mientras que la minería utiliza
+        Proof of Work para encontrar bloques que cumplan con las
+        reglas de dificultad del protocolo.
+
+      </p>
+
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-bitcoin"/>
+          </svg>
+          UTXO
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-code"/>
+          </svg>
+          SHA-256
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-shield"/>
+          </svg>
+          Proof of Work
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-check"/>
+          </svg>
+          4 ejercicios
+        </li>
+
+      </ul>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============ ÍNDICE ============ -->
+  <div class="container">
+
+    <nav class="clay-card toc reveal"
+         aria-label="Contenido del apunte">
+
+      <h2>
+        Contenido del apunte
+      </h2>
+
+
+      <ul class="toc__list">
+
+        <li>
+          <a href="#utxo">
+            <span class="toc__n">01</span>
+            ¿Qué es el modelo UTXO?
+          </a>
+        </li>
+
+        <li>
+          <a href="#estado-utxo">
+            <span class="toc__n">02</span>
+            Importancia del conjunto UTXO
+          </a>
+        </li>
+
+        <li>
+          <a href="#mineria">
+            <span class="toc__n">03</span>
+            Minería y Proof of Work
+          </a>
+        </li>
+
+        <li>
+          <a href="#proceso-mineria">
+            <span class="toc__n">04</span>
+            Búsqueda de un bloque válido
           </a>
         </li>
 
@@ -232,6 +449,7 @@
   </div>
 
 </section>
+
 
   <!-- ============ MODELO UTXO ============ -->
   <section class="section note" id="utxo">
