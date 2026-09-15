@@ -493,3 +493,86 @@ html[data-theme="dark"] .status--bad{color:#ffb0b8}
 @media (prefers-reduced-motion:reduce){
   .bitgrid i,.bars i,.decay__fill{transition:none !important}
 }
+
+/* =========================================================
+   M. Apunte 02 — Esquemas de compromiso
+   ========================================================= */
+
+/* Valor faltante o peligroso dentro de una salida monoespaciada */
+.hashout.is-warn{color:var(--coral);font-weight:700}
+
+/* Parámetros del grupo: pares etiqueta/valor en rejilla */
+.params{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;
+  margin:1.1rem 0 0;padding:1em 1.15em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.params div{display:flex;flex-direction:column;gap:.25em;min-width:0}
+.params dt{
+  font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);
+}
+.params dd{
+  margin:0;font-family:"Space Grotesk",ui-monospace,monospace;font-size:.82rem;
+  color:var(--ink);overflow-wrap:anywhere;
+}
+
+/* Cuadrante ocultamiento × vinculación */
+.quad{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+  margin-top:1.4rem;
+}
+.quad__cell{
+  padding:1.05em 1.15em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-top:4px solid var(--accent,var(--violet));
+}
+.quad__cell h4{
+  margin:0 0 .35em;font-size:.95rem;color:var(--ink);
+  font-family:"Space Grotesk",sans-serif;
+}
+.quad__cell p{margin:0;font-size:.86rem;color:var(--ink-soft);line-height:1.6}
+.quad__cell small{
+  display:block;margin-top:.6em;font-size:.74rem;color:var(--muted);
+  letter-spacing:.04em;text-transform:uppercase;font-weight:700;
+}
+.quad__cell--dead{opacity:.62}
+.quad__cell--dead h4{color:var(--coral)}
+
+/* Gráfica SVG de tamaños */
+.szwrap{
+  margin-top:1.3rem;padding:12px;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+  overflow-x:auto;
+}
+.szwrap svg{display:block;width:100%;min-width:520px;height:auto}
+.szgrid{stroke:color-mix(in srgb,var(--ink) 12%,transparent);stroke-width:1}
+.szlab{
+  font-family:"Space Grotesk",sans-serif;font-size:11px;fill:var(--muted);
+}
+.szlab--axis{font-size:12px;letter-spacing:.04em}
+.szline{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.szline--coral{stroke:var(--coral)}
+.szline--amber{stroke:var(--amber)}
+.szline--mint{stroke:var(--mint)}
+.szcursor{stroke:var(--violet);stroke-width:1.5;stroke-dasharray:4 4;opacity:.75}
+.szdot--coral{fill:var(--coral)}
+.szdot--amber{fill:var(--amber)}
+.szdot--mint{fill:var(--mint)}
+
+/* Fases de un protocolo, numeradas */
+.phases{display:grid;gap:12px;margin:1.3rem 0 0;counter-reset:phase}
+.phase{
+  display:grid;grid-template-columns:38px 1fr;gap:14px;align-items:start;
+  padding:1em 1.15em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+}
+.phase::before{
+  counter-increment:phase;content:counter(phase);
+  display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
+  font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:.92rem;color:#fff;
+  background:linear-gradient(150deg,var(--violet),var(--violet-deep));
+}
+.phase h4{margin:0 0 .25em;font-size:.95rem;color:var(--ink)}
+.phase p{margin:0;font-size:.88rem;color:var(--ink-soft);line-height:1.65}
+
+@media (max-width:640px){
+  .quad{grid-template-columns:1fr}
+  .params{grid-template-columns:1fr}
+}

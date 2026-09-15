@@ -1,0 +1,1503 @@
+% ============================================================================
+%  Funciones hash y sus aplicaciones
+%  Módulo 01 · Criptografía aplicada — ChainNotes
+%
+%  Versión LaTeX del apunte web temas/hash.html
+%  Todas las figuras se generan con TikZ / pgfplots: no hay imágenes externas.
+%
+%  Compilar:  pdflatex funciones-hash.tex   (dos pasadas, por el índice)
+%             o bien:  latexmk -pdf funciones-hash.tex
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- idioma y codificación -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- página ----------------------------------------------------------------
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+
+% --- matemáticas -----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+
+% --- gráficas --------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric,
+                decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% --- enlaces y cajas (hyperref antes que tcolorbox) ------------------------
+\usepackage[colorlinks=true,linkcolor=violetdeep,urlcolor=violetdeep,
+            citecolor=violetdeep,pdftitle={Funciones hash y sus aplicaciones},
+            pdfauthor={ChainNotes}]{hyperref}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------------------------
+%  Paleta (heredada de assets/css/styles.css)
+% ---------------------------------------------------------------------------
+\definecolor{violetc}{HTML}{7A68F5}
+\definecolor{violetdeep}{HTML}{5B46E0}
+\definecolor{mintc}{HTML}{1FA88A}
+\definecolor{coralc}{HTML}{E04E5C}
+\definecolor{amberc}{HTML}{C98A1F}
+\definecolor{skyc}{HTML}{1E88C7}
+\definecolor{inkc}{HTML}{282344}
+\definecolor{bitone}{HTML}{3B3566}
+\definecolor{bitzero}{HTML}{DCD9F0}
+
+\hypersetup{linkcolor=violetdeep}
+
+% ---------------------------------------------------------------------------
+%  Estilo de párrafo y encabezados
+% ---------------------------------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\captionsetup{font=small,labelfont={bf,color=violetdeep}}
+
+% Este documento lleva muchas figuras grandes. Con los valores por omisión LaTeX
+% las aparta a páginas propias y deja huecos; aflojamos los umbrales.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{inkc}\textsc{Funciones hash y sus aplicaciones}}
+\fancyhead[R]{\small\color{inkc}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+%  Entornos de teoremas
+% ---------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}
+\newtheorem{proposicion}{Proposición}
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observación}
+
+% ---------------------------------------------------------------------------
+%  Cajas de color
+% ---------------------------------------------------------------------------
+\newtcolorbox{nota}[1]{enhanced,breakable,colback=skyc!6,colframe=skyc!75!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{caso}[1]{enhanced,breakable,colback=amberc!8,colframe=amberc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{aviso}[1]{enhanced,breakable,colback=coralc!7,colframe=coralc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{laboratorio}[1]{enhanced,breakable,colback=violetc!6,colframe=violetc!80!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+% ---------------------------------------------------------------------------
+%  Atajos de notación
+% ---------------------------------------------------------------------------
+\newcommand{\bits}{\{0,1\}}
+\newcommand{\dsha}{\mathrm{dSHA}}
+\newcommand{\dH}{d_{\mathrm{H}}}
+\newcommand{\concat}{\,\|\,}
+\newcommand{\Adv}{\mathrm{Adv}}
+\DeclareMathOperator{\HMAC}{HMAC}
+\DeclareMathOperator{\KDF}{KDF}
+
+% ---------------------------------------------------------------------------
+%  Datos reales para la figura de avalancha.
+%  Cada par a/b es el bit i-ésimo de SHA-256("blockchain") / SHA-256("Blockchain").
+%    A = ef7797e13d3a75526946a3bcf00daec9fc9c9c4d51ddc7cc5df888f74dd434d1
+%    B = 625da44e4eaf58d61cf048d168aa6f5e492dea166d8bb54ec06c30de07db57e1
+%  Bits volteados: 130 de 256 (50.8 %).
+% ---------------------------------------------------------------------------
+\def\avalanchabits{%
+  1/0, 1/1, 1/1, 0/0, 1/0, 1/0, 1/1, 1/0, 0/0, 1/1, 1/0, 1/1, 0/1, 1/1, 1/0, 1/1,%
+  1/1, 0/0, 0/1, 1/0, 0/0, 1/1, 1/0, 1/0, 1/0, 1/1, 1/0, 0/0, 0/1, 0/1, 0/1, 1/0,%
+  0/0, 0/1, 1/0, 1/0, 1/1, 1/1, 0/1, 1/0, 0/1, 0/0, 1/1, 1/0, 1/1, 0/1, 1/1, 0/1,%
+  0/0, 1/1, 1/0, 1/1, 0/1, 1/0, 0/0, 1/0, 0/1, 1/1, 0/0, 1/1, 0/0, 0/1, 1/1, 0/0,%
+  0/0, 1/0, 1/0, 0/1, 1/1, 0/1, 0/0, 1/0, 0/1, 1/1, 0/1, 0/1, 0/0, 1/0, 1/0, 0/0,%
+  1/0, 0/1, 1/0, 0/0, 0/1, 0/0, 1/0, 1/0, 1/1, 0/1, 1/0, 1/1, 1/0, 1/0, 0/0, 0/1,%
+  1/0, 1/1, 1/1, 1/0, 0/1, 0/0, 0/0, 0/0, 0/1, 0/0, 0/1, 0/0, 1/1, 1/0, 0/1, 1/0,%
+  1/0, 0/1, 1/1, 0/0, 1/1, 1/1, 1/1, 0/1, 1/0, 1/1, 0/0, 0/1, 1/1, 0/1, 0/1, 1/0,%
+  1/0, 1/1, 1/0, 1/0, 1/1, 1/0, 0/0, 0/1, 1/0, 0/0, 0/1, 1/0, 1/1, 1/1, 0/0, 0/1,%
+  1/1, 0/1, 0/1, 1/0, 1/1, 1/0, 0/1, 0/0, 0/0, 1/0, 0/0, 0/1, 1/0, 1/1, 0/1, 1/0,%
+  0/0, 1/1, 0/1, 1/0, 0/1, 0/1, 0/0, 1/1, 1/1, 1/0, 0/0, 1/0, 1/1, 1/0, 0/1, 1/1,%
+  1/1, 1/0, 0/1, 0/1, 0/0, 1/1, 1/0, 1/1, 1/0, 1/1, 0/0, 0/0, 1/1, 1/1, 0/1, 0/0,%
+  0/1, 1/1, 0/0, 1/0, 1/0, 1/0, 0/0, 1/0, 1/0, 1/1, 1/1, 1/0, 1/1, 0/1, 0/0, 0/0,%
+  1/0, 0/0, 0/1, 0/1, 1/0, 0/0, 0/0, 0/0, 1/1, 1/1, 1/0, 1/1, 0/1, 1/1, 1/1, 1/0,%
+  0/0, 1/0, 0/0, 0/0, 1/0, 1/1, 0/1, 1/1, 1/1, 1/1, 0/0, 1/1, 0/1, 1/0, 0/1, 0/1,%
+  0/0, 0/1, 1/0, 1/1, 0/0, 1/1, 0/1, 0/1, 1/1, 1/1, 0/1, 1/0, 0/0, 0/0, 0/0, 1/1%
+}
+
+% ===========================================================================
+\begin{document}
+% ===========================================================================
+
+% babel-spanish redefine \% inspeccionando \lastskip, lo que revienta dentro de
+% los nodos de pgfplots. Restauramos la definición estándar de LaTeX: en este
+% documento el espacio fino se escribe siempre a mano («50\,\%»).
+\makeatletter
+\DeclareRobustCommand{\%}{\char`\%\relax}
+\makeatother
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\Large\color{violetdeep}\textsc{ChainNotes}\par}
+{\small\color{inkc}Módulo 01 · Criptografía aplicada\par}
+
+\vspace{1.4cm}
+{\Huge\bfseries Funciones hash\par}
+\vspace{0.4cm}
+{\LARGE y sus aplicaciones\par}
+
+\vspace{1.2cm}
+\begin{minipage}{0.78\textwidth}
+\centering\itshape\color{inkc}
+Una huella de 256 bits para cualquier cosa que exista: un nombre, una película,
+una biblioteca entera. De ese único truco cuelgan la firma digital, el árbol de
+Merkle, el compromiso, el minado y la inmutabilidad de la cadena. Aquí lo
+desarmamos pieza por pieza.
+\end{minipage}
+
+\vspace{1.6cm}
+\begin{tikzpicture}[x=6mm,y=6mm]
+  \foreach \x in {0,...,7}{
+    \pgfmathtruncatemacro{\t}{mod(\x*\x+3*\x+1,2)}
+    \fill[violetc!\the\numexpr 25+10*\x\relax] (\x,0) rectangle ++(0.82,0.82);
+  }
+\end{tikzpicture}
+
+\vfill
+{\small Apuntes de Blockchain · Proyecto académico\par}
+{\small\color{inkc}\today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% ===========================================================================
+\section{Qué hace exactamente una función hash}
+% ===========================================================================
+
+\begin{nota}{Objetivo del módulo}
+Reconocer las cuatro propiedades observables de una función hash
+---determinismo, longitud fija, uniformidad y avalancha--- y distinguir un hash
+criptográfico de uno que no lo es.
+\end{nota}
+
+Piensa en una licuadora industrial. Metes lo que sea ---una palabra, una
+película, la Biblioteca Nacional--- y siempre sale exactamente un litro de puré.
+Siempre un litro: ni más si metes más, ni menos si metes menos. Y el puré de una
+manzana nunca se parece al puré de dos manzanas: no hay «casi igual».
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  ent/.style={draw=inkc!50,fill=white,rounded corners=2pt,minimum height=6.5mm,
+              inner xsep=5pt,align=center},
+  dig/.style={draw=violetc,fill=violetc!10,rounded corners=2pt,
+              minimum height=6.5mm,minimum width=42mm,align=center},
+  >={Stealth[length=2.2mm]}
+]
+% entradas
+\node[ent,minimum width=14mm] (e1) at (0,1.5)  {\ttfamily "a"};
+\node[ent,minimum width=30mm] (e2) at (0,0)    {\ttfamily contrato.pdf\,(4 MB)};
+\node[ent,minimum width=44mm] (e3) at (0,-1.5) {\ttfamily biblioteca.tar\,(1.2 TB)};
+
+% caja H
+\node[draw=violetdeep,fill=violetc!15,rounded corners=3pt,minimum width=16mm,
+      minimum height=32mm,align=center,font=\large] (H) at (5,0) {$H$};
+
+% salidas
+\node[dig] (s1) at (10.4,1.5)  {\ttfamily ca978112\ldots\,f8f0};
+\node[dig] (s2) at (10.4,0)    {\ttfamily 9f86d081\ldots\,08a0};
+\node[dig] (s3) at (10.4,-1.5) {\ttfamily 2c26b46b\ldots\,7ca7};
+
+\foreach \i in {1,2,3}{
+  \draw[->,inkc!60] (e\i.east) -- (H.west |- e\i);
+  \draw[->,violetdeep] (H.east |- s\i) -- (s\i.west);
+}
+
+\node[align=center,font=\footnotesize,inkc] at (0,-2.8)
+  {longitud arbitraria\\$\bits^{*}$};
+\node[align=center,font=\footnotesize,violetdeep] at (10.4,-2.8)
+  {longitud fija\\$\bits^{256}$};
+\end{tikzpicture}
+\caption{Una función hash aplasta un dominio infinito sobre un codominio finito.
+Ésa es su utilidad y, a la vez, la razón por la que las colisiones son
+inevitables.}
+\label{fig:mapeo}
+\end{figure}
+
+\subsection{Tres cosas que la licuadora cumple}
+
+\begin{description}[leftmargin=1.4em,style=unboxed,itemsep=0.3em]
+  \item[Es determinista.] La misma manzana, el mismo puré, hoy y en diez años,
+    en tu máquina y en la mía.
+  \item[No se puede des-licuar.] Del puré no recuperas la manzana.
+  \item[Es discontinua a propósito.] Quitarle un pixel a una foto no cambia «un
+    poquito» el resultado: lo cambia por completo. Eso es el \emph{efecto
+    avalancha}, y es la propiedad que vuelve útil a un hash para detectar
+    alteraciones.
+\end{description}
+
+La figura~\ref{fig:rejilla} muestra esa última propiedad sin metáforas. Son los
+256 bits de dos digests reales que difieren en una sola letra de la entrada. No
+hay nada de mágico en ello: es el resultado buscado de sesenta y cuatro rondas de
+sumas, rotaciones y XOR.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=3.6mm,y=3.6mm]
+  % --- rejilla A ---
+  \begin{scope}
+    \foreach \a/\b [count=\k from 0] in \avalanchabits {
+      \pgfmathtruncatemacro{\row}{int(\k/16)}
+      \pgfmathtruncatemacro{\col}{mod(\k,16)}
+      \ifnum\a=1 \fill[bitone] (\col,-\row) rectangle ++(0.86,0.86);
+      \else      \fill[bitzero] (\col,-\row) rectangle ++(0.86,0.86);\fi
+    }
+    \node[font=\footnotesize\ttfamily,anchor=north west,inkc] at (0,-16.4)
+      {SHA-256("blockchain")};
+  \end{scope}
+  % --- rejilla B ---
+  \begin{scope}[xshift=79.2mm]
+    \foreach \a/\b [count=\k from 0] in \avalanchabits {
+      \pgfmathtruncatemacro{\row}{int(\k/16)}
+      \pgfmathtruncatemacro{\col}{mod(\k,16)}
+      \pgfmathtruncatemacro{\f}{abs(\a-\b)}
+      \ifnum\b=1 \fill[bitone] (\col,-\row) rectangle ++(0.86,0.86);
+      \else      \fill[bitzero] (\col,-\row) rectangle ++(0.86,0.86);\fi
+      \ifnum\f=1 \draw[coralc,line width=0.45pt]
+        (\col-0.07,-\row-0.07) rectangle ++(1.0,1.0);\fi
+    }
+    \node[font=\footnotesize\ttfamily,anchor=north west,inkc] at (0,-16.4)
+      {SHA-256("Blockchain")};
+  \end{scope}
+  % leyenda
+  \node[anchor=north,font=\footnotesize,inkc,align=center] at (18.9,-18.6)
+    {\tikz\fill[bitone](0,0)rectangle(2.4mm,2.4mm);\,\ bit en 1 \qquad
+     \tikz\fill[bitzero](0,0)rectangle(2.4mm,2.4mm);\,\ bit en 0 \qquad
+     \tikz\draw[coralc,line width=0.45pt](0,0)rectangle(2.4mm,2.4mm);\,\ se volteó};
+\end{tikzpicture}
+\caption{Espejo de bits. Cambiar una mayúscula voltea \textbf{130 de los 256
+bits}: el 50.8\,\%. Las celdas marcadas en rojo son las que cambiaron.}
+\label{fig:rejilla}
+\end{figure}
+
+\subsection{La consecuencia incómoda: las colisiones existen}
+
+Las entradas posibles son infinitas y las salidas son $2^{256}$. Por el
+principio del palomar, hay infinitos pares de mensajes distintos con el mismo
+hash. La criptografía no los elimina ---no puede---: sólo los vuelve
+\emph{inencontrables}.
+
+\begin{definicion}[Función hash criptográfica]
+Una función hash es una aplicación
+\[
+  H : \bits^{*} \longrightarrow \bits^{n}
+\]
+de cadenas de longitud arbitraria a cadenas de longitud fija $n$, a la que se le
+exige:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,itemsep=0.2em]
+  \item \textbf{Eficiencia.} Calcular $H(x)$ cuesta poco: lineal en $|x|$ en la
+    práctica.
+  \item \textbf{Uniformidad.} Para $x$ al azar, $H(x)$ se distribuye
+    aproximadamente uniforme sobre $\bits^{n}$. El modelo idealizado se llama
+    \emph{oráculo aleatorio}.
+  \item \textbf{Avalancha.} Si $x$ y $x'$ difieren en un bit, cada bit de
+    $H(x)\oplus H(x')$ vale 1 con probabilidad $\approx \tfrac12$, de modo que
+    \[
+      \mathbb{E}\bigl[\dH(H(x),H(x'))\bigr] \;\approx\; \frac{n}{2}.
+    \]
+\end{enumerate}
+\end{definicion}
+
+\begin{laboratorio}{Laboratorio 1.1 — Medidor de avalancha}
+El 50\,\% no basta, y CRC32 lo demuestra. El experimento toma 400 mensajes
+aleatorios, les voltea siempre el mismo bit de entrada y mide la distancia de
+Hamming entre los dos digests, expresada como fracción del digest.
+
+\textbf{Qué observar.} CRC32 da un promedio de aspecto respetable, cerca del
+50\,\%, y aun así produce \emph{un solo patrón de diferencia} con desviación
+$\sigma = 0$: voltear ese bit cambia siempre exactamente los mismos bits de
+salida, sin importar el mensaje. Eso no es mezcla, es una ecuación que el
+atacante puede resolver. SHA-256 produce 400 patrones distintos en 400 pruebas y
+una $\sigma$ cercana a $\sqrt{n}/2$. \emph{El promedio miente; los patrones no.}
+\end{laboratorio}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.2cm,
+  xlabel={fracción del digest que cambia, $\dH/n$},
+  ylabel={pruebas (de 400)},
+  xmin=0.37, xmax=0.63, ymin=0, ymax=440,
+  xtick={0.40,0.45,0.50,0.55,0.60},
+  xticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  grid=major, grid style={inkc!12},
+  legend style={at={(0.02,0.97)},anchor=north west,font=\footnotesize,
+                draw=inkc!30,fill=white},
+  tick label style={font=\footnotesize}, label style={font=\small},
+  axis lines=left
+]
+\addplot[ybar,bar width=5pt,fill=skyc!45,draw=skyc!80!black] coordinates {
+  (0.3906,0.2) (0.4063,0.9) (0.4219,3.5) (0.4375,10.8) (0.4531,25.9)
+  (0.4688,48.4) (0.4844,70.4) (0.5000,79.8) (0.5156,70.4) (0.5313,48.4)
+  (0.5469,25.9) (0.5625,10.8) (0.5781,3.5) (0.5938,0.9) (0.6094,0.2)};
+\addlegendentry{SHA-256 · 400 patrones distintos, $\sigma\approx\sqrt{n}/2$}
+
+\addplot[ybar,bar width=5pt,fill=coralc!55,draw=coralc!80!black] coordinates {
+  (0.4375,400)};
+\addlegendentry{CRC32 · 1 solo patrón, $\sigma = 0$}
+
+\draw[violetdeep,dashed,thick] (axis cs:0.5,0) -- (axis cs:0.5,440);
+\node[violetdeep,font=\footnotesize,anchor=south west]
+  at (axis cs:0.505,395) {$n/2$};
+\end{axis}
+\end{tikzpicture}
+\caption{Distribución de la avalancha. Ambas funciones promedian cerca del
+50\,\%; sólo una de las dos \emph{mezcla}. La campana es el sello de una moneda
+lanzada por cada bit de salida; la barra única, el de una función lineal.}
+\label{fig:avalancha}
+\end{figure}
+
+% ===========================================================================
+\section{Las tres resistencias, y por qué no son la misma}
+% ===========================================================================
+
+Tres preguntas distintas, tres dificultades distintas. Lo único que las separa es
+qué recibe el adversario y qué queda libre para que él lo elija.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  panel/.style={draw=#1,fill=#1!5,rounded corners=3pt,minimum width=48mm,
+                minimum height=52mm,anchor=north west},
+  dado/.style={draw=inkc!55,fill=inkc!12,rounded corners=2pt,inner sep=3pt,
+               font=\footnotesize},
+  libre/.style={draw=inkc!45,dashed,fill=white,rounded corners=2pt,inner sep=3pt,
+                font=\footnotesize},
+  meta/.style={draw=#1,fill=#1!15,rounded corners=2pt,inner sep=3pt,
+               font=\footnotesize},
+  >={Stealth[length=1.8mm]}
+]
+% --- panel 1: preimagen
+\node[panel=skyc] (p1) at (0,0) {};
+\node[anchor=north west,font=\bfseries,skyc] at ($(p1.north west)+(3mm,-3mm)$)
+  {Preimagen};
+\node[anchor=north west,font=\scriptsize\itshape,inkc]
+  at ($(p1.north west)+(3mm,-8mm)$) {one-way};
+\node[dado] (a1) at ($(p1.north west)+(6mm,-17mm)$) {$y$ dado};
+\node[meta=skyc] (b1) at ($(p1.north west)+(30mm,-17mm)$) {hallar $M$};
+\draw[->,inkc] (a1) -- (b1);
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=40mm]
+  at ($(p1.north west)+(3mm,-23mm)$)
+  {Te doy una huella y te pido encontrar al dueño. El adversario no elige nada
+   del enunciado.};
+\node[anchor=south,font=\bfseries,skyc] at ($(p1.south)+(0,2mm)$) {$2^{n}$};
+
+% --- panel 2: segunda preimagen
+\node[panel=amberc] (p2) at (5.4,0) {};
+\node[anchor=north west,font=\bfseries,amberc] at ($(p2.north west)+(3mm,-3mm)$)
+  {2.\textsuperscript{a} preimagen};
+\node[anchor=north west,font=\scriptsize\itshape,inkc]
+  at ($(p2.north west)+(3mm,-8mm)$) {target collision};
+\node[dado] (a2) at ($(p2.north west)+(6mm,-17mm)$) {$M$ dado};
+\node[meta=amberc] (b2) at ($(p2.north west)+(31mm,-17mm)$) {$M'\neq M$};
+\draw[->,inkc] (a2) -- (b2);
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=40mm]
+  at ($(p2.north west)+(3mm,-23mm)$)
+  {Te doy una persona concreta y te pido otra con su misma huella. El objetivo
+   está fijado de antemano.};
+\node[anchor=south,font=\bfseries,amberc] at ($(p2.south)+(0,2mm)$) {$2^{n}$};
+
+% --- panel 3: colisión
+\node[panel=coralc] (p3) at (10.8,0) {};
+\node[anchor=north west,font=\bfseries,coralc] at ($(p3.north west)+(3mm,-3mm)$)
+  {Colisión};
+\node[anchor=north west,font=\scriptsize\itshape,inkc]
+  at ($(p3.north west)+(3mm,-8mm)$) {collision-free · cumpleaños};
+\node[libre] (a3) at ($(p3.north west)+(14mm,-14mm)$) {$M$ libre};
+\node[libre] (a4) at ($(p3.north west)+(34mm,-14mm)$) {$M'$ libre};
+\node[meta=coralc,font=\scriptsize] (b3)
+  at ($(p3.north west)+(24mm,-23mm)$) {$H(M)=H(M')$};
+\draw[->,inkc] (a3.south) -- (b3.north);
+\draw[->,inkc] (a4.south) -- (b3.north);
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=42mm]
+  at ($(p3.north west)+(3mm,-28mm)$)
+  {Cualesquiera dos personas que compartan huella. Es la más fácil para el
+   atacante: escoge ambos lados.};
+\node[anchor=south,font=\bfseries,coralc] at ($(p3.south)+(0,2mm)$) {$2^{n/2}$};
+\end{tikzpicture}
+\caption{Las tres resistencias. Gris lleno $=$ lo que el adversario recibe;
+contorno punteado $=$ lo que puede elegir. Cuanta más libertad, más barato el
+ataque.}
+\label{fig:resistencias}
+\end{figure}
+
+\begin{nota}{La consecuencia que hay que memorizar}
+MD5 y SHA-1 están rotas \emph{en colisión}, no en preimagen. Siguen siendo
+irreversibles; lo que ya no pueden hacer es garantizar que dos documentos
+distintos tengan huellas distintas. Por eso una contraseña vieja en SHA-1 no se
+recupera de golpe, pero una firma sobre SHA-1 no vale nada.
+\end{nota}
+
+\begin{proposicion}\label{prop:col-implica-2pre}
+Si $H$ es resistente a colisiones, entonces es resistente a segunda preimagen.
+\end{proposicion}
+
+\begin{proof}[Demostración (por contrapuesta)]
+Supongamos que existe un algoritmo eficiente $\mathcal{A}$ que, dado cualquier
+$x_i$, devuelve $x_j \neq x_i$ con $H(x_i) = H(x_j)$. Elegimos $x_i$ al azar y
+ejecutamos $\mathcal{A}(x_i)$. El par $(x_i, x_j)$ es, por definición, una
+colisión hallada eficientemente. Luego $H$ no es resistente a colisiones.
+\end{proof}
+
+\begin{observacion}
+Al romperse la resistencia a colisión todavía puede sobrevivir la de segunda
+preimagen ---es el caso de SHA-1 hoy---, pero nunca al revés.
+\end{observacion}
+
+\begin{proposicion}\label{prop:reciproco}
+El recíproco falla: existe $h$ resistente a colisiones que \emph{no} es
+resistente a preimagen.
+\end{proposicion}
+
+\begin{proof}
+Sea $g$ resistente a colisiones con salida de $n$ bits. Definimos
+\[
+  h(x) =
+  \begin{cases}
+    1 \concat x, & \text{si } |x| = n,\\[2pt]
+    0 \concat g(x), & \text{en otro caso.}
+  \end{cases}
+\]
+\emph{Es resistente a colisiones.} Si $h(x) = h(y)$, ambas salidas empiezan
+igual. Si empiezan con 1 entonces $x = y$, contradicción; si empiezan con 0
+entonces $g$ colisiona, contradicción.
+
+\emph{No es resistente a preimagen.} Si $y$ empieza con 1, la preimagen se lee
+directamente: es el resto de $y$.
+\end{proof}
+
+\begin{nota}{Moraleja de diseño}
+Las tres propiedades deben pedirse por separado. La única implicación gratuita es
+la de la Proposición~\ref{prop:col-implica-2pre}.
+\end{nota}
+
+\begin{laboratorio}{Laboratorio 2.1 — Caza de ataques sobre un hash truncado}
+Con SHA-256 completo nadie encontrará una colisión, hoy ni en un millón de años
+de cómputo. La seguridad no es magia: \textbf{es tamaño}. Truncando el digest a
+$n$ bits el ataque cabe en un navegador.
+
+\textbf{Qué observar.} La colisión aparece cerca de $2^{n/2}$ intentos; la
+preimagen exige $2^{n}$. Con $n = 24$ son 4\,mil frente a 16 millones. Ésa es
+toda la diferencia entre este módulo y el del cumpleaños.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Cómo está construida por dentro, y qué se rompe por eso}
+% ===========================================================================
+
+\begin{nota}{Objetivo del módulo}
+Entender la construcción iterada de Damgård--Merkle y descubrir el ataque de
+extensión de longitud, que es la razón de existir de HMAC.
+\end{nota}
+
+Un hash no procesa el mensaje completo de golpe: lo corta en bloques de 64 bytes
+y los va digiriendo uno tras otro. Cada bloque se mezcla con el resultado del
+anterior, como una masa que se amasa por tandas. El estado final, después del
+último bloque, es el digest.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  f/.style={draw=violetdeep,fill=violetc!12,rounded corners=2pt,
+            minimum width=11mm,minimum height=9mm},
+  blk/.style={draw=inkc!55,fill=white,rounded corners=2pt,
+              minimum width=11mm,minimum height=6mm,font=\footnotesize},
+  pad/.style={draw=amberc,fill=amberc!15,rounded corners=2pt,
+              minimum width=11mm,minimum height=6mm,font=\footnotesize},
+  >={Stealth[length=2mm]}
+]
+\node[font=\footnotesize,inkc] (iv) at (0,0) {$H_0 = \mathrm{IV}$};
+\node[f] (f1) at (2.1,0) {$f$};
+\node[f] (f2) at (4.7,0) {$f$};
+\node[f] (f3) at (7.3,0) {$f$};
+\node[f] (f4) at (9.9,0) {$f$};
+\node[draw=mintc,fill=mintc!15,rounded corners=2pt,minimum width=11mm,
+      minimum height=9mm] (g) at (12.3,0) {$g$};
+\node[font=\footnotesize,violetdeep,anchor=west] (out) at (13.3,0) {$h(x)$};
+
+\node[blk] (x1) at (2.1,1.6) {$x_1$};
+\node[blk] (x2) at (4.7,1.6) {$x_2$};
+\node[blk] (x3) at (7.3,1.6) {$\cdots$};
+\node[pad] (x4) at (9.9,1.6) {$x_t\,\|\,|x|$};
+
+\foreach \i in {1,2,3,4}{ \draw[->,inkc!70] (x\i) -- (f\i); }
+\draw[->,inkc] (iv) -- (f1);
+\draw[->,inkc] (f1) -- node[above,font=\scriptsize,inkc]{$H_1$} (f2);
+\draw[->,inkc] (f2) -- node[above,font=\scriptsize,inkc]{$H_2$} (f3);
+\draw[->,inkc] (f3) -- (f4);
+\draw[->,inkc] (f4) -- node[above,font=\scriptsize,inkc]{$H_t$} (g);
+\draw[->,violetdeep] (g) -- (out);
+
+\node[font=\scriptsize,amberc,anchor=south,align=center] at (9.9,2.3)
+  {relleno inyectivo\\(MD-strengthening)};
+\end{tikzpicture}
+\caption{Construcción iterada de Damgård--Merkle. El estado viaja de izquierda a
+derecha; el digest \emph{es} el estado final.}
+\label{fig:dm}
+\end{figure}
+
+\begin{teorema}[Damgård--Merkle]
+Sea $f : \bits^{n}\times\bits^{b} \to \bits^{n}$ una función de compresión. Tras
+aplicar un relleno inyectivo que codifica la longitud,
+\[
+  H_0 = \mathrm{IV}, \qquad
+  H_i = f(H_{i-1}, x_i), \qquad
+  h(x) = g(H_t).
+\]
+Si $f$ es resistente a colisiones, entonces $h$ también lo es.
+\end{teorema}
+
+\begin{proof}
+Si los mensajes tienen distinto número de bloques, el relleno codifica longitudes
+distintas en el último bloque, y ahí hay una colisión de $f$. Si tienen el mismo
+número, se recorre la cadena hacia atrás: existe un primer índice donde las
+entradas de $f$ difieren pero las salidas coinciden, es decir, una colisión de
+$f$.
+\end{proof}
+
+\begin{aviso}{El teorema sólo transfiere colisión}
+No dice nada sobre el comportamiento de $h$ como oráculo aleatorio, y ahí es
+exactamente donde aparece la extensión de longitud.
+\end{aviso}
+
+\subsection{El ataque de extensión de longitud}
+
+Esa arquitectura tiene una consecuencia que casi nadie ve venir: si conoces el
+digest, \textbf{conoces el estado interno} con el que quedó la máquina. Y con el
+estado en la mano puedes seguir amasando ---añadir texto al final del mensaje---
+sin conocer el principio.
+
+Un servidor autentica peticiones con $t = H(k \concat m)$, creyendo que sin la
+clave nadie puede producir un $t$ válido. El atacante ve $m$ y $t$, nunca la
+clave, y aun así puede calcular la etiqueta válida de
+$m \concat \texttt{relleno} \concat z$ para el texto $z$ que se le antoje.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  f/.style={draw=violetdeep,fill=violetc!12,rounded corners=2pt,
+            minimum width=9mm,minimum height=8mm},
+  fa/.style={draw=coralc,fill=coralc!12,rounded corners=2pt,
+             minimum width=9mm,minimum height=8mm},
+  blk/.style={draw=inkc!55,fill=white,rounded corners=2pt,inner sep=2.5pt,
+              font=\footnotesize},
+  >={Stealth[length=2mm]}
+]
+% fila legitima
+\node[font=\footnotesize,inkc,anchor=east] (iv) at (0,1.4) {IV};
+\node[f] (g1) at (1.3,1.4) {$f$};
+\node[f] (g2) at (3.4,1.4) {$f$};
+\node[f] (g3) at (5.5,1.4) {$f$};
+\node[blk,violetdeep,anchor=west] (t) at (6.5,1.4) {$t = H(k\concat m)$};
+\node[blk] at (1.3,2.6) {$k$};
+\node[blk] at (3.4,2.6) {$m_1$};
+\node[blk,draw=amberc,fill=amberc!15] at (5.5,2.6) {$m_2\|\text{pad}$};
+\draw[->,inkc] (iv) -- (g1); \draw[->,inkc] (g1) -- (g2);
+\draw[->,inkc] (g2) -- (g3); \draw[->,violetdeep] (g3) -- (t);
+\node[anchor=east,font=\scriptsize,inkc,align=right] at (-0.2,1.4)
+  {servidor\\(conoce $k$)};
+
+% fila atacante
+\node[blk,violetdeep] (t2) at (5.5,-0.6) {$t$};
+\node[fa] (a1) at (7.8,-0.6) {$f$};
+\node[fa] (a2) at (9.9,-0.6) {$f$};
+\node[blk,coralc,anchor=west] (t3) at (10.9,-0.6) {$t'$ válida};
+\node[blk,draw=coralc] at (7.8,0.6) {$z_1$};
+\node[blk,draw=coralc] at (9.9,0.6) {$z_2\|\text{pad}$};
+\draw[->,coralc,thick] (t2) -- node[above,font=\scriptsize,coralc]
+  {reanuda el estado} (a1);
+\draw[->,coralc] (a1) -- (a2); \draw[->,coralc] (a2) -- (t3);
+\node[anchor=east,font=\scriptsize,coralc,align=right] at (4.6,-0.6)
+  {atacante\\(nunca vio $k$)};
+
+\draw[->,violetdeep,dashed] (t.south) .. controls +(0,-0.9) and +(0,0.9) ..
+  (t2.north);
+\end{tikzpicture}
+\caption{Extensión de longitud. El digest publicado \emph{es} el estado interno:
+el atacante retoma la cadena donde el servidor la dejó y autentica un mensaje que
+nadie firmó.}
+\label{fig:extension}
+\end{figure}
+
+\begin{caso}{Caso documentado}
+En 2009 se falsificaron firmas de la API de Flickr exactamente así, sobre un MAC
+artesanal de la forma $H(\text{secreto}\concat m)$. El error no estaba en SHA-1:
+estaba en creer que un hash de Damgård--Merkle se comporta como un oráculo
+aleatorio.
+\end{caso}
+
+\subsection{La construcción correcta: HMAC}
+
+\[
+  \HMAC_k(m) \;=\; H\bigl((k \oplus \mathrm{opad}) \concat
+                    H((k \oplus \mathrm{ipad}) \concat m)\bigr)
+  \tag{RFC 2104}
+\]
+
+El doble anidamiento hace que el estado interno final no sea el de un prefijo del
+mensaje, y la extensión de longitud muere ahí. Es lo que usan TLS, JWT y la
+derivación de monederos jerárquicos BIP32 ---con HMAC-SHA-512--- precisamente por
+este motivo.
+
+\begin{nota}{SHA-3 abandona esta arquitectura}
+Keccak usa una construcción de \emph{esponja} con permutación
+$\text{Keccak-}f[1600]$, absorción a razón $r$ y capacidad $c = 2n$. No sufre
+extensión de longitud, y ésa fue una de las razones de la elección del NIST en
+2012. Bitcoin resuelve el mismo problema por otra vía: aplica doble SHA-256 a los
+encabezados de bloque.
+\end{nota}
+
+% ===========================================================================
+\section{El ataque del cumpleaños: por qué 256 bits valen 128}
+% ===========================================================================
+
+En un salón con 23 personas la probabilidad de que dos compartan cumpleaños
+supera el 50\,\%. La intuición falla porque uno se pregunta por sí mismo, cuando
+la pregunta real es por \emph{todos los pares posibles}: con 23 personas hay 253
+pares.
+
+Traducido a hashes: no cuesta $2^{256}$ romper SHA-256 por colisión, cuesta
+$2^{128}$. La raíz cuadrada es el precio de que el atacante pueda elegir ambos
+mensajes.
+
+\subsection{Derivación de la cota}
+
+Sea $N = 2^{n}$ el número de salidas y $k$ el de mensajes hasheados al azar. La
+probabilidad de no colisión es
+\[
+  \Pr[\text{sin colisión}] \;=\; \prod_{i=0}^{k-1}\frac{N-i}{N}.
+\]
+Usando $1 - t \le e^{-t}$ con $t = i/N$,
+\[
+  \Pr[\text{colisión}] \;\approx\; 1 - e^{-k(k-1)/2N}.
+\]
+Imponiendo probabilidad $\tfrac12$ y aproximando $k(k-1)\approx k^{2}$,
+\begin{equation}\label{eq:cumple}
+  k \;=\; \sqrt{2\ln 2}\,\sqrt{N} \;\approx\; 1.1774\cdot 2^{n/2}.
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  name=ax1, width=7.4cm, height=5.6cm,
+  xlabel={personas $k$}, ylabel={Pr[colisión]},
+  xmin=0,xmax=100, ymin=0,ymax=1.03,
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  title={\small $N = 365$ días}, title style={font=\small,color=inkc}
+]
+\addplot[skyc,very thick,domain=0:100,samples=120]
+  {1-exp(-x*(x-1)/(2*365))};
+\addplot[only marks,mark=*,mark size=1.3pt,coralc] coordinates {
+  (10,0.1169)(20,0.4114)(30,0.7063)(40,0.8912)(50,0.9704)(60,0.9941)(70,0.9992)};
+\draw[violetdeep,dashed] (axis cs:23,0) -- (axis cs:23,0.507);
+\draw[violetdeep,dashed] (axis cs:0,0.507) -- (axis cs:23,0.507);
+\node[violetdeep,font=\scriptsize,anchor=west] at (axis cs:25,0.44)
+  {$k=23 \Rightarrow 50.7\,\%$};
+\end{axis}
+
+\begin{axis}[
+  at={(ax1.right of south east)}, anchor=left of south west,
+  width=7.4cm, height=5.6cm,
+  xlabel={$k/\sqrt{N}$ (muestras normalizadas)}, ylabel={Pr[colisión]},
+  xmin=0,xmax=3.2, ymin=0,ymax=1.03,
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  title={\small la misma curva, para cualquier $N$},
+  title style={font=\small,color=inkc},
+  legend style={at={(0.97,0.06)},anchor=south east,font=\scriptsize,
+                draw=inkc!30,fill=white}
+]
+\addplot[violetc,very thick,domain=0:3.2,samples=120] {1-exp(-x*x/2)};
+\addlegendentry{$1-e^{-u^{2}/2}$}
+\addplot[only marks,mark=*,mark size=1.3pt,skyc] coordinates {
+  (0.523,0.1169)(1.047,0.4114)(1.570,0.7063)(2.094,0.8912)(2.617,0.9704)};
+\addlegendentry{$N=365$}
+\addplot[only marks,mark=triangle*,mark size=1.6pt,coralc] coordinates {
+  (0.391,0.0728)(0.781,0.2621)(1.172,0.4961)(1.563,0.7048)(1.953,0.8517)
+  (2.344,0.9361)(2.734,0.9764)};
+\addlegendentry{$N=2^{16}$}
+\draw[amberc,dashed,thick] (axis cs:1.1774,0) -- (axis cs:1.1774,1.0);
+\node[amberc,font=\scriptsize,anchor=south west,rotate=90]
+  at (axis cs:1.24,0.04) {$k = 1.1774\sqrt{N}$};
+\end{axis}
+\end{tikzpicture}
+\caption{La paradoja del cumpleaños es una sola curva. Al medir las muestras en
+unidades de $\sqrt{N}$, el salón de clases y un espacio de $2^{16}$ digests caen
+sobre la misma gráfica: por eso la ecuación~\eqref{eq:cumple} no depende del
+contexto.}
+\label{fig:cumpleanos}
+\end{figure}
+
+\begin{nota}{Consecuencia operativa}
+Una función hash de $n$ bits tiene \emph{seguridad ideal} si hallar una colisión
+cuesta $\Theta(2^{n/2})$ y hallar una preimagen cuesta $\Theta(2^{n})$. Todo
+ataque publicado que baje de esa cota se considera una \textbf{rotura}, aunque
+siga siendo impracticable. Es la única cifra que permite decidir si una noticia
+de criptoanálisis importa o no.
+\end{nota}
+
+Ésta es la razón por la que ningún diseño moderno se conforma con 128 bits de
+salida: 128 bits de digest son sólo 64 bits de seguridad frente a colisión, y
+$2^{64}$ es alcanzable. Es exactamente la historia de MD5, y la
+figura~\ref{fig:costos} lo pone en una sola imagen.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.2cm,
+  xlabel={longitud de salida $n$ (bits)},
+  ylabel={$\log_2$ del trabajo esperado},
+  xmin=100,xmax=280, ymin=0,ymax=270,
+  xtick={128,160,192,224,256}, ytick={0,32,64,96,128,192,256},
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\footnotesize,
+                draw=inkc!30,fill=white}
+]
+\fill[coralc!10] (axis cs:100,0) rectangle (axis cs:280,64);
+\node[coralc,font=\scriptsize,anchor=west] at (axis cs:104,34)
+  {zona alcanzable por un adversario bien financiado ($\le 2^{64}$)};
+\addplot[skyc,very thick,domain=100:280,samples=2] {x};
+\addlegendentry{preimagen: $2^{n}$}
+\addplot[coralc,very thick,domain=100:280,samples=2] {x/2};
+\addlegendentry{colisión: $2^{n/2}$}
+\addplot[only marks,mark=*,mark size=2pt,inkc] coordinates {(128,64)(160,80)(256,128)};
+\node[inkc,font=\scriptsize,anchor=north west] at (axis cs:128,62) {MD5};
+\node[inkc,font=\scriptsize,anchor=north west] at (axis cs:160,78) {SHA-1};
+\node[inkc,font=\scriptsize,anchor=south east] at (axis cs:254,130) {SHA-256};
+\draw[inkc!50,dashed] (axis cs:100,64) -- (axis cs:280,64);
+\end{axis}
+\end{tikzpicture}
+\caption{Colisión contra preimagen. La línea de colisión de MD5 nace justo sobre
+la frontera de lo alcanzable: su ruptura no fue un accidente, era cuestión de
+tiempo.}
+\label{fig:costos}
+\end{figure}
+
+\begin{laboratorio}{Laboratorio 4.1 — La paradoja, en personas y en bits}
+El mismo cálculo sirve para un salón de clases y para un espacio de digests.
+
+\textbf{Qué observar.} Con 365 días y 23 personas la probabilidad exacta es
+50.7\,\%, y la aproximación exponencial casi no se distingue de ella. Al subir el
+espacio a $2^{24}$ hacen falta unas 4\,800 muestras, no 8 millones: la raíz
+cuadrada, otra vez.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Cuáles usar hoy, cuáles ya cayeron, y cuándo}
+% ===========================================================================
+
+Ninguna función hash muere de golpe. Primero alguien publica un ataque que cuesta
+un poco menos que la fuerza bruta ---nadie se alarma---, luego el costo baja lo
+suficiente para un laboratorio, y un día aparecen dos archivos distintos con el
+mismo hash, descargables por cualquiera. En ese momento la función ya llevaba
+años muerta en los papers.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xbar, width=11.4cm, height=6.4cm,
+  bar width=7pt,
+  xlabel={$\log_2$ del costo de la mejor colisión conocida},
+  xmin=0, xmax=152, xtick={0,32,64,96,128},
+  symbolic y coords={SHA3-256,SHA-256,SHA-1,SHA-0,MD5},
+  ytick=data,
+  grid=major, grid style={inkc!12},
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.5,-0.20)},anchor=north,legend columns=2,
+                font=\footnotesize,draw=inkc!30,fill=white,
+                /tikz/every even column/.append style={column sep=12pt}},
+  enlarge y limits=0.16,
+  nodes near coords, nodes near coords align={horizontal},
+  every node near coord/.append style={font=\scriptsize,color=inkc,
+    /pgf/number format/set decimal separator={.}}
+]
+\addplot[fill=skyc!35,draw=skyc!80!black] coordinates {
+  (64,MD5) (80,SHA-0) (80,SHA-1) (128,SHA-256) (128,SHA3-256)};
+\addlegendentry{seguridad ideal $2^{n/2}$}
+\addplot[fill=coralc!55,draw=coralc!80!black] coordinates {
+  (24.1,MD5) (39,SHA-0) (63.1,SHA-1) (128,SHA-256) (128,SHA3-256)};
+\addlegendentry{mejor colisión publicada}
+\draw[coralc,dashed,thick] (axis cs:64,SHA3-256) -- (axis cs:64,MD5);
+\end{axis}
+\end{tikzpicture}
+\caption{Línea del deterioro. La distancia entre las dos barras es la medida
+objetiva del daño. SHA-256 y SHA3-256 no tienen rotura conocida, así que sus dos
+barras coinciden. Estado del arte a agosto de 2026.}
+\label{fig:deterioro}
+\end{figure}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Qué usar, qué no, y por qué. La cifra que importa no es la longitud de
+la salida, sino la \emph{longitud de seguridad}.}
+\label{tab:algoritmos}
+\begin{tabularx}{\textwidth}{@{}l l >{\raggedright\arraybackslash}X l@{}}
+\toprule
+\textbf{Algoritmo} & \textbf{Seguridad} & \textbf{Mejor ataque conocido} &
+\textbf{Estado}\\
+\midrule
+SHA-256 \newline {\scriptsize FIPS 180-4} &
+  128 colisión \newline 256 preimagen &
+  Cumpleaños genérico. El criptoanálisis dedicado no rebasa 31 de las 64 rondas. &
+  \textcolor{mintc}{\textbf{vigente}}\\
+\addlinespace
+SHA3-256 \newline {\scriptsize Keccak · FIPS 202} &
+  128 colisión \newline 256 preimagen &
+  No supera 6 de las 24 rondas de Keccak-$f$. La esponja es inmune a extensión de
+  longitud. &
+  \textcolor{mintc}{\textbf{vigente}}\\
+\addlinespace
+SHA-1 \newline {\scriptsize retirada por el NIST} &
+  $\approx 63$ efectivos &
+  Colisión de prefijo elegido: $2^{63.4}$, ejecutada en 2020 por
+  $\approx 45\,000$ USD de GPU rentada. &
+  \textcolor{coralc}{\textbf{rota}}\\
+\addlinespace
+MD5 \newline {\scriptsize RFC 1321} &
+  $< 32$ efectivos &
+  Colisión diferencial de Wang: segundos en una laptop. Con prefijo elegido,
+  $\approx 2^{39}$. &
+  \textcolor{coralc}{\textbf{rota}}\\
+\addlinespace
+CRC32 \newline {\scriptsize suma de comprobación} &
+  0 &
+  Invertible en tiempo lineal. Segunda preimagen y colisiones triviales. &
+  \textcolor{inkc}{no cripto.}\\
+\addlinespace
+Argon2id \newline {\scriptsize PHC 2015 · RFC 9106} &
+  parametrizable &
+  Función de derivación de claves: memoria y tiempo configurables. No es para
+  integridad. &
+  \textcolor{violetdeep}{contraseñas}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{aviso}{Dos precisiones que suelen citarse mal}
+La cifra $2^{39}$ corresponde a \textbf{SHA-0}, no a SHA-1. Y SHA-3 fue
+seleccionado en octubre de 2012 y publicado como FIPS 202 en agosto de 2015: no
+son la misma fecha.
+\end{aviso}
+
+% ===========================================================================
+\section{Contraseñas: por qué un hash rápido es un defecto}
+% ===========================================================================
+
+\begin{nota}{Objetivo del módulo}
+Entender qué protege la sal, qué protege el factor de trabajo, y por qué SHA-256
+es la elección equivocada para almacenar contraseñas.
+\end{nota}
+
+Guardar $\mathrm{SHA\text{-}256}(\text{contraseña})$ parece prudente: si roban la
+base, no hay contraseñas en claro. Pero el atacante no necesita invertir el hash.
+Le basta con hashear las diez mil contraseñas más comunes y buscar coincidencias
+---y como el hash es determinista, \textbf{una sola tabla sirve para todos los
+usuarios de todas las bases de datos del mundo}. Eso es una tabla arcoíris.
+
+La \emph{sal} rompe esa reutilización: un valor aleatorio distinto por usuario
+obliga a rehacer la tabla para cada uno. El \emph{factor de trabajo} ataca lo
+otro: hace que cada intento cueste 100\,ms en lugar de $0.000002$\,s.
+
+\subsection{Los tres escenarios}
+
+\begin{enumerate}[leftmargin=2.2em,itemsep=0.35em]
+  \item \textbf{Ingenuo:} $v = H(p)$. El adversario invierte $|D|$ evaluaciones
+    una sola vez y ataca a $u$ usuarios en $O(|D| + u)$.
+  \item \textbf{Con sal:} $v = H(s \concat p)$, con $s$ aleatoria pública de al
+    menos 128 bits. El costo pasa a $O(u\cdot|D|)$: la precomputación deja de
+    amortizarse.
+  \item \textbf{Con hash adaptativo:} $v = \KDF(p, s, \tau)$. El defensor paga
+    $c$ por autenticación; el atacante paga $|D|\cdot c$ \emph{por usuario}:
+    \[
+      \mathrm{costo}_{\text{atacante}} \;=\; u \cdot |D| \cdot c(\tau, m).
+    \]
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.6cm,
+  xmode=log, ymode=log,
+  xlabel={usuarios en la base de datos, $u$},
+  ylabel={evaluaciones equivalentes de SHA-256},
+  xmin=1, xmax=1e7, ymin=1e6, ymax=1e22,
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\footnotesize,
+                draw=inkc!30,fill=white},
+  legend cell align=left
+]
+\addplot[coralc,very thick,domain=1:1e7,samples=60] {1e7 + x};
+\addlegendentry{ingenuo $H(p)$: $|D| + u$}
+\addplot[amberc,very thick,domain=1:1e7,samples=60] {1e7*x};
+\addlegendentry{con sal: $u\cdot|D|$}
+\addplot[mintc,very thick,domain=1:1e7,samples=60] {1e7*x*1e5};
+\addlegendentry{sal $+$ KDF ($c = 10^{5}$): $u\cdot|D|\cdot c$}
+\draw[violetdeep,dashed,thick] (axis cs:1,1.8e19) -- (axis cs:1e7,1.8e19);
+\node[violetdeep,font=\scriptsize,anchor=south east] at (axis cs:9e6,2.2e19)
+  {$2^{64}$: frontera de lo practicable};
+\end{axis}
+\end{tikzpicture}
+\caption{Costo total del ataque por diccionario ($|D| = 10^{7}$ candidatos). Sin
+sal, el esfuerzo del adversario es prácticamente constante por más usuarios que
+haya; la sal lo vuelve lineal, y el factor de trabajo lo empuja cinco órdenes de
+magnitud hacia arriba.}
+\label{fig:contrasenas}
+\end{figure}
+
+\begin{caso}{Caso documentado}
+LinkedIn, 2012: 6.5 millones de hashes SHA-1 sin sal. La mayoría se recuperó en
+días. De ahí salieron bcrypt, scrypt y Argon2.
+\end{caso}
+
+\begin{nota}{Criterio de diseño}
+Ajusta $\tau$ para que una verificación legítima cueste entre 50 y 250\,ms en tu
+hardware de producción. Ése es el punto en que el usuario no lo nota y el
+atacante sí.
+\end{nota}
+
+\begin{laboratorio}{Laboratorio 6.1 — Tabla arcoíris contra sal}
+Ocho usuarios ficticios eligen contraseñas de un diccionario común. Se ejecuta el
+ataque con y sin sal, mirando la columna de \emph{hashes calculados}, no la de
+cuentas rotas.
+
+\textbf{Qué observar.} La sal no impide adivinar una contraseña débil concreta:
+impide \emph{atacar a todos a la vez con el mismo trabajo}. Con ocho usuarios el
+atacante paga ocho veces más; con ocho millones, ocho millones de veces más.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Árboles de Merkle: probar pertenencia sin descargar todo}
+% ===========================================================================
+
+Un bloque de Bitcoin puede contener miles de transacciones. Tu teléfono no va a
+descargar 600\,GB para comprobar que te pagaron.
+
+El árbol de Merkle resuelve exactamente eso: hashea las transacciones por
+parejas, luego los resultados por parejas, y así hasta quedarse con un único
+valor ---la \emph{raíz}--- que resume todo el conjunto.
+
+\begin{definicion}[Construcción y prueba de inclusión]
+Dadas $m$ hojas, el nivel base es
+$L_0 = (\dsha(T_1),\dots,\dsha(T_m))$ con
+$\dsha(x) = \mathrm{SHA256}(\mathrm{SHA256}(x))$, y recursivamente
+\[
+  L_{j+1}[i] \;=\; \dsha\bigl(L_j[2i] \concat L_j[2i+1]\bigr),
+\]
+duplicando el último elemento cuando el nivel tiene un número impar de nodos.
+
+Una \emph{prueba de inclusión} para $T_i$ es la lista de hermanos
+$\pi = (\sigma_0,\dots,\sigma_{d-1})$ con $d = \lceil \log_2 m \rceil$, y el
+verificador recomputa
+\[
+  r_0 = \dsha(T_i), \qquad
+  r_{j+1} = \dsha\bigl(\mathrm{orden}(r_j, \sigma_j)\bigr),
+\]
+aceptando si $r_d = \text{raíz}$.
+\end{definicion}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  nodo/.style={draw=inkc!45,fill=white,rounded corners=2pt,
+               minimum width=13mm,minimum height=5.5mm,font=\scriptsize\ttfamily},
+  camino/.style={draw=violetdeep,fill=violetc!35,line width=0.9pt},
+  herm/.style={draw=amberc,fill=amberc!40,line width=0.9pt},
+  raiz/.style={draw=mintc,fill=mintc!35,line width=1pt},
+  hoja/.style={draw=inkc!35,fill=inkc!6,rounded corners=2pt,
+               minimum width=13mm,minimum height=5mm,font=\scriptsize},
+  >={Stealth[length=1.6mm]}
+]
+% nivel 0 (hojas)
+\foreach \i/\h [count=\c from 0] in
+  {1/f66c00,2/8f6903,3/ac7e1b,4/2ff4a3,5/e419d9,6/6135e7,7/113e7d,8/24a231}{
+  \node[nodo] (L0\i) at ({\c*1.75},0) {\h};
+  \node[hoja] (T\i) at ({\c*1.75},-0.9) {$T_{\i}$};
+  \draw[->,inkc!50] (T\i) -- (L0\i);
+}
+\node[camino,nodo] at (L03) {ac7e1b};
+\node[herm,nodo]   at (L04) {2ff4a3};
+
+% nivel 1
+\foreach \i/\h [count=\c from 0] in {1/77b663,2/9e7a54,3/cdf6fd,4/6bb813}{
+  \node[nodo] (L1\i) at ({\c*3.5+0.875},1.5) {\h};
+}
+\node[herm,nodo]   at (L11) {77b663};
+\node[camino,nodo] at (L12) {9e7a54};
+
+% nivel 2
+\foreach \i/\h [count=\c from 0] in {1/17a876,2/e58276}{
+  \node[nodo] (L2\i) at ({\c*7+2.625},3) {\h};
+}
+\node[camino,nodo] at (L21) {17a876};
+\node[herm,nodo]   at (L22) {e58276};
+
+% raiz
+\node[raiz,nodo,minimum width=16mm] (R) at (6.125,4.5) {5db548};
+\node[mintc,font=\scriptsize\bfseries,anchor=west] at (7.2,4.5) {raíz de Merkle};
+
+% aristas
+\foreach \a/\b in {1/1,2/1,3/2,4/2,5/3,6/3,7/4,8/4}{
+  \draw[inkc!45] (L0\a) -- (L1\b);
+}
+\foreach \a/\b in {1/1,2/1,3/2,4/2}{ \draw[inkc!45] (L1\a) -- (L2\b); }
+\draw[inkc!45] (L21) -- (R); \draw[inkc!45] (L22) -- (R);
+
+% resaltar camino
+\draw[violetdeep,line width=1pt] (L03) -- (L12);
+\draw[violetdeep,line width=1pt] (L12) -- (L21);
+\draw[violetdeep,line width=1pt] (L21) -- (R);
+
+% leyenda
+\node[anchor=west,align=left,font=\scriptsize,inkc] at (-0.9,-2.2)
+  {\tikz\node[camino,minimum width=4mm,minimum height=2.6mm]{}; camino que
+   recomputa el verificador \qquad
+   \tikz\node[herm,minimum width=4mm,minimum height=2.6mm]{}; hermanos:
+   \emph{la prueba} $\pi$};
+\end{tikzpicture}
+\caption{Árbol de Merkle sobre ocho transacciones (doble SHA-256; se muestran los
+primeros 6 dígitos hexadecimales, calculados realmente). Para convencer a
+cualquiera de que $T_3$ está adentro basta con enviar tres hashes hermanos, no el
+bloque entero.}
+\label{fig:merkle}
+\end{figure}
+
+Lo elegante es la prueba: para convencerte de que tu transacción está adentro,
+sólo hace falta darte los hashes hermanos del camino hasta la raíz. Con
+$1\,048\,576$ transacciones son \textbf{20 hashes: 640 bytes} en lugar de
+gigabytes. El ahorro es logarítmico, y por eso la verificación simplificada de
+pagos (SPV) es posible.
+
+\begin{nota}{Seguridad}
+Falsificar una prueba implica hallar una colisión de $\dsha$ en algún nivel. La
+seguridad del árbol se reduce a la resistencia a colisión de la función base: es
+el mismo argumento que el del teorema de Damgård--Merkle.
+\end{nota}
+
+\begin{aviso}{La duplicación de la última hoja}
+Cuando un nivel tiene un número impar de nodos, el último se duplica. Ésa es la
+fuente de la vulnerabilidad \textbf{CVE-2012-2459} de Bitcoin: dos listas de
+transacciones distintas podían producir la misma raíz. Buen ejercicio de clase:
+explicar por qué la duplicación rompe la inyectividad
+(véase el ejercicio~\ref{ej:cve} del apéndice).
+\end{aviso}
+
+\begin{laboratorio}{Laboratorio 7.1 — Constructor de árbol y prueba de inclusión}
+Se construye el árbol a partir de una lista de transacciones, se pide la prueba
+de inclusión de una de ellas y después se altera esa misma transacción.
+
+\textbf{Qué observar.} La cascada: un solo bit distinto en la hoja cambia todos
+los nodos del camino hasta la raíz, y la prueba deja de verificar.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Compromisos, prueba de trabajo y la cadena}
+% ===========================================================================
+
+Un compromiso es un sobre cerrado: pones dentro tu decisión, entregas el sobre, y
+más tarde lo abres. Quien lo tiene no puede leerlo (\emph{ocultamiento}) y tú ya
+no puedes cambiar lo que hay dentro (\emph{vinculación}).
+
+\begin{definicion}[Esquema de compromiso basado en hash]
+\textbf{Compromiso.} El emisor elige $m$ y $r \leftarrow \bits^{\lambda}$
+aleatorio, calcula $c = H(m \concat r)$ y publica $c$.
+
+\textbf{Apertura.} Revela $(m, r)$; el verificador recomputa y compara con $c$.
+
+\smallskip
+\emph{Ocultamiento}: $c$ no revela información sobre $m$; se apoya en la
+resistencia a preimagen y en que $r$ tenga suficiente entropía.
+
+\emph{Vinculación}: hallar $(m', r') \neq (m, r)$ con el mismo $c$ equivale a una
+colisión de $H$.
+\end{definicion}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  act/.style={draw=inkc!55,fill=inkc!8,rounded corners=2pt,
+              minimum width=18mm,minimum height=6mm},
+  msg/.style={draw=violetdeep,fill=violetc!12,rounded corners=2pt,inner sep=3pt,
+              font=\scriptsize},
+  >={Stealth[length=2mm]}
+]
+\node[act] (A) at (0,0) {Alice};
+\node[act] (B) at (8.4,0) {Bob};
+\draw[inkc!35,dashed] (A) -- ++(0,-6.4);
+\draw[inkc!35,dashed] (B) -- ++(0,-6.4);
+
+% fase 1
+\node[msg,anchor=west] at (0.35,-1.0)
+  {elige $m \in \{\text{águila},\text{sol}\}$ y sortea $r$};
+\draw[->,violetdeep,thick] (0,-2.1) -- node[above,font=\scriptsize,violetdeep]
+  {$c = H(m \concat r)$} (8.4,-2.1);
+\node[font=\scriptsize,coralc,anchor=north west] at (8.7,-2.2)
+  {no puede leer $m$};
+
+% fase 2
+\draw[<-,amberc,thick] (0,-3.6) -- node[above,font=\scriptsize,amberc]
+  {Bob anuncia su apuesta} (8.4,-3.6);
+
+% fase 3
+\draw[->,mintc,thick] (0,-5.0) -- node[above,font=\scriptsize,mintc]
+  {apertura: $(m, r)$} (8.4,-5.0);
+\node[font=\scriptsize,mintc,anchor=north west] at (8.7,-5.1)
+  {verifica $H(m\concat r) = c$};
+
+% llaves de fase
+\draw[decorate,decoration={brace,amplitude=4pt},inkc!55]
+  (-1.35,-1.8) -- (-1.35,-2.4)
+  node[midway,left=3pt,font=\scriptsize,inkc]{fase 1};
+\draw[decorate,decoration={brace,amplitude=4pt},inkc!55]
+  (-1.35,-4.7) -- (-1.35,-5.3)
+  node[midway,left=3pt,font=\scriptsize,inkc]{fase 2};
+
+\node[anchor=north west,font=\scriptsize,inkc,align=left,text width=118mm]
+  at (-1.35,-6.0)
+  {\textbf{Vinculación:} tras la fase 1, Alice ya no puede cambiar $m$ sin
+   contradecir $c$. \textbf{Ocultamiento:} hasta la fase 2, $c$ no le dijo nada
+   a Bob ---\emph{siempre que $r$ exista}.};
+\end{tikzpicture}
+\caption{El volado por teléfono. Dos desconocidos deciden algo a distancia sin
+confiar el uno en el otro, con un hash como único árbitro.}
+\label{fig:compromiso}
+\end{figure}
+
+\begin{aviso}{Sin $r$ no hay ocultamiento}
+Cuando el espacio de $m$ es pequeño, el adversario simplemente hashea todas las
+opciones. Con dos opciones ---águila o sol--- le toma dos hashes. El valor
+aleatorio $r$ no es un adorno: es lo que vuelve impracticable esa búsqueda.
+\end{aviso}
+
+\subsection{Minar es resolver una preimagen parcial}
+
+La prueba de trabajo pide hallar un \emph{nonce} tal que
+\[
+  H(\text{bloque} \concat \text{nonce}) < \text{objetivo}.
+\]
+Es el único problema difícil de esta lista que se resuelve por fuerza bruta
+\emph{a propósito}: la dificultad es el producto, no el defecto. Y como cada
+bloque incluye el hash del anterior, alterar uno invalida todos los siguientes.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize,
+  bloque/.style={draw=mintc,fill=mintc!8,rounded corners=3pt,
+                 minimum width=36mm,minimum height=27mm,anchor=north west},
+  roto/.style={draw=coralc,fill=coralc!8,rounded corners=3pt,
+               minimum width=36mm,minimum height=27mm,anchor=north west},
+  campo/.style={font=\scriptsize\ttfamily,anchor=north west,inkc},
+  >={Stealth[length=2.2mm]}
+]
+\foreach \i/\est/\prev/\nonce/\hash in {%
+  0/bloque/000000000000/10968/0009858c4cf0,
+  1/bloque/0009858c4cf0/11581/0003e22f1034,
+  2/bloque/0003e22f1034/11945/000cec048d92}{
+  \pgfmathtruncatemacro{\num}{\i+1}
+  \node[\est] (B\i) at ({\i*4.4},0) {};
+  \node[anchor=north west,font=\bfseries\small,mintc]
+    at ($(B\i.north west)+(2mm,-1.5mm)$) {Bloque \num};
+  \node[campo] at ($(B\i.north west)+(2mm,-7mm)$)  {prev: \prev};
+  \node[campo] at ($(B\i.north west)+(2mm,-11mm)$) {nonce: \nonce};
+  \node[campo] at ($(B\i.north west)+(2mm,-15mm)$) {hash:};
+  \node[anchor=north west,font=\scriptsize\ttfamily,mintc!60!black]
+    at ($(B\i.north west)+(11mm,-15mm)$) {\hash};
+  \node[anchor=north west,font=\scriptsize,inkc!70]
+    at ($(B\i.north west)+(2mm,-20.5mm)$) {$\approx 11\,000$ intentos};
+}
+\draw[->,mintc,thick] (B0.east|-B0.center) -- (B1.west|-B1.center);
+\draw[->,mintc,thick] (B1.east|-B1.center) -- (B2.west|-B2.center);
+
+\node[anchor=north west,align=left,font=\scriptsize,coralc,text width=125mm]
+  at (0,-3.2)
+  {\textbf{La cascada.} Edita el contenido del bloque~1 y su hash deja de empezar
+   con \texttt{000}: el bloque~1 se invalida, el campo \texttt{prev} del
+   bloque~2 ya no coincide, y el 3 tampoco. Para reescribir la historia hay que
+   volver a minar ese bloque \emph{y todos los posteriores}. Eso es el costo de
+   mentir.};
+\end{tikzpicture}
+\caption{Tres bloques minados de verdad con dificultad de 3 ceros hexadecimales.
+Cada cero adicional multiplica por 16 el trabajo esperado; la red de Bitcoin
+opera hoy alrededor de 19 ceros.}
+\label{fig:cadena}
+\end{figure}
+
+\begin{nota}{Por qué SHA-256 se ejecuta en masa}
+Un equipo comercial de minado ronda los 580\,TH/s: en un segundo calcula lo que
+un núcleo de tu procesador tardaría más de medio año. SHA-256 es el sueño de un
+diseñador de circuitos ---64 rondas fijas, sin memoria ni bifurcaciones--- y por
+eso un ASIC entrega un hash por ciclo de reloj. Las funciones \emph{memory-hard}
+como Argon2 o RandomX invierten el argumento: si el cuello de botella es la
+memoria y no la aritmética, el fabricante de silicio pierde su ventaja, porque la
+DRAM se la vende el mismo proveedor a todo el mundo.
+\end{nota}
+
+\begin{laboratorio}{Laboratorios 8.1 y 8.2 — Volado por teléfono; prueba de trabajo}
+En el primero se ejecuta el protocolo de compromiso y luego se repite quitando
+$r$: Bob rompe el ocultamiento al instante. En el segundo se minan tres bloques y
+se edita el contenido de uno para ver la cascada de invalidación.
+
+\textbf{Qué observar.} Cada cero hexadecimal adicional multiplica por 16 el
+trabajo esperado. Por eso el ajuste de dificultad mide trabajo real y no buena
+suerte.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Síntesis: qué se rompe exactamente cuando falla cada propiedad}
+% ===========================================================================
+
+Hasta aquí las propiedades se enunciaron por separado. Conviene ahora invertir la
+pregunta: si mañana alguien rompe la resistencia a colisión de la función que
+estás usando, ¿qué deja de funcionar y qué sigue en pie? La respuesta no es
+«todo».
+
+\begin{caso}{El caso canónico: la firma digital}
+Nadie firma un documento: \textbf{se firma su hash}. Si el atacante consigue dos
+textos con la misma huella ---uno inocuo y otro fraudulento--- basta con hacer
+firmar el primero para quedarse con una firma válida sobre el segundo. La clave
+privada nunca se compromete y, aun así, la firma es falsificable. Ésa es la
+consecuencia exacta de perder la resistencia a colisión, y es lo que ocurrió con
+el certificado de CA falso construido sobre MD5 en 2008 y con el malware Flame en
+2012.
+\end{caso}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Mapa de consecuencias. Una propiedad rota no derriba el sistema entero:
+derriba los elementos cuya seguridad se reduce a ella.}
+\label{tab:sintesis}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{24mm}
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}p{34mm} c@{}}
+\toprule
+\textbf{Propiedad} & \textbf{Si falla, el adversario puede\ldots} &
+\textbf{Dónde duele primero} & \textbf{Costo ideal}\\
+\midrule
+\textbf{Preimagen} \newline {\scriptsize one-way} &
+  Invertir huellas publicadas: recuperar contraseñas de un volcado, leer el
+  contenido de un compromiso antes de que lo abran. &
+  Ocultamiento del compromiso · contraseñas · direcciones &
+  $2^{n}$\\
+\addlinespace
+\textbf{2.\textsuperscript{a} preimagen} \newline {\scriptsize target collision} &
+  Sustituir un objeto ya publicado y aceptado por otro sin alterar ningún hash
+  previamente difundido. &
+  Encadenamiento de bloques · prueba de Merkle · documento firmado &
+  $2^{n}$\\
+\addlinespace
+\textbf{Colisión} \newline {\scriptsize collision-free} &
+  Fabricar de antemano dos objetos intercambiables: hacer firmar uno y exhibir el
+  otro, o abrir un mismo compromiso de dos maneras. &
+  Firma digital · vinculación del compromiso · raíz de Merkle &
+  $2^{n/2}$\\
+\addlinespace
+\textbf{Colisión de prefijo elegido} \newline {\scriptsize chosen-prefix} &
+  Dar a las dos versiones un encabezado realista fijado de antemano ---nombres,
+  montos, campos de un certificado X.509---, no dos archivos basura. &
+  Documentos con formato · certificados · PGP &
+  $\ge 2^{n/2}$\\
+\addlinespace
+\textbf{Inmunidad a extensión de longitud} \newline
+  {\scriptsize propiedad de la construcción} &
+  Forjar etiquetas de autenticación para mensajes que nunca vio, sin conocer la
+  clave, si el MAC es el ingenuo $H(k \concat m)$. &
+  MAC artesanal · APIs firmadas · BIP32 &
+  ---\\
+\addlinespace
+\textbf{Salida indistinguible de aleatoria} \newline
+  {\scriptsize avalancha · uniformidad} &
+  Sesgar o anticipar valores derivados del hash: el nonce ganador, el resultado
+  de un sorteo, la clave hija de un monedero jerárquico. &
+  Prueba de trabajo · aleatoriedad pública · HMAC &
+  ---\\
+\addlinespace
+\textbf{Costo de evaluación controlable} \newline {\scriptsize sólo para KDF} &
+  Evaluar miles de millones de candidatos por segundo en GPU o ASIC: la
+  velocidad, virtud en todo lo demás, aquí es el defecto. &
+  Almacenamiento de contraseñas · cifrado de monederos &
+  ---\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  prop/.style={draw=#1,fill=#1!10,rounded corners=3pt,minimum width=34mm,
+               minimum height=9mm,font=\small\bfseries,text=#1},
+  obj/.style={draw=inkc!40,fill=inkc!5,rounded corners=3pt,minimum width=44mm,
+              minimum height=9mm,font=\small,align=center},
+  >={Stealth[length=2.4mm]}
+]
+\node[prop=skyc]   (p1) at (0,1.6)  {Preimagen};
+\node[prop=amberc] (p2) at (0,0)    {2.\textsuperscript{a} preimagen};
+\node[prop=coralc] (p3) at (0,-1.6) {Colisión};
+
+\node[obj] (o1) at (7,1.6)  {lo que debe permanecer\\\textbf{oculto}};
+\node[obj] (o2) at (7,0)    {lo que ya fue\\\textbf{publicado y aceptado}};
+\node[obj] (o3) at (7,-1.6) {lo que será elegido\\\textbf{por el adversario}};
+
+\draw[->,skyc,thick]   (p1) -- (o1);
+\draw[->,amberc,thick] (p2) -- (o2);
+\draw[->,coralc,thick] (p3) -- (o3);
+\node[anchor=north,font=\footnotesize\itshape,inkc] at (3.5,-2.4)
+  {\ldots protege\ldots};
+\end{tikzpicture}
+\caption{La regla que ordena la tabla~\ref{tab:sintesis}: cada resistencia
+custodia una clase distinta de objeto.}
+\label{fig:regla}
+\end{figure}
+
+\subsection{Una nota sobre el adversario cuántico}
+
+El algoritmo de Grover reduce la búsqueda de preimagen de $2^{n}$ a
+$\approx 2^{n/2}$, y el de Brassard--Høyer--Tapp llevaría las colisiones a
+$2^{n/3}$ ---pero exigiendo memoria cuántica de acceso aleatorio en una escala
+que hoy nadie considera realista. Bajo modelos con memoria acotada, la ventaja
+cuántica sobre colisiones casi desaparece.
+
+La consecuencia práctica es sencilla: SHA-256 conserva del orden de 128 bits
+frente a preimagen cuántica y \textbf{no es la pieza urgente}. La presión
+post-cuántica está en la firma ---ECDSA cae ante Shor---, no en la función hash.
+De hecho, los esquemas de firma construidos exclusivamente con hash (FIPS 205,
+SLH-DSA) son la respuesta, no el problema.
+
+\begin{proposicion}[hash-then-sign]
+Sea $\Sigma$ un esquema de firma seguro frente a falsificación existencial, y
+$\Sigma^{H}$ el esquema que firma $H(m)$ en lugar de $m$. Para todo falsificador
+$\mathcal{A}$ existen $\mathcal{B}$, $\mathcal{C}$ eficientes tales que
+\[
+  \Adv^{\text{euf-cma}}_{\Sigma^{H}}(\mathcal{A}) \;\le\;
+  \Adv^{\text{euf-cma}}_{\Sigma}(\mathcal{B}) \;+\;
+  \Adv^{\text{col}}_{H}(\mathcal{C}).
+\]
+\end{proposicion}
+
+\begin{observacion}
+La lectura importante es la contrapuesta. La desigualdad sólo garantiza seguridad
+mientras el segundo término sea despreciable; en cuanto la ventaja de colisión
+deja de serlo, la cota se vacía y la falsificación es efectiva. Eso es
+exactamente lo que ocurrió con MD5 y con SHA-1.
+\end{observacion}
+
+\clearpage
+% ===========================================================================
+\appendix
+\section{Resumen de cotas}
+% ===========================================================================
+
+\begin{table}[htbp]
+\centering\small
+\caption{Todo el módulo en nueve renglones.}
+\begin{tabular}{@{}l l l@{}}
+\toprule
+\textbf{Cantidad} & \textbf{Expresión} & \textbf{Para $n = 256$}\\
+\midrule
+Preimagen (clásica)        & $2^{n}$                  & $2^{256}$\\
+Segunda preimagen          & $2^{n}$                  & $2^{256}$\\
+Colisión (cumpleaños)      & $\approx 1.1774\cdot 2^{n/2}$ & $\approx 2^{128}$\\
+Preimagen (Grover)         & $\approx 2^{n/2}$        & $\approx 2^{128}$\\
+Colisión (BHT, RAM cuántica) & $\approx 2^{n/3}$      & $\approx 2^{85}$\\
+Avalancha esperada         & $\mathbb{E}[\dH] = n/2$  & $128$ bits\\
+Desviación de la avalancha & $\sigma = \sqrt{n}/2$    & $8$ bits\\
+Tamaño de prueba de Merkle & $\lceil\log_2 m\rceil$ hashes & 20 hashes para $m = 2^{20}$\\
+Costo del diccionario con sal & $u\cdot|D|\cdot c$    & lineal en usuarios\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ===========================================================================
+\section{Ejercicios propuestos}
+% ===========================================================================
+
+\begin{enumerate}[leftmargin=2.4em,itemsep=0.5em]
+  \item Demuestra que la función $h$ de la Proposición~\ref{prop:reciproco} es
+    también resistente a segunda preimagen para entradas de longitud
+    $\neq n$, y explica por qué eso no contradice nada de lo dicho.
+
+  \item\label{ej:cve} \textbf{CVE-2012-2459.} Sea un árbol de Merkle sobre la
+    lista $(T_1, T_2, T_3)$, que duplica la última hoja para completar el nivel.
+    Exhibe una lista distinta de cuatro transacciones con exactamente la misma
+    raíz, y argumenta por qué el atacante no necesita ninguna colisión de
+    SHA-256 para construirla.
+
+  \item Un servidor autentica con $t = H(m \concat k)$ ---la clave \emph{al
+    final}---. ¿Sigue funcionando el ataque de extensión de longitud? ¿Qué otro
+    problema aparece en su lugar cuando $H$ pierde la resistencia a colisión?
+
+  \item Usando la ecuación~\eqref{eq:cumple}, calcula cuántas direcciones
+    distintas hay que generar para que la probabilidad de que dos coincidan
+    alcance el 1\,\% con $n = 160$ bits. Compara con el número de direcciones que
+    ha visto la red de Bitcoin en toda su historia.
+
+  \item Un sistema guarda $v = H(s \concat p)$ con sal de 128 bits pero usa
+    SHA-256 de una sola pasada. Cuantifica, con la figura~\ref{fig:contrasenas},
+    cuánto gana el defensor al migrar a Argon2id con $c = 10^{5}$, y explica por
+    qué la sal por sí sola no bastaba.
+
+  \item Demuestra que un compromiso $c = H(m)$ \emph{sin} valor aleatorio sigue
+    siendo vinculante pero pierde por completo el ocultamiento cuando
+    $|\mathcal{M}| = 2$. ¿Cuántos hashes necesita el adversario?
+\end{enumerate}
+
+\vfill
+\begin{center}
+\color{inkc}\small
+\rule{0.35\textwidth}{0.4pt}\\[0.6em]
+\textsc{ChainNotes} · Módulo 01 de 9 · Siguiente: esquemas de compromiso\\
+{\footnotesize Versión LaTeX del apunte interactivo \texttt{temas/hash.html}.
+Todas las figuras se generan con TikZ y pgfplots.}
+\end{center}
+
+\end{document}

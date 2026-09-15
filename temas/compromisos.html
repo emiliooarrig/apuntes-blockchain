@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
-<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<title>Esquemas de compromiso y sus aplicaciones — ChainNotes</title>
+<meta name="description" content="Apunte 02: esquemas de compromiso. Ocultamiento y vinculacion, compromiso de hash, teorema de imposibilidad, Pedersen, homomorfismo y transacciones confidenciales, puerta trasera del setup, KZG y subastas a sobre cerrado, con siete laboratorios interactivos.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=2 rompe la caché: apuntes.css creció con los componentes de este apunte -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=2">
 </head>
 <body>
 
@@ -29,6 +31,7 @@
   <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
   <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
@@ -37,22 +40,24 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#intro">Saltar al contenido</a>
+<a class="skip-link" href="#definicion">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
   <div class="container header__inner">
-    <a class="brand" href="#inicio" aria-label="ChainNotes, ir al inicio">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
       <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
 
     <nav class="nav" id="nav" aria-label="Navegación principal">
       <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#definicion">Definición</a></li>
+        <li><a class="nav__link" href="#pedersen">Pedersen</a></li>
+        <li><a class="nav__link" href="#homomorfismo">Homomorfismo</a></li>
+        <li><a class="nav__link" href="#aplicaciones">Aplicaciones</a></li>
+        <li><a class="nav__link" href="#sintesis">Síntesis</a></li>
       </ul>
     </nav>
 
@@ -61,8 +66,8 @@
         <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
       </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      <a class="clay-btn clay-btn--primary header__cta" href="#definicion">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
@@ -73,14 +78,1506 @@
 
 <main>
 
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
 
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>02 · Compromisos</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 02 · Criptografía aplicada
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Esquemas de <span class="grad">compromiso</span><br>
+        y sus <span class="underlined">aplicaciones</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Un sobre cerrado que nadie puede leer y que tú ya no puedes cambiar. Con esa
+        sola idea se construyen las subastas honestas, los volados por teléfono, las
+        pruebas de conocimiento cero y las transacciones que se validan sin revelar
+        cuánto dinero llevan dentro. Aquí lo montamos pieza por pieza, con un grupo
+        criptográfico de verdad corriendo en tu navegador.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Pedersen</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Homomorfismo</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Subastas</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 7 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: el sobre, dentro de la cabecera -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg> El sobre cerrado</h2>
+        <span class="lab__tag">en vivo · c = H(m ‖ r)</span>
+      </div>
+      <p class="lab__intro">
+        Alice elige águila o sol y publica el sobre. Bob no debería poder leerlo.
+        Quita el valor aleatorio y mira lo rápido que lo abre.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="envMsg">Alice elige</label>
+          <select id="envMsg">
+            <option value="águila">águila</option>
+            <option value="sol">sol</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="envUseR" checked>
+            <span class="switch__track"></span>
+            <span>Incluir r aleatorio</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="controls" style="margin-bottom:1rem">
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="envCommit" type="button">
+            Comprometer <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="envGuess" type="button">Bob intenta leerlo</button>
+        </div>
+      </div>
+
+      <span class="field__label">Compromiso publicado</span>
+      <code class="hashout hashout--sm" id="envC"></code>
+      <span class="field__label" style="margin-top:.8em;display:block">Valor aleatorio r (secreto hasta la apertura)</span>
+      <code class="hashout hashout--sm" id="envR"></code>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="envTries">—</span>
+          <span class="metric__label">Trabajo de Bob</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="envVerdict">—</span>
+          <span class="metric__label">Resultado del ataque</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#definicion"><span class="toc__n">01</span> Qué es comprometerse</a></li>
+        <li><a href="#hash"><span class="toc__n">02</span> El compromiso de hash</a></li>
+        <li><a href="#imposibilidad"><span class="toc__n">03</span> El teorema de imposibilidad</a></li>
+        <li><a href="#pedersen"><span class="toc__n">04</span> Pedersen: el que sí suma</a></li>
+        <li><a href="#homomorfismo"><span class="toc__n">05</span> Aritmética sobre sobres</a></li>
+        <li><a href="#setup"><span class="toc__n">06</span> La puerta trasera del setup</a></li>
+        <li><a href="#vectores"><span class="toc__n">07</span> Comprometerse a muchas cosas</a></li>
+        <li><a href="#aplicaciones"><span class="toc__n">08</span> Dónde se usa de verdad</a></li>
+        <li><a href="#sintesis"><span class="toc__n">09</span> Cuál elegir y cuándo</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · DEFINICIÓN ============ -->
+<section class="section note" id="definicion">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">Qué es comprometerse, exactamente</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> separar con precisión las dos propiedades
+        de un compromiso —ocultamiento y vinculación— y entender por qué cada una defiende
+        contra un adversario distinto.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Dos personas que no se tienen confianza necesitan que una de ellas decida algo
+          <em>ahora</em> y lo demuestre <em>después</em>. Un compromiso es exactamente eso:
+          un sobre cerrado. Alice mete su decisión, lo entrega, y más tarde lo abre delante
+          de todos.
+        </p>
+
+        <p>
+          El sobre tiene que cumplir dos cosas a la vez, y conviene verlas como dos
+          promesas a dos personas distintas:
+        </p>
+
+        <ul class="plain-list">
+          <li style="--accent:var(--sky)"><strong>Ocultamiento.</strong> Es la promesa a Alice:
+            quien tiene el sobre no puede ver lo que hay dentro. El adversario es
+            <em>el receptor</em>, que quiere leer antes de tiempo.</li>
+          <li style="--accent:var(--coral)"><strong>Vinculación.</strong> Es la promesa a Bob:
+            Alice ya no puede cambiar lo que metió. El adversario es <em>el emisor</em>, que
+            quiere cambiar de opinión cuando vea cómo van las cosas.</li>
+        </ul>
+
+        <p>
+          Son dos ataques opuestos, y ésa es la razón de que un compromiso no sea simplemente
+          «cifrar el mensaje». Un cifrado oculta, sí, pero nada impide que Alice guarde dos
+          claves distintas y decida al final cuál entrega.
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">Compromiso no es cifrado</span>
+          Cifrar protege al que guarda el secreto. Comprometerse protege también
+          <em>al otro</em>. Un esquema de cifrado no promete nada sobre la imposibilidad de
+          abrir el mismo criptograma de dos maneras; un compromiso vive o muere por eso.
+        </div>
+
+        <p>
+          El protocolo tiene siempre la misma forma, y vale la pena fijar los nombres antes
+          de seguir, porque todo el módulo se apoya en ellos.
+        </p>
+
+        <div class="phases">
+          <div class="phase">
+            <div>
+              <h4>Setup</h4>
+              <p>Se fijan los parámetros públicos del esquema. Parece un trámite, y en el
+              módulo 06 veremos que es el punto más delicado de todos.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div>
+              <h4>Compromiso</h4>
+              <p>Alice elige su mensaje <var>m</var> y un valor aleatorio <var>r</var>,
+              calcula <var>c</var> = Com(<var>m</var>, <var>r</var>) y publica sólo
+              <var>c</var>. El sobre queda sobre la mesa.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div>
+              <h4>Apertura</h4>
+              <p>Alice revela el par (<var>m</var>, <var>r</var>). Cualquiera recomputa
+              Com(<var>m</var>, <var>r</var>) y lo compara con el <var>c</var> que ya estaba
+              publicado. Si coincide, acepta.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Definición formal</span>
+        <p>Un esquema de compromiso es una terna de algoritmos</p>
+        <span class="eq">
+          (Setup, Com, Open)
+          <small>con Com : ℳ × ℛ ⟶ 𝒞</small>
+        </span>
+        <p>que satisface:</p>
+        <ul class="plain-list">
+          <li><strong>Corrección.</strong> Open(<var>c</var>, <var>m</var>, <var>r</var>) = 1
+            siempre que <var>c</var> = Com(<var>m</var>, <var>r</var>).</li>
+          <li style="--accent:var(--sky)"><strong>Ocultamiento.</strong> Para
+            <var>m</var><sub>0</sub> ≠ <var>m</var><sub>1</sub> elegidos por el adversario,
+            las distribuciones de Com(<var>m</var><sub>0</sub>, <var>r</var>) y
+            Com(<var>m</var><sub>1</sub>, <var>r</var>) con <var>r</var> uniforme son
+            indistinguibles.</li>
+          <li style="--accent:var(--coral)"><strong>Vinculación.</strong> Es inviable producir
+            (<var>m</var>, <var>r</var>) ≠ (<var>m</var>′, <var>r</var>′) con
+            Com(<var>m</var>, <var>r</var>) = Com(<var>m</var>′, <var>r</var>′).</li>
+        </ul>
+        <span class="eq">
+          Adv<sup>ocult</sup>(𝒜) = |Pr[𝒜 → 1 | <var>m</var><sub>0</sub>] − Pr[𝒜 → 1 | <var>m</var><sub>1</sub>]|
+          <small>ventaja del receptor que intenta leer el sobre</small>
+        </span>
+        <span class="eq">
+          Adv<sup>vinc</sup>(ℬ) = Pr[ℬ → dos aperturas válidas de un mismo <var>c</var>]
+          <small>ventaja del emisor que intenta cambiar de opinión</small>
+        </span>
+        <p>
+          Cada ventaja puede ser <em>cero</em> (perfecta, incluso frente a un adversario sin
+          límite de cómputo) o <em>despreciable</em> (computacional). La sección 03 muestra
+          que no pueden ser cero las dos.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · COMPROMISO DE HASH ============ -->
+<section class="section note" id="hash">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">El compromiso de hash, y por qué r no es opcional</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El esquema más simple ya lo conoces del módulo anterior: toma el mensaje, pégale un
+          valor aleatorio y hashea.
+        </p>
+
+        <span class="eq">
+          <var>c</var> = H(<var>m</var> ‖ <var>r</var>)
+          <small>con <var>r</var> uniforme de al menos 128 bits</small>
+        </span>
+
+        <p>
+          De dónde sale cada propiedad es directo, y conviene decirlo con nombre y apellido
+          porque es el patrón que se repite en todo lo que sigue:
+        </p>
+
+        <ul class="plain-list">
+          <li style="--accent:var(--coral)"><strong>La vinculación viene de la resistencia a
+            colisión.</strong> Abrir el mismo <var>c</var> con dos pares distintos
+            <em>es</em> una colisión de H. Si H aguanta, el esquema aguanta.</li>
+          <li style="--accent:var(--sky)"><strong>El ocultamiento viene de r</strong>, no de H.
+            Éste es el punto que casi todo el mundo se salta.</li>
+        </ul>
+
+        <p>
+          La tentación es pensar que como H es irreversible, <var>c</var> = H(<var>m</var>)
+          ya oculta. Es falso, y de una manera brutal: el adversario no necesita invertir
+          nada. Le basta con <strong>hashear todos los mensajes posibles</strong> y comparar.
+          Si el espacio es «águila o sol», el ataque cuesta dos hashes.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">El ocultamiento depende del espacio de mensajes</span>
+          Un hash es determinista: mensajes iguales dan compromisos iguales. Sin
+          <var>r</var>, el compromiso no es más que un identificador público del mensaje.
+          Sólo cuando <var>r</var> es genuinamente aleatorio y suficientemente largo el
+          conjunto de candidatos se vuelve impracticable de recorrer.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> De dónde sale cada garantía</span>
+        <p><strong>Vinculación.</strong> Sea 𝒜 un adversario que produce
+          (<var>m</var>, <var>r</var>) ≠ (<var>m</var>′, <var>r</var>′) con el mismo
+          compromiso. Entonces</p>
+        <span class="eq">H(<var>m</var> ‖ <var>r</var>) = H(<var>m</var>′ ‖ <var>r</var>′)</span>
+        <p>es una colisión de H hallada eficientemente. Luego</p>
+        <span class="eq">
+          Adv<sup>vinc</sup>(𝒜) ≤ Adv<sup>col</sup><sub>H</sub>(𝒜)
+          <small>la vinculación hereda exactamente la resistencia a colisión</small>
+        </span>
+        <p>
+          <strong>Ocultamiento.</strong> Modelando H como oráculo aleatorio, la única forma de
+          distinguir es consultar el oráculo en el punto correcto. Con <var>r</var> uniforme
+          de λ bits y <var>q</var> consultas,
+        </p>
+        <span class="eq">
+          Adv<sup>ocult</sup>(𝒜) ≤ <var>q</var> · |ℳ| / 2<sup>λ</sup>
+          <small>y por eso λ = 128 basta para cualquier ℳ realista</small>
+        </span>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">Las dos son computacionales</span>
+          Ni el ocultamiento ni la vinculación de este esquema son perfectos: un adversario
+          sin límite de cómputo rompe ambos. En la sección 04 veremos un esquema donde el
+          ocultamiento sí es perfecto, sin supuestos de ningún tipo.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2.1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Laboratorio 2.1 — Cuánto cuesta abrir el sobre a la fuerza</h2>
+        <span class="lab__tag">|ℳ| · 2<sup>λ</sup> hashes</span>
+      </div>
+      <p class="lab__intro">
+        El adversario conoce el espacio de mensajes; lo que no conoce es <var>r</var>. Mueve
+        los dos controles y mira dónde está la frontera: con λ = 0 el ataque es instantáneo,
+        y unas pocas decenas de bits después ya no cabe en la edad del universo. Cuando el
+        trabajo no cabe en un parpadeo, el laboratorio mide la velocidad real de tu máquina
+        y extrapola.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="atkSpace">Tamaño del espacio de mensajes</label>
+          <input type="range" id="atkSpace" min="1" max="16" step="1" value="10">
+          <span class="field__label" id="atkSpaceOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field">
+          <label class="field__label" for="atkLambda">Bits de aleatoriedad en r</label>
+          <input type="range" id="atkLambda" min="0" max="128" step="8" value="0">
+          <span class="field__label" id="atkLambdaOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="atkRun" type="button">
+            Atacar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="atkHashes">—</span>
+          <span class="metric__label">Hashes del adversario</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="atkTime">—</span>
+          <span class="metric__label">Tiempo en esta máquina</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="atkVerdict">—</span>
+          <span class="metric__label">Resultado</span>
+        </div>
+      </div>
+
+      <div class="log" id="atkLog"><p class="dim">Sin ejecutar.</p></div>
+
+      <div class="callout callout--note" style="margin-bottom:0">
+        <span class="callout__title">Qué observar</span>
+        El verificador honesto siempre paga <strong>un hash</strong>, sin importar λ. El
+        adversario paga <strong>|ℳ| · 2<sup>λ</sup></strong>. Esa asimetría es todo el
+        esquema: <var>r</var> no le cuesta nada a quien se compromete y le cuesta el universo
+        a quien quiere espiar.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · IMPOSIBILIDAD ============ -->
+<section class="section note" id="imposibilidad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">No puedes tener las dos cosas perfectas</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Antes de buscar esquemas mejores conviene saber qué es imposible, porque ahorra
+          mucho tiempo. Y aquí hay un límite duro: <strong>ningún esquema de compromiso puede
+          ser a la vez perfectamente ocultante y perfectamente vinculante</strong>. No es que
+          no se haya encontrado; es que no existe.
+        </p>
+
+        <p>
+          La intuición es corta. Ocultamiento perfecto significa que el compromiso
+          <var>c</var> no contiene <em>ninguna</em> información sobre <var>m</var>: mirándolo,
+          todos los mensajes siguen siendo igual de probables. Pero si todos siguen siendo
+          posibles, entonces para cada mensaje <var>m</var>′ <em>existe</em> un
+          <var>r</var>′ que abre ese mismo <var>c</var> en <var>m</var>′. Un adversario con
+          tiempo infinito lo encuentra probando. La vinculación, entonces, sólo puede ser
+          computacional.
+        </p>
+
+        <p>
+          Y al revés: si la vinculación es perfecta, cada <var>c</var> admite un único
+          mensaje. Entonces <var>c</var> determina <var>m</var>, y un adversario sin límites
+          lo recupera por búsqueda exhaustiva. El ocultamiento sólo puede ser computacional.
+        </p>
+
+        <div class="quad">
+          <div class="quad__cell" style="--accent:var(--sky)">
+            <h4>Ocultamiento perfecto</h4>
+            <p>El sobre no filtra nada, ni ante un adversario con cómputo ilimitado. A cambio,
+            la vinculación se apoya en un problema difícil.</p>
+            <small>Pedersen · sección 04</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--coral)">
+            <h4>Vinculación perfecta</h4>
+            <p>Cada compromiso admite una sola apertura, siempre. A cambio, el secreto sólo
+            está protegido mientras el adversario tenga recursos finitos.</p>
+            <small>ElGamal como compromiso</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>Ambas computacionales</h4>
+            <p>Lo que da el compromiso de hash. Suficiente en la práctica y el más barato de
+            todos: un hash y nada más.</p>
+            <small>H(m ‖ r) · sección 02</small>
+          </div>
+          <div class="quad__cell quad__cell--dead">
+            <h4>Ambas perfectas</h4>
+            <p>Imposible. No hay ingeniería que lo arregle: es un argumento de conteo, no una
+            limitación tecnológica.</p>
+            <small>no existe</small>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Proposición 1</span>
+        <p>
+          Ningún esquema de compromiso es simultáneamente perfectamente ocultante y
+          perfectamente vinculante.
+        </p>
+        <p><em>Demostración.</em> Supongamos ocultamiento perfecto. Para
+          <var>m</var><sub>0</sub> ≠ <var>m</var><sub>1</sub>, las distribuciones</p>
+        <span class="eq">
+          {Com(<var>m</var><sub>0</sub>, <var>r</var>)}<sub><var>r</var></sub> y
+          {Com(<var>m</var><sub>1</sub>, <var>r</var>)}<sub><var>r</var></sub>
+        </span>
+        <p>
+          son idénticas. En particular tienen el mismo soporte. Luego para todo <var>c</var>
+          en el soporte y todo <var>m</var> existe <var>r</var> con
+          Com(<var>m</var>, <var>r</var>) = <var>c</var>.
+        </p>
+        <p>
+          Un emisor sin límite de cómputo enumera ℛ, encuentra ese <var>r</var> y abre
+          <var>c</var> donde quiera. La vinculación perfecta falla. ∎
+        </p>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">La pregunta de diseño</span>
+          No es «¿cuál es más seguro?», sino <strong>¿qué prefieres que sobreviva a un
+          adversario del futuro?</strong> Si el secreto debe seguir oculto en cincuenta años,
+          elige ocultamiento perfecto. Si lo que no puede cambiar nunca es el registro,
+          elige vinculación perfecta.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · PEDERSEN ============ -->
+<section class="section note" id="pedersen">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Pedersen: el compromiso que además suma</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> construir el compromiso de Pedersen en un
+        grupo concreto, demostrar que su ocultamiento es perfecto y que su vinculación equivale
+        al logaritmo discreto, y romperla en vivo cuando el grupo es demasiado pequeño.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El compromiso de hash funciona, pero es opaco: una vez cerrado el sobre no puedes
+          hacer <em>nada</em> con él salvo abrirlo. Pedersen cambia eso, y el precio que paga
+          es necesitar estructura algebraica en vez de una función de mezcla.
+        </p>
+
+        <p>
+          Trabajamos en un grupo cíclico <var>G</var> de orden primo <var>q</var> donde el
+          logaritmo discreto es difícil. Se fijan dos generadores, <var>g</var> y
+          <var>h</var>, y el compromiso es un producto de potencias:
+        </p>
+
+        <span class="eq">
+          C(<var>m</var>, <var>r</var>) = <var>g</var><sup><var>m</var></sup> ·
+          <var>h</var><sup><var>r</var></sup>
+          <small>con <var>m</var>, <var>r</var> ∈ ℤ<sub><var>q</var></sub> y <var>r</var> uniforme</small>
+        </span>
+
+        <p>
+          En los laboratorios de abajo <var>G</var> es el subgrupo de residuos cuadráticos
+          módulo un primo seguro <var>p</var> = 2<var>q</var> + 1. Es un grupo real, no una
+          maqueta: la aritmética es la misma que usarías en producción, sólo que con números
+          pequeños para que quepan en pantalla y para que los ataques se puedan ejecutar.
+        </p>
+
+        <h3>Por qué el ocultamiento es perfecto</h3>
+        <p>
+          Éste es el argumento bonito. Como <var>r</var> es uniforme en ℤ<sub><var>q</var></sub>
+          y <var>h</var> genera todo el grupo, el término <var>h</var><sup><var>r</var></sup> es
+          un elemento uniforme de <var>G</var>. Multiplicar por
+          <var>g</var><sup><var>m</var></sup> es una biyección, así que el resultado
+          <em>también</em> es uniforme, y su distribución es la misma para cualquier
+          <var>m</var>. El compromiso no contiene información sobre el mensaje. Nada.
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">Perfecto quiere decir perfecto</span>
+          No es «difícil de romper»: es que <strong>no hay nada que romper</strong>. Un
+          adversario con cómputo infinito ve exactamente lo mismo que uno con una laptop. Por
+          eso el laboratorio 2.3 encuentra una apertura válida para cualquier mensaje que le
+          pidas: todas lo son.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Proposición 2</span>
+        <p>
+          Si el logaritmo discreto es difícil en <var>G</var>, el compromiso de Pedersen es
+          computacionalmente vinculante.
+        </p>
+        <p><em>Demostración.</em> Supongamos que 𝒜 produce dos aperturas válidas del mismo
+          compromiso:</p>
+        <span class="eq">
+          <var>g</var><sup><var>m</var></sup><var>h</var><sup><var>r</var></sup> =
+          <var>g</var><sup><var>m</var>′</sup><var>h</var><sup><var>r</var>′</sup>,
+          (<var>m</var>, <var>r</var>) ≠ (<var>m</var>′, <var>r</var>′)
+        </span>
+        <p>Reagrupando,
+          <var>g</var><sup><var>m</var>−<var>m</var>′</sup> =
+          <var>h</var><sup><var>r</var>′−<var>r</var></sup>. Nótese que
+          <var>r</var> ≠ <var>r</var>′, pues si fueran iguales tendríamos
+          <var>m</var> = <var>m</var>′. Luego <var>r</var>′ − <var>r</var> es invertible
+          módulo <var>q</var> y</p>
+        <span class="eq">
+          log<sub><var>g</var></sub> <var>h</var> =
+          (<var>m</var> − <var>m</var>′) · (<var>r</var>′ − <var>r</var>)<sup>−1</sup> mod <var>q</var>
+          <small>una colisión entrega el logaritmo discreto en una línea</small>
+        </span>
+        <p>
+          Así que romper la vinculación <em>es</em> resolver el logaritmo discreto:
+          Adv<sup>vinc</sup>(𝒜) ≤ Adv<sup>dlog</sup>(ℬ). ∎
+        </p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">En producción</span>
+          Nadie usa enteros módulo <var>p</var> para esto: se usan curvas elípticas
+          —secp256k1, ristretto255, BLS12-381—, donde un elemento del grupo ocupa 32 o 48
+          bytes en vez de 256. La aritmética cambia de nombre pero el esquema es literalmente
+          el mismo.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2.2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Laboratorio 2.2 — Pedersen en vivo</h2>
+        <span class="lab__tag">grupo real · BigInt</span>
+      </div>
+      <p class="lab__intro">
+        Elige un grupo y un mensaje. Cambia <var>r</var> sin tocar <var>m</var> y observa que
+        el compromiso no se parece en nada al anterior. Luego lanza doscientas cuarenta
+        muestras: si el ocultamiento es perfecto, los compromisos del <em>mismo</em> mensaje
+        deben cubrir el grupo entero de forma uniforme.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="pedGroup">Grupo</label>
+          <select id="pedGroup">
+            <option value="juguete">juguete · q = 1 013 (10 bits)</option>
+            <option value="pequeno" selected>pequeño · q = 100 043 (17 bits)</option>
+            <option value="real">realista · q de 255 bits</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="pedM">Mensaje m</label>
+          <input type="number" id="pedM" value="42" min="0" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="pedR">Aleatoriedad r</label>
+          <input type="number" id="pedR" value="0" min="0" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="pedRand" type="button">Sortear r</button>
+        </div>
+      </div>
+
+      <span class="field__label">Compromiso C(m, r) = g^m · h^r mod p</span>
+      <code class="hashout hashout--sm" id="pedC"></code>
+
+      <dl class="params" id="pedParams"></dl>
+
+      <div class="controls" style="margin-top:1.3rem;margin-bottom:.6rem">
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="pedSpreadRun" type="button">
+            240 valores de r, mismo m <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="bars" id="pedSpread" role="img" aria-label="Dispersión de los compromisos de un mismo mensaje"></div>
+      <p class="lab__note">
+        Cada barra es un tramo del grupo. Una distribución plana significa que el compromiso
+        de un mensaje fijo puede caer en cualquier parte con igual probabilidad: eso
+        <em>es</em> el ocultamiento perfecto, dibujado.
+      </p>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="pedSame">—</span>
+          <span class="metric__label">Compromisos distintos para el mismo m</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB 2.3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Laboratorio 2.3 — Toda apertura es válida</h2>
+        <span class="lab__tag">paso de bebé, paso de gigante · O(√q)</span>
+      </div>
+      <p class="lab__intro">
+        Alice publica un compromiso de un valor que nadie conoce. Tomamos una lista de
+        mensajes cualesquiera y, para cada uno, buscamos el <var>r</var> que lo abriría.
+        Los encontramos <strong>todos</strong>. Después cambia al grupo de 255 bits y
+        observa qué ocurre con el mismo ataque.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="hidGroup">Grupo</label>
+          <select id="hidGroup">
+            <option value="juguete">juguete · q = 1 013</option>
+            <option value="pequeno" selected>pequeño · q = 100 043</option>
+            <option value="real">realista · q de 255 bits</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="hidRun" type="button">
+            Buscar aperturas <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:1.2rem">
+        <table class="nb" style="min-width:420px">
+          <thead>
+            <tr><th>Mensaje m′</th><th>r′ encontrado</th><th>¿Abre el mismo c?</th></tr>
+          </thead>
+          <tbody id="hidTable">
+            <tr><td colspan="3" class="center muted-p">Sin ejecutar.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="hidOps">—</span>
+          <span class="metric__label">Operaciones de grupo</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="hidCost">—</span>
+          <span class="metric__label">Coste del ataque</span>
+        </div>
+      </div>
+
+      <div class="log" id="hidLog"><p class="dim">Sin ejecutar.</p></div>
+
+      <div class="callout callout--warn" style="margin-bottom:0">
+        <span class="callout__title">Las dos lecturas del mismo experimento</span>
+        Que <em>exista</em> un <var>r</var>′ para cada mensaje es el ocultamiento perfecto:
+        <var>c</var> no delata nada porque es compatible con todo. Que yo haya podido
+        <em>calcularlo</em> es la vinculación rota, y sólo ocurre porque √<var>q</var> son
+        unos cientos de operaciones. Con <var>q</var> de 255 bits harían falta 2<sup>127</sup>,
+        y con ellas 2<sup>127</sup> palabras de memoria.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · HOMOMORFISMO ============ -->
+<section class="section note" id="homomorfismo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Aritmética sobre sobres cerrados</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Aquí aparece lo que el compromiso de hash no puede hacer. Multiplica dos
+          compromisos de Pedersen y mira qué sale:
+        </p>
+
+        <span class="eq">
+          C(<var>a</var>, <var>r</var><sub>1</sub>) · C(<var>b</var>, <var>r</var><sub>2</sub>)
+          = <var>g</var><sup><var>a</var>+<var>b</var></sup>
+            <var>h</var><sup><var>r</var><sub>1</sub>+<var>r</var><sub>2</sub></sup>
+          = C(<var>a</var>+<var>b</var>, <var>r</var><sub>1</sub>+<var>r</var><sub>2</sub>)
+          <small>el producto de los sobres es el sobre de la suma</small>
+        </span>
+
+        <p>
+          Es una consecuencia de las leyes de los exponentes, casi decepcionante de lo simple
+          que es. Y sin embargo abre una puerta enorme: <strong>se puede verificar una suma
+          sin conocer los sumandos</strong>. El verificador multiplica dos números públicos
+          y comprueba una igualdad; los montos siguen dentro de los sobres.
+        </p>
+
+        <h3>Transacciones confidenciales</h3>
+        <p>
+          De ahí sale la aplicación estrella. Una transacción es válida si lo que entra es
+          igual a lo que sale más la comisión. Si cada monto se publica como compromiso de
+          Pedersen y el emisor elige los factores de cegado de modo que se cancelen, el nodo
+          puede comprobar
+        </p>
+
+        <span class="eq">
+          ∏ C<sub>entradas</sub> = ∏ C<sub>salidas</sub> · C<sub>comisión</sub>
+          <small>una igualdad entre elementos del grupo, sin un solo monto a la vista</small>
+        </span>
+
+        <p>
+          Esto es exactamente lo que hacen Elements y Liquid con las
+          <em>confidential transactions</em>, y lo que Mimblewimble —Grin, Beam— lleva al
+          extremo convirtiendo la cadena entera en una suma de compromisos.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">Y aquí está la trampa</span>
+          La igualdad se comprueba <strong>módulo q</strong>. Nada impide que un atacante
+          use montos gigantescos que den la vuelta al grupo y sumen «cero» sin sumar cero de
+          verdad. El laboratorio 2.5 lo ejecuta. La defensa no es otro compromiso: son las
+          <strong>pruebas de rango</strong>, que demuestran en cero conocimiento que cada
+          monto vive en [0, 2<sup>64</sup>).
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Homomorfismo</span>
+        <p>Com es un homomorfismo de grupos</p>
+        <span class="eq">
+          (ℤ<sub><var>q</var></sub> × ℤ<sub><var>q</var></sub>, +) ⟶ (<var>G</var>, ·)
+        </span>
+        <p>lo que da gratis, además de la suma:</p>
+        <ul class="plain-list">
+          <li><strong>Resta.</strong> C(<var>a</var>)·C(<var>b</var>)<sup>−1</sup> =
+            C(<var>a</var>−<var>b</var>).</li>
+          <li style="--accent:var(--sky)"><strong>Escalado por constante pública.</strong>
+            C(<var>a</var>)<sup><var>k</var></sup> = C(<var>k</var><var>a</var>).</li>
+          <li style="--accent:var(--coral)"><strong>No hay producto.</strong> No existe forma
+            de obtener C(<var>ab</var>) de C(<var>a</var>) y C(<var>b</var>). Para eso hacen
+            falta emparejamientos o cifrado completamente homomórfico.</li>
+        </ul>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">Por qué el hash no puede</span>
+          H(<var>a</var>‖<var>r</var><sub>1</sub>) y H(<var>b</var>‖<var>r</var><sub>2</sub>)
+          no tienen ninguna relación algebraica con
+          H(<var>a</var>+<var>b</var>‖·): la avalancha del módulo 01, que allí era la virtud,
+          aquí es justo lo que impide operar.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2.4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Laboratorio 2.4 — Sumar sin abrir</h2>
+        <span class="lab__tag">C(a)·C(b) = C(a+b)</span>
+      </div>
+      <p class="lab__intro">
+        Dos montos, dos sobres, dos factores de cegado sorteados al azar. Multiplicamos los
+        compromisos y lo comparamos con el compromiso directo de la suma.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="homA">Monto a</label>
+          <input type="number" id="homA" value="1250" min="0" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="homB">Monto b</label>
+          <input type="number" id="homB" value="3400" min="0" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="homRun" type="button">
+            Comprometer y sumar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:1.2rem">
+        <div>
+          <span class="field__label">C(a, r₁)</span>
+          <code class="hashout hashout--sm" id="homCa">—</code>
+        </div>
+        <div>
+          <span class="field__label">C(b, r₂)</span>
+          <code class="hashout hashout--sm" id="homCb">—</code>
+        </div>
+      </div>
+      <div class="two-col" style="margin-top:.8rem">
+        <div>
+          <span class="field__label">Producto de los dos</span>
+          <code class="hashout hashout--sm" id="homProd">—</code>
+        </div>
+        <div>
+          <span class="field__label">C(a+b, r₁+r₂) directo</span>
+          <code class="hashout hashout--sm" id="homDirect">—</code>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="homVerdict">—</span>
+          <span class="metric__label">Comparación</span>
+        </div>
+      </div>
+
+      <div class="log" id="homLog"><p class="dim">Sin ejecutar.</p></div>
+    </div>
+
+    <!-- LAB 2.5 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> Laboratorio 2.5 — Transacción confidencial</h2>
+        <span class="lab__tag">balance sin montos · y el desbordamiento</span>
+      </div>
+      <p class="lab__intro">
+        Dos entradas, dos salidas y una comisión, cada una dentro de su sobre. El nodo sólo
+        multiplica y compara. Prueba los tres escenarios: uno honesto, uno que intenta crear
+        dinero de la nada, y uno que <em>lo consigue</em> aprovechando la aritmética modular.
+      </p>
+
+      <div class="controls">
+        <div class="field"><label class="field__label" for="ctIn1">Entrada 1</label>
+          <input type="number" id="ctIn1" value="40" min="0" step="1"></div>
+        <div class="field"><label class="field__label" for="ctIn2">Entrada 2</label>
+          <input type="number" id="ctIn2" value="60" min="0" step="1"></div>
+        <div class="field"><label class="field__label" for="ctOut1">Salida 1</label>
+          <input type="number" id="ctOut1" value="70" min="0" step="1"></div>
+        <div class="field"><label class="field__label" for="ctOut2">Salida 2</label>
+          <input type="number" id="ctOut2" value="29" min="0" step="1"></div>
+        <div class="field"><label class="field__label" for="ctFee">Comisión</label>
+          <input type="number" id="ctFee" value="1" min="0" step="1"></div>
+      </div>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="ctRun" type="button">
+            Verificar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+        <div class="field field--auto">
+          <div class="seg">
+            <button type="button" id="ctHonest">Honesta</button>
+            <button type="button" id="ctSteal">Crear dinero</button>
+            <button type="button" id="ctOverflow">Desbordamiento</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="ctVerdict">—</span>
+          <span class="metric__label">Veredicto del nodo</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="ctSumIn">—</span>
+          <span class="metric__label">Suma real de entradas</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="ctSumOut">—</span>
+          <span class="metric__label">Suma real de salidas</span>
+        </div>
+      </div>
+
+      <div class="log" id="ctLog"><p class="dim">Sin ejecutar.</p></div>
+
+      <div class="callout callout--key" style="margin-bottom:0">
+        <span class="callout__title">Por qué existen las pruebas de rango</span>
+        El botón «Desbordamiento» produce una transacción que el nodo <strong>acepta</strong>
+        y que sin embargo crea dinero. El compromiso homomórfico garantiza la suma módulo
+        <var>q</var>, no la suma de los enteros. Bulletproofs y sus sucesores existen
+        exactamente para tapar este agujero, y son la parte cara de una transacción
+        confidencial: el compromiso ocupa 32 bytes; la prueba de rango, cientos.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · SETUP ============ -->
+<section class="section note" id="setup">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">La puerta trasera que cabe en un solo número</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Volvamos a la fase que parecía un trámite. El compromiso de Pedersen necesita dos
+          generadores, <var>g</var> y <var>h</var>. La pregunta incómoda: ¿quién los eligió?
+        </p>
+
+        <p>
+          Si alguien generó <var>h</var> como <var>h</var> = <var>g</var><sup><var>x</var></sup>
+          para un <var>x</var> que conoce, ese alguien puede abrir cualquier compromiso donde
+          quiera. No necesita romper nada: la fórmula es de una línea.
+        </p>
+
+        <span class="eq">
+          <var>r</var>′ = <var>r</var> + (<var>m</var> − <var>m</var>′) ·
+          <var>x</var><sup>−1</sup> mod <var>q</var>
+          <small>y C(<var>m</var>′, <var>r</var>′) = C(<var>m</var>, <var>r</var>)</small>
+        </span>
+
+        <p>
+          Ese <var>x</var> se llama <em>trampa</em> o <em>trapdoor</em>. Fíjate en lo que
+          significa: la vinculación del esquema no depende sólo de que el logaritmo discreto
+          sea difícil, sino de que <strong>nadie sepa ya la respuesta</strong> para ese par
+          concreto.
+        </p>
+
+        <h3>Las dos defensas</h3>
+        <ul class="plain-list">
+          <li style="--accent:var(--mint)"><strong>Nothing up my sleeve.</strong> Derivar
+            <var>h</var> de un hash de una cadena pública y sin gracia —el nombre del
+            protocolo, los dígitos de π—. Nadie conoce el logaritmo porque nadie eligió el
+            resultado. Es lo que hacen los laboratorios de este apunte.</li>
+          <li style="--accent:var(--sky)"><strong>Ceremonia multiparte.</strong> Cuando los
+            parámetros son demasiado complejos para derivarlos de un hash, muchos
+            participantes aportan aleatoriedad por turnos. La trampa sólo existe si
+            <em>todos</em> conspiraron. La ceremonia de EIP-4844 reunió más de 140 000
+            participantes con esa lógica.</li>
+        </ul>
+
+        <div class="callout callout--note">
+          <span class="callout__title">El «residuo tóxico»</span>
+          En el argot de las ceremonias, la aleatoriedad que cada participante debe destruir
+          se llama <em>toxic waste</em>. Si sobrevive una sola copia, quien la tenga puede
+          falsificar. Zcash montó en 2016 una ceremonia con hardware desconectado y actas
+          públicas justamente por eso.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Cómo se equivoca un compromiso</span>
+        <p>Si <var>h</var> = <var>g</var><sup><var>x</var></sup>, entonces todo compromiso
+          colapsa a una sola potencia de <var>g</var>:</p>
+        <span class="eq">
+          C(<var>m</var>, <var>r</var>) = <var>g</var><sup><var>m</var></sup>
+          <var>g</var><sup><var>xr</var></sup> =
+          <var>g</var><sup><var>m</var> + <var>xr</var></sup>
+        </span>
+        <p>
+          Así que <var>c</var> sólo depende de <var>m</var> + <var>xr</var> mod <var>q</var>.
+          Para abrirlo en <var>m</var>′ basta con resolver
+        </p>
+        <span class="eq">
+          <var>m</var> + <var>xr</var> ≡ <var>m</var>′ + <var>xr</var>′ (mod <var>q</var>)
+        </span>
+        <p>
+          que es una ecuación lineal con una incógnita. Con <var>x</var> se despeja en
+          microsegundos; sin <var>x</var>, despejarla <em>es</em> el logaritmo discreto.
+        </p>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">La asimetría que importa</span>
+          Quien conoce la trampa rompe la <strong>vinculación</strong>, no el ocultamiento.
+          Sigue sin poder leer sobres ajenos; lo que puede es mentir sobre los propios. En
+          una subasta eso basta para ganar siempre.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2.6 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 2.6 — Abrir el mismo sobre de dos maneras</h2>
+        <span class="lab__tag">equivocación con trampa</span>
+      </div>
+      <p class="lab__intro">
+        Alice se compromete a <var>m</var> y después decide que prefería <var>m</var>′.
+        Con la trampa lo consigue sin tocar el compromiso publicado. Activa el interruptor
+        para generar <var>h</var> por hash y repite el intento.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="tdM">Se comprometió a m</label>
+          <input type="number" id="tdM" value="100" min="0" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="tdMp">Quiere abrirlo en m′</label>
+          <input type="number" id="tdMp" value="999" min="0" step="1">
+        </div>
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="tdNums">
+            <span class="switch__track"></span>
+            <span>h derivado de un hash</span>
+          </label>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="tdRun" type="button">
+            Intentar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <dl class="params">
+        <div><dt>Trampa x = log_g(h)</dt><dd id="tdX">—</dd></div>
+        <div><dt>Compromiso c</dt><dd id="tdC">—</dd></div>
+        <div><dt>r original</dt><dd id="tdR">—</dd></div>
+        <div><dt>r′ fabricado</dt><dd id="tdRp">—</dd></div>
+      </dl>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="tdVerdict">—</span>
+          <span class="metric__label">Estado de la vinculación</span>
+        </div>
+      </div>
+
+      <div class="log" id="tdLog"><p class="dim">Sin ejecutar.</p></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · VECTORES Y POLINOMIOS ============ -->
+<section class="section note" id="vectores">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Comprometerse a un millón de cosas a la vez</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Hasta aquí el sobre guardaba un valor. ¿Y si hay que comprometerse a una lista
+          entera —todas las transacciones de un bloque, el estado completo de una cadena— y
+          además poder demostrar después que un elemento concreto estaba dentro?
+        </p>
+
+        <p>
+          Eso es un <strong>compromiso vectorial</strong>, y del módulo 01 ya conoces uno: el
+          árbol de Merkle. La raíz es el compromiso; la prueba de inclusión es la apertura
+          <em>parcial</em>, y cuesta un hash por nivel.
+        </p>
+
+        <h3>Compromisos polinómicos: KZG</h3>
+        <p>
+          La idea de KZG es tratar la lista como los coeficientes de un polinomio
+          <var>f</var> y comprometerse a <var>f</var> evaluándolo «dentro del exponente» en un
+          punto secreto τ que nadie conoce —de ahí la ceremonia de la sección anterior—.
+        </p>
+
+        <span class="eq">
+          C = <var>g</var><sup><var>f</var>(τ)</sup>
+          <small>un único elemento del grupo, sea cual sea el grado de <var>f</var></small>
+        </span>
+
+        <p>
+          Lo asombroso es la prueba. Para convencerte de que <var>f</var>(<var>z</var>) =
+          <var>y</var> basta con un elemento más del grupo: el compromiso al cociente
+          (<var>f</var>(X) − <var>y</var>)/(X − <var>z</var>). No crece con el tamaño de la
+          lista. <strong>48 bytes, siempre.</strong>
+        </p>
+
+        <p>
+          Ésa es la razón de que Ethereum haya adoptado KZG para los <em>blobs</em> de
+          EIP-4844: cada blob son 128 KB de datos y su compromiso ocupa 48 bytes, con pruebas
+          de tamaño constante.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Las tres familias</span>
+        <ul class="plain-list">
+          <li><strong>Merkle.</strong> Compromiso 32 B, prueba
+            ⌈log₂ <var>n</var>⌉ · 32 B. Sólo hashes: sin setup, sin supuestos algebraicos,
+            resistente a cuántico.</li>
+          <li style="--accent:var(--sky)"><strong>Pedersen vectorial.</strong>
+            C = ∏ <var>g</var><sub><var>i</var></sub><sup><var>m</var><sub><var>i</var></sub></sup>
+            · <var>h</var><sup><var>r</var></sup>. Homomórfico y ocultante, pero la apertura
+            parcial no es barata.</li>
+          <li style="--accent:var(--mint)"><strong>KZG.</strong> Compromiso y prueba
+            constantes, homomórfico, y además permite abrir varias posiciones con una sola
+            prueba. El precio es el setup de confianza y los emparejamientos.</li>
+        </ul>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">Qué se paga en cada caso</span>
+          Merkle no pide confianza a nadie y paga con pruebas logarítmicas. KZG da pruebas
+          constantes y pide una ceremonia. No hay una respuesta correcta: hay dos
+          compromisos de ingeniería distintos.
+        </div>
+      </aside>
+    </div>
+
+    <!-- GRÁFICA -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-defi"/></svg> Cuánto pesa probar que algo está dentro</h2>
+        <span class="lab__tag">escala logarítmica · bytes</span>
+      </div>
+      <p class="lab__intro">
+        Mueve el control y mira cómo se separan las tres curvas. Mandar el conjunto entero
+        crece linealmente; Merkle crece con el logaritmo; KZG no crece.
+      </p>
+
+      <div class="controls">
+        <div class="field field--wide">
+          <label class="field__label" for="szK">Elementos comprometidos</label>
+          <input type="range" id="szK" min="1" max="24" step="1" value="20">
+        </div>
+      </div>
+
+      <div class="szwrap">
+        <!-- El tamaño va en línea a propósito: styles.css fuerza
+             svg:not(.sprite){width:1em} para los iconos, y sin esto la gráfica
+             colapsaría si apuntes.css llegara de una caché vieja. -->
+        <svg id="szChart" style="width:100%;height:auto" role="img"
+             aria-label="Tamaño de la prueba según el número de elementos"></svg>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:var(--coral)"></i> mandar la lista completa</span>
+        <span><i style="background:var(--amber)"></i> prueba de Merkle</span>
+        <span><i style="background:var(--mint)"></i> prueba KZG</span>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="szN">—</span>
+          <span class="metric__label">Elementos</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num metric__num--coral" id="szList">—</span>
+          <span class="metric__label">Lista completa</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="szMerkle">—</span>
+          <span class="metric__label">Prueba de Merkle</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num metric__num--mint" id="szKzg">—</span>
+          <span class="metric__label">Prueba KZG</span>
+        </div>
+      </div>
+
+      <p class="lab__note">
+        Con un millón de elementos la diferencia es de 32 MB a 640 bytes a 48 bytes. El
+        ahorro de Merkle es logarítmico; el de KZG es total, y por eso se paga una ceremonia
+        por él.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · APLICACIONES ============ -->
+<section class="section note" id="aplicaciones">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Dónde se usa esto de verdad</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un compromiso rara vez es el producto final: casi siempre es la primera mitad de un
+          protocolo en dos tiempos. El patrón <em>comprometer ahora, revelar después</em>
+          aparece en sitios que parecen no tener nada que ver entre sí.
+        </p>
+
+        <h3>Subastas a sobre cerrado</h3>
+        <p>
+          El problema de pujar en público es que el último en hablar gana con la mínima
+          ventaja, sin importar cuánto valoraba el bien. Con compromisos, todos publican
+          <var>c</var> = H(puja ‖ <var>r</var>) en la fase 1 y abren en la fase 2. Quien
+          intente revelar otra cifra queda descalificado automáticamente: el hash no cuadra.
+        </p>
+
+        <h3>Pruebas de conocimiento cero</h3>
+        <p>
+          Todo protocolo sigma tiene la misma coreografía de tres pasos, y el primero es un
+          compromiso. Es lo que impide que el probador adapte su respuesta al desafío.
+        </p>
+
+        <div class="phases">
+          <div class="phase">
+            <div><h4>Compromiso</h4><p>El probador manda un valor que fija su aleatoriedad
+            antes de saber nada del desafío.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Desafío</h4><p>El verificador manda un valor aleatorio que el probador
+            no podía anticipar.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Respuesta</h4><p>El probador contesta. Sólo puede hacerlo bien si de
+            verdad conocía el secreto, porque ya no puede cambiar el primer mensaje.</p></div>
+          </div>
+        </div>
+
+        <h3>Aleatoriedad pública</h3>
+        <p>
+          Sorteos, asignación de turnos de validador, loterías en cadena: si cada participante
+          publica el compromiso de un número y luego todos abren, nadie pudo elegir su
+          aportación viendo la de los demás. El resultado es la suma. Es un volado con
+          <var>n</var> jugadores, y es la base de los esquemas commit-reveal de RANDAO.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-globe"/></svg> En producción</span>
+        <ul class="plain-list">
+          <li><strong>Bitcoin.</strong> La raíz de Merkle del encabezado es un compromiso a
+            la lista de transacciones del bloque.</li>
+          <li style="--accent:var(--sky)"><strong>Ethereum.</strong> RANDAO usa commit-reveal
+            para la aleatoriedad del consenso; EIP-4844 usa KZG para los blobs.</li>
+          <li style="--accent:var(--mint)"><strong>Liquid y Grin.</strong> Pedersen para los
+            montos, Bulletproofs para las pruebas de rango.</li>
+          <li style="--accent:var(--coral)"><strong>Certificate Transparency.</strong> Un
+            árbol de Merkle público como compromiso a todos los certificados emitidos.</li>
+          <li style="--accent:var(--amber)"><strong>ENS y subastas de dominios.</strong>
+            Registro en dos fases para evitar que alguien se adelante al ver tu solicitud.</li>
+        </ul>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">El anti-patrón que hay que reconocer</span>
+          Un commit-reveal donde alguien puede <strong>negarse a abrir</strong> sin coste no
+          es justo: el último en revelar decide si participa según le convenga. La solución
+          habitual es exigir un depósito que se pierde si no se abre.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2.7 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Laboratorio 2.7 — Subasta a sobre cerrado</h2>
+        <span class="lab__tag">cuatro postores · dos fases</span>
+      </div>
+      <p class="lab__intro">
+        Cuatro postores con valoraciones distintas. Ejecuta la subasta con compromisos y sin
+        ellos, y deja que Dave —el último en revelar— intente cambiar su puja al ver que ya
+        había ganado.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="aucCheat">
+            <span class="switch__track"></span>
+            <span>Dave intenta hacer trampa</span>
+          </label>
+        </div>
+        <div class="field field--auto">
+          <label class="switch">
+            <input type="checkbox" id="aucNoCommit">
+            <span class="switch__track"></span>
+            <span>Subasta sin compromisos</span>
+          </label>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="aucRun" type="button">
+            Ejecutar subasta <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:1.2rem">
+        <table class="nb" style="min-width:460px">
+          <thead>
+            <tr><th>Postor</th><th>Compromiso</th><th>Puja revelada</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="aucTable">
+            <tr><td colspan="4" class="center muted-p">Sin ejecutar.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="aucWinner">—</span>
+          <span class="metric__label">Ganador</span>
+        </div>
+      </div>
+
+      <div class="log" id="aucLog"><p class="dim">Sin ejecutar.</p></div>
+
+      <div class="callout callout--note" style="margin-bottom:0">
+        <span class="callout__title">Qué observar</span>
+        Sin compromisos gana Dave con la puja mínima necesaria, aunque su valoración fuera
+        la tercera. Con compromisos, su intento de rebajarla lo descalifica y gana Bob, que
+        era quien de verdad ofrecía más. El compromiso no impide mentir: hace que
+        <strong>mentir sea detectable</strong>.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Síntesis</span>
+      <h2 class="section__title">Cuál elegir, y qué se rompe si falla</h2>
+    </header>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <caption class="center muted-p" style="padding:.8em;font-size:.85rem">
+          Los cuatro esquemas del apunte. La columna que decide casi siempre es la última:
+          <strong>qué necesitas hacer con el sobre cerrado</strong>.
+        </caption>
+        <thead>
+          <tr>
+            <th>Esquema</th>
+            <th>Ocultamiento</th>
+            <th>Vinculación</th>
+            <th>Tamaño</th>
+            <th>Qué permite</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>H(m ‖ r)</strong><br><span class="muted-p" style="font-size:.82rem">SHA-256</span></td>
+            <td><span class="status status--warn">computacional</span></td>
+            <td><span class="status status--warn">computacional</span></td>
+            <td class="num">32 B</td>
+            <td>Nada más que abrir. Sin setup, sin supuestos algebraicos, resistente a cuántico.</td>
+          </tr>
+          <tr>
+            <td><strong>Pedersen</strong><br><span class="muted-p" style="font-size:.82rem">g^m h^r</span></td>
+            <td><span class="status status--ok">perfecto</span></td>
+            <td><span class="status status--warn">dlog</span></td>
+            <td class="num">32 B</td>
+            <td>Sumar y restar sobres cerrados. Base de las transacciones confidenciales.</td>
+          </tr>
+          <tr>
+            <td><strong>Merkle</strong><br><span class="muted-p" style="font-size:.82rem">compromiso vectorial</span></td>
+            <td><span class="status status--bad">ninguno*</span></td>
+            <td><span class="status status--warn">colisión</span></td>
+            <td class="num">32 B<br>+ 32·log n</td>
+            <td>Abrir una posición sin revelar el resto. *Oculta sólo si las hojas llevan sal.</td>
+          </tr>
+          <tr>
+            <td><strong>KZG</strong><br><span class="muted-p" style="font-size:.82rem">polinómico</span></td>
+            <td><span class="status status--warn">computacional</span></td>
+            <td><span class="status status--warn">q-SDH + setup</span></td>
+            <td class="num">48 B<br>+ 48 B</td>
+            <td>Abrir cualquier evaluación con prueba constante. Exige ceremonia de confianza.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="clay-card lab reveal" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Qué se rompe cuando falla cada propiedad</h2>
+        <span class="lab__tag">consecuencias, no teoremas</span>
+      </div>
+      <div class="decay">
+        <div class="decay__row">
+          <span class="decay__name">Ocultamiento <small>el receptor lee antes</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="72" data-label="subastas, votos, sorteos" style="--accent:var(--sky)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">Vinculación <small>el emisor cambia de opinión</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="100" data-label="todo el protocolo" style="--accent:var(--coral)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">Setup honesto <small>alguien conoce la trampa</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="100" data-label="vinculación, en silencio" style="--accent:var(--amber)"></span>
+          </div>
+        </div>
+        <div class="decay__row">
+          <span class="decay__name">Prueba de rango <small>montos fuera del intervalo</small></span>
+          <div class="decay__track">
+            <span class="decay__fill" data-w="86" data-label="inflación indetectable" style="--accent:var(--violet)"></span>
+          </div>
+        </div>
+      </div>
+      <p class="lab__note">
+        La asimetría vale la pena memorizarla: perder el <strong>ocultamiento</strong> arruina
+        la ronda en curso, y se nota. Perder la <strong>vinculación</strong> arruina el
+        protocolo entero y, si viene de un setup envenenado, no deja ni rastro en la cadena.
+      </p>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3>Una regla de decisión en tres preguntas</h3>
+        <ul class="plain-list">
+          <li><strong>¿Necesitas operar con el valor cerrado?</strong> Si la respuesta es sí
+            —sumar montos, agregar votos—, es Pedersen. Si es no, el hash es más barato y no
+            pide nada a cambio.</li>
+          <li style="--accent:var(--sky)"><strong>¿El secreto debe sobrevivir décadas?</strong>
+            Entonces quieres ocultamiento perfecto, porque un adversario futuro con más
+            cómputo no cambia nada. Pedersen otra vez.</li>
+          <li style="--accent:var(--mint)"><strong>¿Te comprometes a muchas cosas?</strong>
+            Merkle si no quieres depender de ninguna ceremonia; KZG si necesitas pruebas de
+            tamaño constante y puedes justificar el setup.</li>
+        </ul>
+
+        <div class="callout callout--key">
+          <span class="callout__title">Lo que hay que llevarse</span>
+          Un compromiso convierte una promesa en un objeto verificable. Las dos propiedades
+          apuntan a adversarios opuestos, no pueden ser ambas perfectas, y la que se rompe en
+          silencio —la vinculación, vía un setup envenenado— es siempre la más peligrosa.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Nota cuántica</span>
+        <p>
+          El logaritmo discreto cae ante el algoritmo de Shor. Eso significa que la
+          <strong>vinculación</strong> de Pedersen y de KZG no sobrevive a un computador
+          cuántico relevante, mientras que su ocultamiento perfecto sí: no se apoya en ningún
+          supuesto.
+        </p>
+        <p>
+          El compromiso de hash está en la situación inversa y más cómoda: Grover sólo divide
+          a la mitad los bits de seguridad, así que SHA-256 conserva del orden de 128.
+        </p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">La lectura práctica</span>
+          Para un registro que deba seguir siendo inalterable dentro de treinta años, un
+          compromiso de hash es hoy la apuesta conservadora. Para un secreto que deba seguir
+          siendo secreto dentro de treinta años, es Pedersen.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Siguiente módulo: firma digital</h2>
+        <p>De comprometerse a demostrar quién se comprometió: claves, ECDSA y Schnorr.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="firma-digital.html">
+          Continuar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="../latex/esquemas-de-compromiso.pdf"
+           download type="application/pdf">
+          <svg viewBox="0 0 24 24"><use href="#i-download"/></svg> Descargar PDF
+        </a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
   <div class="container">
     <div class="footer__grid">
       <div class="footer__brand">
-        <a class="brand" href="#inicio">
+        <a class="brand" href="../index.html">
           <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
           <span class="brand__text">Chain<em>Notes</em></span>
         </a>
@@ -95,27 +1592,27 @@
       <nav class="footer__col" aria-label="Navegación del pie">
         <h3>Navegación</h3>
         <ul>
-          <li><a href="#inicio">Inicio</a></li>
-          <li><a href="#intro">Introducción</a></li>
-          <li><a href="#temas">Temario</a></li>
-          <li><a href="#equipo">Equipo</a></li>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
         </ul>
       </nav>
 
       <nav class="footer__col" aria-label="Módulos destacados">
         <h3>Módulos</h3>
         <ul>
-          <li><a href="#temas">Fundamentos</a></li>
-          <li><a href="#temas">Criptografía</a></li>
-          <li><a href="#temas">Smart Contracts</a></li>
-          <li><a href="#temas">DeFi</a></li>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="firma-digital.html">Firma digital</a></li>
+          <li><a href="encadenamiento.html">Encadenamiento</a></li>
         </ul>
       </nav>
 
       <div class="footer__col">
         <h3>Recursos</h3>
         <ul>
-          <li><a href="#">Glosario</a></li>
+          <li><a href="../latex/esquemas-de-compromiso.pdf" download>Apunte en PDF</a></li>
           <li><a href="#">Papers citados</a></li>
           <li><a href="#">Repositorio de código</a></li>
           <li><a href="#contacto">Contacto</a></li>
@@ -131,5 +1628,6 @@
 </footer>
 
 <script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/compromisos.js" defer></script>
 </body>
 </html>

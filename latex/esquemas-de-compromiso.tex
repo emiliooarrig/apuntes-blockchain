@@ -1,0 +1,1210 @@
+% ============================================================================
+%  Esquemas de compromiso y sus aplicaciones
+%  Módulo 02 · Criptografía aplicada — ChainNotes
+%
+%  Versión LaTeX del apunte web temas/compromisos.html
+%  Todas las figuras se generan con TikZ / pgfplots: no hay imágenes externas.
+%
+%  Compilar:  pdflatex esquemas-de-compromiso.tex   (dos pasadas, por el índice)
+%             o bien:  latexmk -pdf esquemas-de-compromiso.tex
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- idioma y codificación -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- página ----------------------------------------------------------------
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+
+% --- matemáticas -----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+
+% --- gráficas --------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric,
+                decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% --- enlaces y cajas (hyperref antes que tcolorbox) ------------------------
+\usepackage[colorlinks=true,linkcolor=violetdeep,urlcolor=violetdeep,
+            citecolor=violetdeep,pdftitle={Esquemas de compromiso y sus aplicaciones},
+            pdfauthor={ChainNotes}]{hyperref}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------------------------
+%  Paleta (heredada de assets/css/styles.css)
+% ---------------------------------------------------------------------------
+\definecolor{violetc}{HTML}{7A68F5}
+\definecolor{violetdeep}{HTML}{5B46E0}
+\definecolor{mintc}{HTML}{1FA88A}
+\definecolor{coralc}{HTML}{E04E5C}
+\definecolor{amberc}{HTML}{C98A1F}
+\definecolor{skyc}{HTML}{1E88C7}
+\definecolor{inkc}{HTML}{282344}
+
+\hypersetup{linkcolor=violetdeep}
+
+% ---------------------------------------------------------------------------
+%  Estilo de párrafo y encabezados
+% ---------------------------------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\captionsetup{font=small,labelfont={bf,color=violetdeep}}
+
+% Este documento lleva muchas figuras grandes. Con los valores por omisión LaTeX
+% las aparta a páginas propias y deja huecos; aflojamos los umbrales.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{inkc}\textsc{Esquemas de compromiso}}
+\fancyhead[R]{\small\color{inkc}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+%  Entornos de teoremas
+% ---------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}
+\newtheorem{proposicion}{Proposición}
+\newtheorem{lema}{Lema}
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observación}
+
+% ---------------------------------------------------------------------------
+%  Cajas de color
+% ---------------------------------------------------------------------------
+\newtcolorbox{nota}[1]{enhanced,breakable,colback=skyc!6,colframe=skyc!75!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{caso}[1]{enhanced,breakable,colback=amberc!8,colframe=amberc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{aviso}[1]{enhanced,breakable,colback=coralc!7,colframe=coralc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+\newtcolorbox{laboratorio}[1]{enhanced,breakable,colback=violetc!6,colframe=violetc!80!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt}
+
+% ---------------------------------------------------------------------------
+%  Atajos de notación
+% ---------------------------------------------------------------------------
+\newcommand{\bits}{\{0,1\}}
+\newcommand{\concat}{\,\|\,}
+\newcommand{\Adv}{\mathrm{Adv}}
+\newcommand{\Com}{\mathsf{Com}}
+\newcommand{\Open}{\mathsf{Open}}
+\newcommand{\Setup}{\mathsf{Setup}}
+\newcommand{\Zq}{\mathbb{Z}_q}
+
+% ===========================================================================
+\begin{document}
+% ===========================================================================
+
+% babel-spanish redefine \% inspeccionando \lastskip, lo que revienta dentro de
+% los nodos de pgfplots. Restauramos la definición estándar de LaTeX.
+\makeatletter
+\DeclareRobustCommand{\%}{\char`\%\relax}
+\makeatother
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\Large\color{violetdeep}\textsc{ChainNotes}\par}
+{\small\color{inkc}Módulo 02 · Criptografía aplicada\par}
+
+\vspace{1.4cm}
+{\Huge\bfseries Esquemas de compromiso\par}
+\vspace{0.4cm}
+{\LARGE y sus aplicaciones\par}
+
+\vspace{1.2cm}
+\begin{minipage}{0.78\textwidth}
+\centering\itshape\color{inkc}
+Un sobre cerrado que nadie puede leer y que tú ya no puedes cambiar. Con esa sola
+idea se construyen las subastas honestas, los volados por teléfono, las pruebas
+de conocimiento cero y las transacciones que se validan sin revelar cuánto dinero
+llevan dentro.
+\end{minipage}
+
+\vspace{1.6cm}
+\begin{tikzpicture}[x=6mm,y=6mm]
+  \draw[violetdeep,line width=0.5pt,fill=violetc!12,rounded corners=0.6pt]
+    (0,0) rectangle (5,3.2);
+  \draw[violetdeep,line width=0.5pt] (0,3.2) -- (2.5,1.4) -- (5,3.2);
+  \node[violetdeep,font=\small] at (2.5,0.9) {$c = \Com(m,r)$};
+\end{tikzpicture}
+
+\vfill
+{\small Apuntes de Blockchain · Proyecto académico\par}
+{\small\color{inkc}\today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% ===========================================================================
+\section{Qué es comprometerse, exactamente}
+% ===========================================================================
+
+\begin{nota}{Objetivo del módulo}
+Separar con precisión las dos propiedades de un compromiso ---ocultamiento y
+vinculación--- y entender por qué cada una defiende contra un adversario
+distinto.
+\end{nota}
+
+Dos personas que no se tienen confianza necesitan que una de ellas decida algo
+\emph{ahora} y lo demuestre \emph{después}. Un compromiso es exactamente eso: un
+sobre cerrado. Alice mete su decisión, lo entrega, y más tarde lo abre delante de
+todos.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  act/.style={draw=inkc!55,fill=inkc!8,rounded corners=2pt,
+              minimum width=18mm,minimum height=6mm},
+  msg/.style={draw=violetdeep,fill=violetc!12,rounded corners=2pt,inner sep=3pt,
+              font=\scriptsize},
+  >={Stealth[length=2mm]}
+]
+\node[act] (A) at (0,0) {Alice};
+\node[act] (B) at (9,0) {Bob};
+\draw[inkc!35,dashed] (A) -- ++(0,-5.0);
+\draw[inkc!35,dashed] (B) -- ++(0,-5.0);
+
+\node[msg,anchor=west] at (0.35,-1.0)
+  {elige $m$, sortea $r \leftarrow \mathcal{R}$};
+\draw[->,violetdeep,thick] (0,-2.0) -- node[above,font=\scriptsize,violetdeep]
+  {$c = \Com(m, r)$} (9,-2.0);
+\node[font=\scriptsize,skyc,anchor=north west,align=left] at (9.3,-2.1)
+  {\textbf{ocultamiento:}\\no puede leer $m$};
+
+\draw[->,mintc,thick] (0,-3.9) -- node[above,font=\scriptsize,mintc]
+  {apertura: $(m, r)$} (9,-3.9);
+\node[font=\scriptsize,coralc,anchor=north west,align=left] at (9.3,-4.0)
+  {\textbf{vinculación:}\\$m$ ya no pudo cambiar};
+
+\draw[decorate,decoration={brace,amplitude=4pt},inkc!55]
+  (-1.5,-0.7) -- (-1.5,-2.3) node[midway,left=3pt,font=\scriptsize,inkc]{fase 1};
+\draw[decorate,decoration={brace,amplitude=4pt},inkc!55]
+  (-1.5,-3.6) -- (-1.5,-4.2) node[midway,left=3pt,font=\scriptsize,inkc]{fase 2};
+\end{tikzpicture}
+\caption{El protocolo, siempre en dos tiempos. Entre las dos fases puede pasar
+cualquier cosa ---otras pujas, el desafío de un verificador, un bloque nuevo---
+y el contenido del sobre sigue fijo y oculto.}
+\label{fig:protocolo}
+\end{figure}
+
+El sobre tiene que cumplir dos cosas a la vez, y conviene verlas como dos
+promesas a dos personas distintas:
+
+\begin{description}[leftmargin=1.4em,style=unboxed,itemsep=0.3em]
+  \item[Ocultamiento.] Es la promesa a Alice: quien tiene el sobre no puede ver
+    lo que hay dentro. El adversario es \emph{el receptor}, que quiere leer antes
+    de tiempo.
+  \item[Vinculación.] Es la promesa a Bob: Alice ya no puede cambiar lo que
+    metió. El adversario es \emph{el emisor}, que quiere cambiar de opinión
+    cuando vea cómo van las cosas.
+\end{description}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  caja/.style={draw=#1,fill=#1!8,rounded corners=3pt,minimum width=58mm,
+               minimum height=26mm,anchor=north west},
+  >={Stealth[length=2.2mm]}
+]
+\node[caja=skyc] (p1) at (0,0) {};
+\node[anchor=north west,font=\bfseries,skyc] at ($(p1.north west)+(3mm,-3mm)$)
+  {Ataque al ocultamiento};
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=52mm]
+  at ($(p1.north west)+(3mm,-9mm)$)
+  {El \textbf{receptor} tiene $c$ y quiere deducir $m$ antes de la apertura.\\[2pt]
+   Gana si distingue $\Com(m_0,r)$ de $\Com(m_1,r)$.};
+
+\node[caja=coralc] (p2) at (6.6,0) {};
+\node[anchor=north west,font=\bfseries,coralc] at ($(p2.north west)+(3mm,-3mm)$)
+  {Ataque a la vinculación};
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=52mm]
+  at ($(p2.north west)+(3mm,-9mm)$)
+  {El \textbf{emisor} publicó $c$ y quiere abrirlo en otra cosa.\\[2pt]
+   Gana si produce $(m,r) \neq (m',r')$ con el mismo $c$.};
+
+\node[inkc,font=\scriptsize\itshape,anchor=north] at (6.3,-3.1)
+  {dos adversarios opuestos: por eso un cifrado no basta};
+\end{tikzpicture}
+\caption{Las dos propiedades no son dos versiones de lo mismo. Protegen a partes
+distintas, contra ataques distintos, y la sección~\ref{sec:imposibilidad}
+demuestra que no pueden ser ambas perfectas.}
+\label{fig:adversarios}
+\end{figure}
+
+\begin{aviso}{Compromiso no es cifrado}
+Cifrar protege al que guarda el secreto. Comprometerse protege también
+\emph{al otro}. Un esquema de cifrado no promete nada sobre la imposibilidad de
+abrir el mismo criptograma de dos maneras; un compromiso vive o muere por eso.
+\end{aviso}
+
+\begin{definicion}[Esquema de compromiso]
+Un esquema de compromiso es una terna de algoritmos $(\Setup, \Com, \Open)$ con
+$\Com : \mathcal{M} \times \mathcal{R} \to \mathcal{C}$ tal que:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,itemsep=0.2em]
+  \item \textbf{Corrección.} $\Open(c, m, r) = 1$ siempre que $c = \Com(m,r)$.
+  \item \textbf{Ocultamiento.} Para $m_0 \neq m_1$ elegidos por el adversario,
+    las distribuciones $\{\Com(m_0,r)\}_r$ y $\{\Com(m_1,r)\}_r$ con $r$ uniforme
+    son indistinguibles:
+    \[
+      \Adv^{\text{ocult}}(\mathcal{A}) =
+      \bigl|\Pr[\mathcal{A} \to 1 \mid m_0] - \Pr[\mathcal{A} \to 1 \mid m_1]\bigr|.
+    \]
+  \item \textbf{Vinculación.} Es inviable producir $(m,r) \neq (m',r')$ con
+    $\Com(m,r) = \Com(m',r')$:
+    \[
+      \Adv^{\text{vinc}}(\mathcal{B}) =
+      \Pr[\mathcal{B} \to \text{dos aperturas válidas de un mismo } c].
+    \]
+\end{enumerate}
+Cada ventaja puede ser \emph{cero} (perfecta, incluso frente a un adversario sin
+límite de cómputo) o \emph{despreciable} (computacional).
+\end{definicion}
+
+% ===========================================================================
+\section{El compromiso de hash, y por qué $r$ no es opcional}
+% ===========================================================================
+
+El esquema más simple ya aparecía en el módulo 01: toma el mensaje, pégale un
+valor aleatorio y hashea.
+\begin{equation}\label{eq:hashcom}
+  c = H(m \concat r), \qquad r \leftarrow \bits^{\lambda} \text{ uniforme}.
+\end{equation}
+
+De dónde sale cada propiedad es directo, y conviene decirlo con nombre y apellido
+porque es el patrón que se repite en todo lo que sigue.
+
+\begin{proposicion}\label{prop:hashbind}
+La vinculación del esquema~\eqref{eq:hashcom} se reduce a la resistencia a
+colisión de $H$: $\Adv^{\text{vinc}}(\mathcal{A}) \le \Adv^{\text{col}}_H(\mathcal{A})$.
+\end{proposicion}
+
+\begin{proof}
+Sea $\mathcal{A}$ un adversario que produce $(m,r) \neq (m',r')$ con el mismo
+compromiso. Entonces $H(m \concat r) = H(m' \concat r')$ con
+$m \concat r \neq m' \concat r'$, es decir, una colisión de $H$ hallada
+eficientemente.
+\end{proof}
+
+El ocultamiento, en cambio, \textbf{no viene de $H$}: viene de $r$. Éste es el
+punto que casi todo el mundo se salta. La tentación es pensar que como $H$ es
+irreversible, $c = H(m)$ ya oculta. Es falso, y de una manera brutal: el
+adversario no necesita invertir nada. Le basta con hashear todos los mensajes
+posibles y comparar. Si el espacio es «águila o sol», el ataque cuesta dos hashes.
+
+Modelando $H$ como oráculo aleatorio, con $q$ consultas al oráculo,
+\begin{equation}\label{eq:hidebound}
+  \Adv^{\text{ocult}}(\mathcal{A}) \;\le\; \frac{q \cdot |\mathcal{M}|}{2^{\lambda}},
+\end{equation}
+y por eso $\lambda = 128$ basta para cualquier $\mathcal{M}$ realista. La
+figura~\ref{fig:coste} pone la cota en escala.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.4cm,
+  xlabel={bits de aleatoriedad en $r$ \quad ($\lambda$)},
+  ylabel={$\log_2$ del trabajo del adversario},
+  xmin=0, xmax=128, ymin=0, ymax=180,
+  xtick={0,16,32,48,64,80,96,112,128},
+  ytick={0,32,64,96,128,160},
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\footnotesize,
+                draw=inkc!30,fill=white},
+  legend cell align=left
+]
+\fill[coralc!10] (axis cs:0,0) rectangle (axis cs:128,64);
+\node[coralc,font=\scriptsize,anchor=west] at (axis cs:3,20)
+  {zona alcanzable por un adversario bien financiado ($\le 2^{64}$)};
+\addplot[skyc,very thick,domain=0:128,samples=2] {x+10};
+\addlegendentry{$|\mathcal{M}| = 2^{10}$ (mil opciones)}
+\addplot[amberc,very thick,domain=0:128,samples=2] {x+20};
+\addlegendentry{$|\mathcal{M}| = 2^{20}$ (un millón)}
+\addplot[mintc,very thick,domain=0:128,samples=2] {x+40};
+\addlegendentry{$|\mathcal{M}| = 2^{40}$ (un billón)}
+\draw[inkc!55,dashed] (axis cs:0,64) -- (axis cs:128,64);
+\addplot[only marks,mark=*,mark size=2pt,violetdeep] coordinates {(0,10)(0,20)(0,40)};
+\node[violetdeep,font=\scriptsize,anchor=west] at (axis cs:2,52)
+  {$\lambda = 0$: el ataque cuesta sólo $|\mathcal{M}|$};
+\end{axis}
+\end{tikzpicture}
+\caption{Coste del ataque al ocultamiento, $|\mathcal{M}|\cdot 2^{\lambda}$
+hashes. El verificador honesto paga siempre \emph{un} hash, sea cual sea
+$\lambda$: ésa asimetría es todo el esquema. Con $\lambda = 0$ el compromiso no
+es más que un identificador público del mensaje.}
+\label{fig:coste}
+\end{figure}
+
+\begin{laboratorio}{Laboratorio 2.1 — Cuánto cuesta abrir el sobre a la fuerza}
+El adversario conoce el espacio de mensajes; lo que no conoce es $r$. La versión
+interactiva ejecuta el ataque de verdad cuando cabe en un parpadeo, y cuando no,
+mide la velocidad real de la máquina y extrapola.
+
+\textbf{Qué observar.} Con $\lambda = 0$ y mil mensajes, el compromiso cae en
+microsegundos. Con $\lambda = 128$, el mismo ataque pide $\sim 10^{41}$ hashes:
+del orden de $10^{27}$ años en un portátil.
+\end{laboratorio}
+
+\begin{aviso}{El ocultamiento depende del espacio de mensajes}
+Un hash es determinista: mensajes iguales dan compromisos iguales. Sólo cuando
+$r$ es genuinamente aleatorio y suficientemente largo el conjunto de candidatos
+se vuelve impracticable de recorrer. Ni el ocultamiento ni la vinculación de este
+esquema son perfectos: un adversario sin límite de cómputo rompe ambos.
+\end{aviso}
+
+% ===========================================================================
+\section{No puedes tener las dos cosas perfectas}
+\label{sec:imposibilidad}
+% ===========================================================================
+
+Antes de buscar esquemas mejores conviene saber qué es imposible, porque ahorra
+mucho tiempo.
+
+\begin{proposicion}\label{prop:imposible}
+Ningún esquema de compromiso es simultáneamente perfectamente ocultante y
+perfectamente vinculante.
+\end{proposicion}
+
+\begin{proof}
+Supongamos ocultamiento perfecto. Para cualesquiera $m_0 \neq m_1$, las dos
+distribuciones
+\[
+  \{\Com(m_0,r)\}_{r} \quad\text{y}\quad \{\Com(m_1,r)\}_{r}
+\]
+son idénticas; en particular tienen el mismo soporte. Luego para todo $c$ en el
+soporte y todo $m \in \mathcal{M}$ existe $r$ con $\Com(m,r) = c$.
+
+Un emisor sin límite de cómputo enumera $\mathcal{R}$, encuentra ese $r$ y abre
+$c$ donde quiera. La vinculación perfecta falla.
+
+El recíproco es simétrico: si la vinculación es perfecta, cada $c$ admite un
+único $m$, así que $c$ determina $m$ y un adversario sin límites lo recupera por
+búsqueda exhaustiva.
+\end{proof}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  celda/.style={draw=#1,fill=#1!8,rounded corners=3pt,minimum width=56mm,
+                minimum height=24mm,anchor=north west},
+  muerta/.style={draw=inkc!35,fill=inkc!5,rounded corners=3pt,minimum width=56mm,
+                 minimum height=24mm,anchor=north west}
+]
+\node[celda=skyc] (c1) at (0,0) {};
+\node[anchor=north west,font=\bfseries,skyc] at ($(c1.north west)+(3mm,-3mm)$)
+  {Ocultamiento perfecto};
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=50mm]
+  at ($(c1.north west)+(3mm,-8.5mm)$)
+  {El sobre no filtra nada, ni ante cómputo ilimitado. La vinculación se apoya en
+   un problema difícil.};
+\node[anchor=south west,font=\scriptsize\bfseries,skyc]
+  at ($(c1.south west)+(3mm,2mm)$) {PEDERSEN};
+
+\node[celda=coralc] (c2) at (6.4,0) {};
+\node[anchor=north west,font=\bfseries,coralc] at ($(c2.north west)+(3mm,-3mm)$)
+  {Vinculación perfecta};
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=50mm]
+  at ($(c2.north west)+(3mm,-8.5mm)$)
+  {Cada compromiso admite una sola apertura, siempre. El secreto sólo dura
+   mientras el adversario sea finito.};
+\node[anchor=south west,font=\scriptsize\bfseries,coralc]
+  at ($(c2.south west)+(3mm,2mm)$) {ELGAMAL COMO COMPROMISO};
+
+\node[celda=mintc] (c3) at (0,-2.9) {};
+\node[anchor=north west,font=\bfseries,mintc] at ($(c3.north west)+(3mm,-3mm)$)
+  {Ambas computacionales};
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=50mm]
+  at ($(c3.north west)+(3mm,-8.5mm)$)
+  {Lo que da el compromiso de hash. Suficiente en la práctica y el más barato de
+   todos: un hash y nada más.};
+\node[anchor=south west,font=\scriptsize\bfseries,mintc]
+  at ($(c3.south west)+(3mm,2mm)$) {$H(m \concat r)$};
+
+\node[muerta] (c4) at (6.4,-2.9) {};
+\node[anchor=north west,font=\bfseries,inkc!60] at ($(c4.north west)+(3mm,-3mm)$)
+  {Ambas perfectas};
+\node[anchor=north west,align=left,font=\scriptsize,inkc!60,text width=50mm]
+  at ($(c4.north west)+(3mm,-8.5mm)$)
+  {Imposible. No hay ingeniería que lo arregle: es un argumento de conteo, no una
+   limitación tecnológica.};
+\node[anchor=south west,font=\scriptsize\bfseries,inkc!60]
+  at ($(c4.south west)+(3mm,2mm)$) {NO EXISTE};
+\draw[coralc,line width=1pt] ($(c4.north west)+(2mm,-2mm)$) -- ($(c4.south east)+(-2mm,2mm)$);
+\end{tikzpicture}
+\caption{El cuadrante completo. Tres casillas están habitadas y la cuarta está
+vacía por la Proposición~\ref{prop:imposible}.}
+\label{fig:cuadrante}
+\end{figure}
+
+\begin{nota}{La pregunta de diseño}
+No es «¿cuál es más seguro?», sino \textbf{¿qué prefieres que sobreviva a un
+adversario del futuro?} Si el secreto debe seguir oculto en cincuenta años, elige
+ocultamiento perfecto. Si lo que no puede cambiar nunca es el registro, elige
+vinculación perfecta.
+\end{nota}
+
+% ===========================================================================
+\section{Pedersen: el compromiso que además suma}
+% ===========================================================================
+
+\begin{nota}{Objetivo del módulo}
+Construir el compromiso de Pedersen en un grupo concreto, demostrar que su
+ocultamiento es perfecto y que su vinculación equivale al logaritmo discreto.
+\end{nota}
+
+El compromiso de hash funciona, pero es opaco: una vez cerrado el sobre no puedes
+hacer \emph{nada} con él salvo abrirlo. Pedersen cambia eso, y el precio que paga
+es necesitar estructura algebraica en vez de una función de mezcla.
+
+\begin{definicion}[Compromiso de Pedersen]
+Sea $G$ un grupo cíclico de orden primo $q$ donde el logaritmo discreto es
+difícil, y sean $g, h \in G$ dos generadores tales que nadie conoce
+$\log_g h$. Para $m, r \in \Zq$ con $r$ uniforme:
+\[
+  C(m, r) = g^{m} \cdot h^{r}.
+\]
+\end{definicion}
+
+En los laboratorios de este apunte $G$ es el subgrupo de residuos cuadráticos
+módulo un primo seguro $p = 2q+1$. Es un grupo real, no una maqueta: la
+aritmética es la misma que usarías en producción, sólo que con números pequeños
+para que quepan en pantalla y para que los ataques se puedan ejecutar.
+
+\begin{proposicion}[Ocultamiento perfecto]\label{prop:pedhide}
+El compromiso de Pedersen es perfectamente ocultante: para todo $m$, la
+distribución de $C(m,r)$ con $r$ uniforme en $\Zq$ es la uniforme sobre $G$.
+\end{proposicion}
+
+\begin{proof}
+Como $h$ genera $G$ y $r$ es uniforme en $\Zq$, el elemento $h^{r}$ es uniforme
+sobre $G$. Multiplicar por la constante $g^{m}$ es una biyección de $G$ en $G$,
+y una biyección aplicada a una distribución uniforme da la uniforme. Luego
+$C(m,r)$ es uniforme sobre $G$ \emph{independientemente de $m$}, y las
+distribuciones para $m_0$ y $m_1$ son idénticas: $\Adv^{\text{ocult}} = 0$.
+\end{proof}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=5.6cm,
+  xlabel={tramos del grupo $G$ (el rango $[0,p)$ dividido en 48 partes)},
+  ylabel={muestras},
+  xmin=0, xmax=49, ymin=0, ymax=150,
+  xtick={1,8,16,24,32,40,48},
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.5,-0.26)},anchor=north,legend columns=2,
+                font=\footnotesize,draw=inkc!30,fill=white,
+                /tikz/every even column/.append style={column sep=12pt}}
+]
+\addplot[ybar,bar width=4.4pt,fill=violetc!45,draw=violetc!80!black] coordinates {
+  (1,97) (2,104) (3,98) (4,96) (5,112) (6,93) (7,98) (8,103) (9,85) (10,120)
+  (11,80) (12,122) (13,98) (14,96) (15,105) (16,100) (17,89) (18,100) (19,86)
+  (20,107) (21,86) (22,96) (23,83) (24,108) (25,106) (26,101) (27,102) (28,125)
+  (29,97) (30,102) (31,105) (32,100) (33,92) (34,109) (35,96) (36,105) (37,79)
+  (38,99) (39,98) (40,101) (41,99) (42,105) (43,122) (44,105) (45,107) (46,84)
+  (47,100) (48,99)};
+\addlegendentry{4\,800 compromisos de $m = 42$, con $r$ al azar}
+\addplot[mintc,very thick,domain=0:49,samples=2] {100};
+\addlegendentry{esperanza uniforme: $4800/48 = 100$}
+\end{axis}
+\end{tikzpicture}
+\caption{Ocultamiento perfecto, dibujado. Son 4\,800 compromisos del
+\emph{mismo} mensaje $m = 42$ en el grupo $q = 100\,043$, agrupados por tramo del
+grupo. La dispersión observada (mínimo 79, máximo 125) es exactamente el ruido
+multinomial esperado, $\sigma \approx 10$. El compromiso de un mensaje fijo puede
+caer en cualquier parte con igual probabilidad.}
+\label{fig:dispersion}
+\end{figure}
+
+\begin{proposicion}[Vinculación computacional]\label{prop:pedbind}
+Si el logaritmo discreto es difícil en $G$, el compromiso de Pedersen es
+computacionalmente vinculante. Más aún, toda ruptura de la vinculación
+\emph{entrega} el logaritmo discreto.
+\end{proposicion}
+
+\begin{proof}
+Supongamos que $\mathcal{A}$ produce dos aperturas válidas del mismo compromiso,
+\[
+  g^{m}h^{r} = g^{m'}h^{r'}, \qquad (m,r) \neq (m',r').
+\]
+Reagrupando, $g^{m-m'} = h^{r'-r}$. Nótese que $r \neq r'$: si fueran iguales
+tendríamos $g^{m} = g^{m'}$ y por tanto $m = m'$, contradiciendo la hipótesis.
+Como $q$ es primo y $0 < |r'-r| < q$, el valor $r'-r$ es invertible módulo $q$, y
+\[
+  \log_g h \;=\; (m - m')\,(r' - r)^{-1} \bmod q .
+\]
+Así que $\Adv^{\text{vinc}}(\mathcal{A}) \le \Adv^{\text{dlog}}(\mathcal{B})$.
+\end{proof}
+
+\begin{laboratorio}{Laboratorios 2.2 y 2.3 — Pedersen en vivo, y toda apertura es válida}
+El primero calcula compromisos en el grupo elegido y dibuja la
+figura~\ref{fig:dispersion} en tiempo real. El segundo toma un compromiso
+publicado y, para cada mensaje de una lista arbitraria, busca el $r'$ que lo
+abriría usando paso de bebé, paso de gigante.
+
+\textbf{Qué observar.} Con $q = 100\,043$ los encuentra \emph{todos} en unos
+2\,600 pasos y tres milisegundos. Las dos lecturas del mismo experimento: que
+\emph{exista} un $r'$ para cada mensaje es el ocultamiento perfecto; que se haya
+podido \emph{calcular} es la vinculación rota, y sólo ocurre porque $\sqrt{q}$
+son unos cientos de operaciones. Con $q$ de 255 bits harían falta $2^{127}$
+operaciones y $2^{127}$ palabras de memoria.
+\end{laboratorio}
+
+\begin{nota}{En producción}
+Nadie usa enteros módulo $p$ para esto: se usan curvas elípticas ---secp256k1,
+ristretto255, BLS12-381---, donde un elemento del grupo ocupa 32 o 48 bytes en
+vez de 256. La aritmética cambia de nombre pero el esquema es literalmente el
+mismo.
+\end{nota}
+
+% ===========================================================================
+\section{Aritmética sobre sobres cerrados}
+% ===========================================================================
+
+Aquí aparece lo que el compromiso de hash no puede hacer. Multiplica dos
+compromisos de Pedersen y mira qué sale:
+\begin{equation}\label{eq:homo}
+  C(a, r_1) \cdot C(b, r_2)
+  = g^{a+b}\,h^{r_1+r_2}
+  = C(a+b,\; r_1+r_2).
+\end{equation}
+
+Es una consecuencia de las leyes de los exponentes, casi decepcionante de lo
+simple que es. Y sin embargo abre una puerta enorme: \textbf{se puede verificar
+una suma sin conocer los sumandos}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  sobre/.style={draw=violetdeep,fill=violetc!10,rounded corners=2pt,
+                minimum width=26mm,minimum height=11mm,align=center,font=\footnotesize},
+  claro/.style={draw=inkc!45,fill=white,rounded corners=2pt,
+                minimum width=20mm,minimum height=8mm,align=center,font=\footnotesize},
+  >={Stealth[length=2.2mm]}
+]
+% mundo abierto
+\node[claro] (a) at (0,1.6) {$a = 1250$};
+\node[claro] (b) at (0,0) {$b = 3400$};
+\node[claro] (s) at (0,-1.9) {$a+b = 4650$};
+\draw[->,inkc!55] (a.south) -- (s.north west);
+\draw[->,inkc!55] (b.south) -- (s.north);
+\node[inkc,font=\scriptsize,anchor=east,align=right] at (-1.3,0.8) {suma\\ordinaria};
+
+% flechas Com
+\node[sobre] (ca) at (6.4,1.6) {$C(a, r_1)$};
+\node[sobre] (cb) at (6.4,0) {$C(b, r_2)$};
+\node[sobre] (cs) at (6.4,-1.9) {$C(a{+}b,\, r_1{+}r_2)$};
+\draw[->,violetdeep] (a) -- node[above,font=\scriptsize,violetdeep]{$\Com$} (ca);
+\draw[->,violetdeep] (b) -- node[above,font=\scriptsize,violetdeep]{$\Com$} (cb);
+\draw[->,violetdeep] (s) -- node[above,font=\scriptsize,violetdeep]{$\Com$} (cs);
+
+\draw[->,mintc,thick] (ca.south) -- (cs.north west);
+\draw[->,mintc,thick] (cb.south) -- (cs.north);
+\node[mintc,font=\scriptsize,anchor=west,align=left] at (7.9,0.8)
+  {producto\\en el grupo};
+
+\node[inkc,font=\scriptsize\itshape,anchor=north,align=center] at (3.2,-2.9)
+  {el diagrama conmuta: da igual sumar y luego cerrar el sobre,\\
+   que cerrar los sobres y luego multiplicarlos};
+\end{tikzpicture}
+\caption{El homomorfismo de la ecuación~\eqref{eq:homo}. El verificador recorre
+el camino de la derecha, que sólo usa datos públicos, y concluye algo sobre el
+camino de la izquierda, que nunca ve.}
+\label{fig:homomorfismo}
+\end{figure}
+
+\subsection{Transacciones confidenciales}
+
+De ahí sale la aplicación estrella. Una transacción es válida si lo que entra es
+igual a lo que sale más la comisión. Si cada monto se publica como compromiso de
+Pedersen y el emisor elige los factores de cegado de modo que se cancelen
+---es decir, $\sum r_{\text{ent}} = \sum r_{\text{sal}} + r_{\text{com}}$---, el
+nodo puede comprobar
+\begin{equation}\label{eq:balance}
+  \prod_i C_{\text{ent},i} \;=\; \prod_j C_{\text{sal},j} \cdot C_{\text{com}}
+\end{equation}
+que es una igualdad entre elementos del grupo, sin un solo monto a la vista.
+Es exactamente lo que hacen Elements y Liquid con las \emph{confidential
+transactions}, y lo que Mimblewimble ---Grin, Beam--- lleva al extremo
+convirtiendo la cadena entera en una suma de compromisos.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  ent/.style={draw=skyc,fill=skyc!10,rounded corners=2pt,
+              minimum width=24mm,minimum height=9mm,align=center},
+  sal/.style={draw=mintc,fill=mintc!10,rounded corners=2pt,
+              minimum width=24mm,minimum height=9mm,align=center},
+  com/.style={draw=amberc,fill=amberc!14,rounded corners=2pt,
+              minimum width=20mm,minimum height=9mm,align=center},
+  >={Stealth[length=2mm]}
+]
+\node[ent] (e1) at (0,1.1)  {$C_{\text{ent},1}$};
+\node[ent] (e2) at (0,-0.5) {$C_{\text{ent},2}$};
+\node[draw=violetdeep,fill=violetc!12,circle,inner sep=3pt] (prod) at (3.4,0.3) {$\prod$};
+\node[draw=violetdeep,fill=violetc!12,circle,inner sep=3pt] (prod2) at (7.4,0.3) {$\prod$};
+\node[sal] (s1) at (10.8,1.5)  {$C_{\text{sal},1}$};
+\node[sal] (s2) at (10.8,0.0)  {$C_{\text{sal},2}$};
+\node[com] (cm) at (10.8,-1.5) {$C_{\text{com}}$};
+
+\draw[->,skyc] (e1) -- (prod); \draw[->,skyc] (e2) -- (prod);
+\draw[->,mintc] (s1) -- (prod2); \draw[->,mintc] (s2) -- (prod2);
+\draw[->,amberc] (cm) -- (prod2);
+\draw[violetdeep,very thick] (prod) -- node[above,font=\small,violetdeep]{$\stackrel{?}{=}$} (prod2);
+
+\node[inkc,font=\scriptsize,anchor=north,align=center] at (5.4,-1.2)
+  {el nodo compara dos elementos del grupo\\y acepta o rechaza el bloque};
+\end{tikzpicture}
+\caption{Verificación de balance de la ecuación~\eqref{eq:balance}. Nada de lo
+que el nodo toca es un monto.}
+\label{fig:confidencial}
+\end{figure}
+
+\begin{aviso}{Y aquí está la trampa: el desbordamiento}
+La igualdad~\eqref{eq:balance} se comprueba \textbf{módulo $q$}. Nada impide que
+un atacante use montos gigantescos que den la vuelta al grupo. En el grupo del
+laboratorio, con $q = 100\,043$, una transacción con entradas
+$3 + 2 = 5$ y salidas $100\,038 + 10 = 100\,048 \equiv 5 \pmod q$ \emph{cuadra
+perfectamente} y el nodo la acepta, habiendo creado cien mil unidades de la nada.
+
+La defensa no es otro compromiso: son las \textbf{pruebas de rango}, que
+demuestran en cero conocimiento que cada monto vive en $[0, 2^{64})$ y que la
+suma no da la vuelta. Bulletproofs y sus sucesores existen exactamente para
+tapar este agujero, y son la parte cara de una transacción confidencial: el
+compromiso ocupa 32 bytes; la prueba de rango, cientos.
+\end{aviso}
+
+\begin{observacion}[Qué da y qué no da el homomorfismo]
+$\Com$ es un homomorfismo de $(\Zq\times\Zq, +)$ en $(G, \cdot)$, lo que regala
+la resta ($C(a)\,C(b)^{-1} = C(a-b)$) y el escalado por constante pública
+($C(a)^{k} = C(ka)$). Lo que \emph{no} da es el producto: no existe forma de
+obtener $C(ab)$ a partir de $C(a)$ y $C(b)$. Para eso hacen falta
+emparejamientos o cifrado completamente homomórfico.
+\end{observacion}
+
+\begin{laboratorio}{Laboratorios 2.4 y 2.5 — Sumar sin abrir; transacción confidencial}
+El primero compromete dos montos con factores de cegado al azar, multiplica los
+compromisos y lo compara con el compromiso directo de la suma: coinciden siempre.
+El segundo monta una transacción de dos entradas, dos salidas y comisión, con
+tres escenarios preconfigurados.
+
+\textbf{Qué observar.} El escenario «crear dinero» se rechaza, como debe. El
+escenario «desbordamiento» se \textbf{acepta} y sin embargo crea dinero: es la
+demostración ejecutable de por qué las pruebas de rango no son opcionales.
+\end{laboratorio}
+
+% ===========================================================================
+\section{La puerta trasera que cabe en un solo número}
+% ===========================================================================
+
+Volvamos a la fase que parecía un trámite. El compromiso de Pedersen necesita dos
+generadores, $g$ y $h$. La pregunta incómoda: ¿quién los eligió?
+
+\begin{lema}[Equivocación con trampa]\label{lema:trapdoor}
+Si $h = g^{x}$ con $x$ conocido, entonces para todo $c = C(m,r)$ y todo
+$m' \in \Zq$ el valor
+\[
+  r' = r + (m - m')\,x^{-1} \bmod q
+\]
+satisface $C(m', r') = c$.
+\end{lema}
+
+\begin{proof}
+Con $h = g^{x}$ todo compromiso colapsa a una sola potencia de $g$:
+$C(m,r) = g^{m}g^{xr} = g^{m+xr}$. Así que $C(m',r') = C(m,r)$ equivale a
+$m' + xr' \equiv m + xr \pmod q$, una ecuación lineal en $r'$ cuya solución es
+la del enunciado; $x$ es invertible porque $q$ es primo y $x \neq 0$.
+\end{proof}
+
+Fíjate en lo que significa: la vinculación del esquema no depende sólo de que el
+logaritmo discreto sea difícil, sino de que \textbf{nadie sepa ya la respuesta}
+para ese par concreto. Ese $x$ se llama \emph{trampa} o \emph{trapdoor}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  ap/.style={draw=#1,fill=#1!10,rounded corners=2pt,
+             minimum width=32mm,minimum height=10mm,align=center},
+  >={Stealth[length=2.2mm]}
+]
+\node[draw=violetdeep,fill=violetc!14,rounded corners=3pt,
+      minimum width=34mm,minimum height=12mm,align=center] (c) at (0,0)
+  {$c$ publicado\\[1pt]\scriptsize un solo elemento del grupo};
+
+\node[ap=mintc] (o1) at (6.6,1.4) {apertura $(m, r)$};
+\node[ap=coralc] (o2) at (6.6,-1.4) {apertura $(m', r')$};
+
+\draw[->,mintc,thick] (c) -- node[above,font=\scriptsize,mintc,sloped]
+  {la honesta} (o1);
+\draw[->,coralc,thick] (c) -- node[below,font=\scriptsize,coralc,sloped]
+  {con $x$, en microsegundos} (o2);
+
+\node[anchor=west,align=left,font=\scriptsize,inkc,text width=46mm] at (8.9,0)
+  {Ambas verifican. El verificador no tiene forma de saber cuál era la
+   «verdadera»: son indistinguibles por construcción.};
+\end{tikzpicture}
+\caption{Quien conoce la trampa rompe la \emph{vinculación}, no el ocultamiento.
+Sigue sin poder leer sobres ajenos; lo que puede es mentir sobre los propios. En
+una subasta eso basta para ganar siempre.}
+\label{fig:trapdoor}
+\end{figure}
+
+\subsection{Las dos defensas}
+
+\begin{description}[leftmargin=1.4em,style=unboxed,itemsep=0.35em]
+  \item[Nothing up my sleeve.] Derivar $h$ de un hash de una cadena pública y sin
+    gracia ---el nombre del protocolo, los dígitos de $\pi$---. Nadie conoce el
+    logaritmo porque nadie eligió el resultado. Es lo que hacen los laboratorios
+    de este apunte:
+    \[
+      h = \bigl(\mathrm{SHA\text{-}256}(\texttt{"ChainNotes/pedersen/h/0"})
+          \bmod p\bigr)^{2} \bmod p .
+    \]
+  \item[Ceremonia multiparte.] Cuando los parámetros son demasiado complejos para
+    derivarlos de un hash, muchos participantes aportan aleatoriedad por turnos.
+    La trampa sólo existe si \emph{todos} conspiraron.
+\end{description}
+
+\begin{caso}{El «residuo tóxico»}
+En el argot de las ceremonias, la aleatoriedad que cada participante debe
+destruir se llama \emph{toxic waste}. Si sobrevive una sola copia, quien la tenga
+puede falsificar. Zcash montó en 2016 una ceremonia con hardware desconectado y
+actas públicas justamente por eso; la ceremonia de EIP-4844 reunió más de
+140\,000 participantes con la misma lógica.
+\end{caso}
+
+\begin{laboratorio}{Laboratorio 2.6 — Abrir el mismo sobre de dos maneras}
+Alice se compromete a $m$ y después decide que prefería $m'$. Con la trampa lo
+consigue sin tocar el compromiso publicado, aplicando el
+Lema~\ref{lema:trapdoor}.
+
+\textbf{Qué observar.} Al activar «$h$ derivado de un hash», el laboratorio ya no
+tiene $x$ y la fórmula deja de existir: cambiar de opinión pasa a exigir un
+logaritmo discreto. El mismo esquema, el mismo código, y la seguridad depende
+por completo de cómo se eligió un número.
+\end{laboratorio}
+
+% ===========================================================================
+\section{Comprometerse a un millón de cosas a la vez}
+% ===========================================================================
+
+Hasta aquí el sobre guardaba un valor. ¿Y si hay que comprometerse a una lista
+entera ---todas las transacciones de un bloque, el estado completo de una
+cadena--- y además poder demostrar después que un elemento concreto estaba
+dentro? Eso es un \emph{compromiso vectorial}, y del módulo 01 ya conoces uno: el
+árbol de Merkle. La raíz es el compromiso; la prueba de inclusión es la apertura
+\emph{parcial}.
+
+\subsection{Compromisos polinómicos: KZG}
+
+La idea de KZG es tratar la lista como los coeficientes de un polinomio $f$ y
+comprometerse a $f$ evaluándolo «dentro del exponente» en un punto secreto $\tau$
+que nadie conoce ---de ahí la ceremonia de la sección anterior---:
+\[
+  C = g^{f(\tau)}.
+\]
+Lo asombroso es la prueba. Para convencer a alguien de que $f(z) = y$ basta con
+un elemento más del grupo: el compromiso al cociente
+\[
+  \pi = g^{\,\psi(\tau)}, \qquad
+  \psi(X) = \frac{f(X) - y}{X - z},
+\]
+que sólo es un polinomio si efectivamente $f(z) = y$. No crece con el tamaño de
+la lista: \textbf{48 bytes, siempre}. Ésa es la razón de que Ethereum haya
+adoptado KZG para los \emph{blobs} de EIP-4844.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.4cm,
+  ymode=log, log basis y=10,
+  xlabel={elementos comprometidos ($n = 2^{k}$)},
+  ylabel={bytes para probar un elemento},
+  xmin=1, xmax=25.5, ymin=8, ymax=3e9,
+  xtick={1,4,8,12,16,20,24},
+  xticklabel={$2^{\pgfmathprintnumber{\tick}}$},
+  grid=major, grid style={inkc!12}, axis lines=left,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  legend style={at={(0.5,-0.26)},anchor=north,legend columns=1,
+                font=\footnotesize,draw=inkc!30,fill=white},
+  legend cell align=left
+]
+\addplot[coralc,very thick,domain=1:24,samples=24] {2^x*32};
+\addlegendentry{mandar la lista completa: $n \cdot 32$ B}
+\addplot[amberc,very thick,domain=1:24,samples=24] {x*32};
+\addlegendentry{prueba de Merkle: $\lceil\log_2 n\rceil \cdot 32$ B}
+\addplot[mintc,very thick,domain=1:24,samples=2] {48};
+\addlegendentry{prueba KZG: 48 B, constante}
+\addplot[only marks,mark=*,mark size=2pt,inkc] coordinates {(20,33554432)(20,640)(20,48)};
+\node[inkc,font=\scriptsize,anchor=south east] at (axis cs:19.6,33554432) {32 MB};
+\node[inkc,font=\scriptsize,anchor=south east] at (axis cs:19.6,640) {640 B};
+\node[inkc,font=\scriptsize,anchor=south east] at (axis cs:19.6,48) {48 B};
+\draw[violetdeep,dashed] (axis cs:20,8) -- (axis cs:20,3e9);
+\node[violetdeep,font=\scriptsize,anchor=north east,align=right]
+  at (axis cs:19.6,2.4e9) {un millón\\de elementos};
+\end{axis}
+\end{tikzpicture}
+\caption{Con un millón de elementos la diferencia es de 32 MB a 640 bytes a 48
+bytes. El ahorro de Merkle es logarítmico; el de KZG es total, y por eso se paga
+una ceremonia por él.}
+\label{fig:tamanos}
+\end{figure}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Las tres familias de compromisos a muchos valores.}
+\label{tab:vectoriales}
+\begin{tabularx}{\textwidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Familia} & \textbf{Compromiso} & \textbf{Apertura parcial} &
+\textbf{Qué se paga} \\
+\midrule
+Merkle & 32 B & $\lceil\log_2 n\rceil \cdot 32$ B &
+  Nada: sólo hashes, sin setup ni supuestos algebraicos. Resistente a cuántico. \\
+\addlinespace
+Pedersen vectorial & 32 B & costosa &
+  Es homomórfico y ocultante, pero abrir una sola posición no es barato. \\
+\addlinespace
+KZG & 48 B & 48 B, constante &
+  Setup de confianza y emparejamientos. A cambio, abre varias posiciones con una
+  sola prueba. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{nota}{Qué se paga en cada caso}
+Merkle no pide confianza a nadie y paga con pruebas logarítmicas. KZG da pruebas
+constantes y pide una ceremonia. No hay una respuesta correcta: hay dos
+compromisos de ingeniería distintos.
+\end{nota}
+
+% ===========================================================================
+\section{Dónde se usa esto de verdad}
+% ===========================================================================
+
+Un compromiso rara vez es el producto final: casi siempre es la primera mitad de
+un protocolo en dos tiempos. El patrón \emph{comprometer ahora, revelar después}
+aparece en sitios que parecen no tener nada que ver entre sí.
+
+\subsection{Pruebas de conocimiento cero}
+
+Todo protocolo sigma tiene la misma coreografía de tres pasos, y el primero es un
+compromiso. Es lo que impide que el probador adapte su respuesta al desafío.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  act/.style={draw=inkc!55,fill=inkc!8,rounded corners=2pt,
+              minimum width=22mm,minimum height=6mm},
+  >={Stealth[length=2mm]}
+]
+\node[act] (P) at (0,0) {Probador};
+\node[act] (V) at (9.5,0) {Verificador};
+\draw[inkc!35,dashed] (P) -- ++(0,-3.9);
+\draw[inkc!35,dashed] (V) -- ++(0,-3.9);
+
+\draw[->,violetdeep,thick] (0,-1.0) -- node[above,font=\scriptsize,violetdeep]
+  {1. compromiso $a$} (9.5,-1.0);
+\draw[<-,amberc,thick] (0,-2.1) -- node[above,font=\scriptsize,amberc]
+  {2. desafío $e$ al azar} (9.5,-2.1);
+\draw[->,mintc,thick] (0,-3.2) -- node[above,font=\scriptsize,mintc]
+  {3. respuesta $z$} (9.5,-3.2);
+
+\node[anchor=north west,align=left,font=\scriptsize,inkc,text width=118mm]
+  at (-1.2,-4.3)
+  {El compromiso del paso 1 fija la aleatoriedad del probador \emph{antes} de que
+   conozca $e$. Sin él podría elegir $a$ después de ver el desafío y responder
+   correctamente sin saber el secreto: la prueba dejaría de probar nada.};
+\end{tikzpicture}
+\caption{Protocolo sigma. El compromiso es lo que convierte tres mensajes en una
+prueba.}
+\label{fig:sigma}
+\end{figure}
+
+\subsection{Subastas a sobre cerrado}
+
+El problema de pujar en público es que el último en hablar gana con la mínima
+ventaja, sin importar cuánto valoraba el bien. Con compromisos, todos publican
+$c = H(\text{puja} \concat r)$ en la fase 1 y abren en la fase 2. Quien intente
+revelar otra cifra queda descalificado automáticamente: el hash no cuadra.
+
+\begin{table}[htbp]
+\centering\small
+\caption{La misma subasta, con y sin compromisos. Cuatro postores; Dave es el
+último en hablar.}
+\label{tab:subasta}
+\begin{tabular}{@{}l c c c@{}}
+\toprule
+\textbf{Postor} & \textbf{Valoración real} & \textbf{Sin compromiso} &
+\textbf{Con compromiso} \\
+\midrule
+Alice & 120 & puja 120 & puja 120 \\
+Bob   & 185 & puja 185 & puja 185 \\
+Carol & 150 & puja 150 & puja 150 \\
+Dave  & 170 & \textcolor{coralc}{puja 186} & intenta revelar 125 \\
+\midrule
+\textbf{Resultado} & --- &
+  \textcolor{coralc}{\textbf{gana Dave con 186}} &
+  \textcolor{mintc}{\textbf{gana Bob con 185}} \\
+ & & {\scriptsize vio las pujas ajenas} & {\scriptsize Dave, descalificado} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{laboratorio}{Laboratorio 2.7 — Subasta a sobre cerrado}
+Ejecuta la subasta de la tabla~\ref{tab:subasta} en las tres variantes: honesta,
+con Dave haciendo trampa, y sin compromisos.
+
+\textbf{Qué observar.} El compromiso no impide mentir: hace que \textbf{mentir
+sea detectable}. Dave puede revelar la cifra que quiera; lo que no puede es que
+el hash cuadre.
+\end{laboratorio}
+
+\subsection{Aleatoriedad pública}
+
+Sorteos, asignación de turnos de validador, loterías en cadena: si cada
+participante publica el compromiso de un número y luego todos abren, nadie pudo
+elegir su aportación viendo la de los demás. El resultado es la suma. Es un
+volado con $n$ jugadores, y es la base de los esquemas commit-reveal de RANDAO.
+
+\begin{aviso}{El anti-patrón que hay que reconocer}
+Un commit-reveal donde alguien puede \textbf{negarse a abrir} sin coste no es
+justo: el último en revelar decide si participa según le convenga, y con ello
+sesga el resultado. La solución habitual es exigir un depósito que se pierde si
+no se abre.
+\end{aviso}
+
+\begin{nota}{En producción}
+\textbf{Bitcoin}: la raíz de Merkle del encabezado es un compromiso a la lista de
+transacciones. \textbf{Ethereum}: RANDAO usa commit-reveal para la aleatoriedad
+del consenso y EIP-4844 usa KZG para los blobs. \textbf{Liquid y Grin}: Pedersen
+para los montos, Bulletproofs para las pruebas de rango.
+\textbf{Certificate Transparency}: un árbol de Merkle público como compromiso a
+todos los certificados emitidos. \textbf{ENS}: registro en dos fases para que
+nadie se adelante al ver tu solicitud.
+\end{nota}
+
+% ===========================================================================
+\section{Síntesis: cuál elegir, y qué se rompe si falla}
+% ===========================================================================
+
+\begin{table}[htbp]
+\centering\small
+\caption{Los cuatro esquemas del apunte. La columna que decide casi siempre es
+la última: \emph{qué necesitas hacer con el sobre cerrado}.}
+\label{tab:sintesis}
+\begin{tabularx}{\textwidth}{@{}l l l l >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Esquema} & \textbf{Ocultamiento} & \textbf{Vinculación} &
+\textbf{Tamaño} & \textbf{Qué permite} \\
+\midrule
+$H(m \concat r)$ \newline {\scriptsize SHA-256} &
+  computacional & computacional & 32 B &
+  Nada más que abrir. Sin setup, sin supuestos algebraicos, resistente a
+  cuántico. \\
+\addlinespace
+Pedersen \newline {\scriptsize $g^{m}h^{r}$} &
+  \textcolor{mintc}{\textbf{perfecto}} & dlog & 32 B &
+  Sumar y restar sobres cerrados. Base de las transacciones confidenciales. \\
+\addlinespace
+Merkle \newline {\scriptsize vectorial} &
+  \textcolor{coralc}{ninguno$^{*}$} & colisión & 32 B \newline $+\,32\log n$ &
+  Abrir una posición sin revelar el resto. $^{*}$Oculta sólo si las hojas llevan
+  sal. \\
+\addlinespace
+KZG \newline {\scriptsize polinómico} &
+  computacional & q-SDH $+$ setup & 48 B \newline $+\,48$ B &
+  Abrir cualquier evaluación con prueba constante. Exige ceremonia de confianza. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xbar, width=11.2cm, height=5.4cm,
+  bar width=11pt,
+  xlabel={alcance del daño},
+  xmin=0, xmax=115,
+  xtick={0,25,50,75,100},
+  xticklabels={,la ronda,,el protocolo,},
+  symbolic y coords={{Prueba de rango},{Setup honesto},{Vinculación},{Ocultamiento}},
+  ytick=data,
+  yticklabel style={font=\footnotesize,align=right},
+  grid=major, grid style={inkc!12},
+  tick label style={font=\footnotesize}, label style={font=\small},
+  enlarge y limits=0.22,
+  nodes near coords, nodes near coords align={horizontal},
+  point meta=explicit symbolic,
+  every node near coord/.append style={font=\scriptsize,color=inkc}
+]
+\addplot[fill=skyc!45,draw=skyc!80!black] coordinates {
+  (72,{Ocultamiento}) [subastas, votos, sorteos]};
+\addplot[fill=coralc!55,draw=coralc!80!black] coordinates {
+  (100,{Vinculación}) [todo el protocolo]};
+\addplot[fill=amberc!55,draw=amberc!80!black] coordinates {
+  (100,{Setup honesto}) [la vinculación, en silencio]};
+\addplot[fill=violetc!45,draw=violetc!80!black] coordinates {
+  (86,{Prueba de rango}) [inflación indetectable]};
+\end{axis}
+\end{tikzpicture}
+\caption{Qué se rompe cuando falla cada pieza. Perder el \emph{ocultamiento}
+arruina la ronda en curso, y se nota. Perder la \emph{vinculación} arruina el
+protocolo entero y, si viene de un setup envenenado, no deja ni rastro.}
+\label{fig:dano}
+\end{figure}
+
+\subsection{Una regla de decisión en tres preguntas}
+
+\begin{enumerate}[leftmargin=2.2em,itemsep=0.4em]
+  \item \textbf{¿Necesitas operar con el valor cerrado?} Si la respuesta es sí
+    ---sumar montos, agregar votos---, es Pedersen. Si es no, el hash es más
+    barato y no pide nada a cambio.
+  \item \textbf{¿El secreto debe sobrevivir décadas?} Entonces quieres
+    ocultamiento perfecto, porque un adversario futuro con más cómputo no cambia
+    nada. Pedersen otra vez.
+  \item \textbf{¿Te comprometes a muchas cosas?} Merkle si no quieres depender de
+    ninguna ceremonia; KZG si necesitas pruebas de tamaño constante y puedes
+    justificar el setup.
+\end{enumerate}
+
+\begin{nota}{Nota cuántica}
+El logaritmo discreto cae ante el algoritmo de Shor. Eso significa que la
+\textbf{vinculación} de Pedersen y de KZG no sobrevive a un computador cuántico
+relevante, mientras que su ocultamiento perfecto sí: no se apoya en ningún
+supuesto. El compromiso de hash está en la situación inversa y más cómoda: Grover
+sólo divide a la mitad los bits de seguridad, así que SHA-256 conserva del orden
+de 128.
+
+La lectura práctica: para un \emph{registro} que deba seguir siendo inalterable
+dentro de treinta años, un compromiso de hash es hoy la apuesta conservadora.
+Para un \emph{secreto} que deba seguir siendo secreto dentro de treinta años, es
+Pedersen.
+\end{nota}
+
+\begin{aviso}{Lo que hay que llevarse}
+Un compromiso convierte una promesa en un objeto verificable. Las dos propiedades
+apuntan a adversarios opuestos, no pueden ser ambas perfectas, y la que se rompe
+en silencio ---la vinculación, vía un setup envenenado--- es siempre la más
+peligrosa.
+\end{aviso}
+
+\clearpage
+% ===========================================================================
+\appendix
+\section{Resumen de fórmulas}
+% ===========================================================================
+
+\begin{table}[htbp]
+\centering\small
+\caption{Todo el módulo en nueve renglones.}
+\begin{tabular}{@{}l l l@{}}
+\toprule
+\textbf{Concepto} & \textbf{Expresión} & \textbf{Dónde} \\
+\midrule
+Compromiso de hash        & $c = H(m \concat r)$ & §2 \\
+Cota del ocultamiento     & $\Adv^{\text{ocult}} \le q|\mathcal{M}|/2^{\lambda}$ & §2 \\
+Cota de la vinculación    & $\Adv^{\text{vinc}} \le \Adv^{\text{col}}_H$ & Prop.~\ref{prop:hashbind} \\
+Compromiso de Pedersen    & $C(m,r) = g^{m}h^{r}$ & §4 \\
+Ruptura $\Rightarrow$ dlog & $\log_g h = (m-m')(r'-r)^{-1}$ & Prop.~\ref{prop:pedbind} \\
+Homomorfismo              & $C(a,r_1)C(b,r_2) = C(a{+}b, r_1{+}r_2)$ & §5 \\
+Balance confidencial      & $\prod C_{\text{ent}} = \prod C_{\text{sal}} \cdot C_{\text{com}}$ & §5 \\
+Equivocación con trampa   & $r' = r + (m-m')x^{-1}$ & Lema~\ref{lema:trapdoor} \\
+Prueba KZG                & $\pi = g^{(f(\tau)-y)/(\tau-z)}$ & §7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ===========================================================================
+\section{Ejercicios propuestos}
+% ===========================================================================
+
+\begin{enumerate}[leftmargin=2.4em,itemsep=0.5em]
+  \item Un estudiante propone $c = H(r \concat m)$ en vez de $H(m \concat r)$.
+    ¿Cambia algo respecto a la vinculación? ¿Y si $H$ es de Damgård--Merkle y el
+    atacante controla la longitud de $m$? (Pista: módulo 01, extensión de
+    longitud.)
+
+  \item Demuestra que el compromiso $c = g^{m}$ ---Pedersen sin el término
+    $h^{r}$--- es \emph{perfectamente vinculante} y no oculta nada cuando
+    $\mathcal{M}$ es pequeño. Sitúalo en el cuadrante de la
+    figura~\ref{fig:cuadrante}.
+
+  \item En la demostración de la Proposición~\ref{prop:pedbind} se afirma que
+    $r \neq r'$. Explica por qué el argumento se rompe si $q$ no es primo, y
+    construye un contraejemplo con $q = 12$.
+
+  \item Una transacción confidencial tiene una entrada de valor $v$ y dos salidas
+    de valores $v_1, v_2$ con $v_1 + v_2 = v$. Escribe la condición que deben
+    cumplir los factores de cegado para que el nodo acepte, y explica por qué el
+    emisor puede elegirlos libremente salvo uno.
+
+  \item Usando el Lema~\ref{lema:trapdoor}, calcula a mano el $r'$ que abre en
+    $m' = 7$ un compromiso hecho con $m = 3$, $r = 5$, en el grupo $q = 1013$,
+    $p = 2027$, $g = 4$, sabiendo que $h = g^{11}$. Verifica el resultado.
+
+  \item Un protocolo commit-reveal de aleatoriedad tiene $n$ participantes y el
+    resultado es la suma de los valores abiertos. Si el último puede negarse a
+    abrir sin penalización, ¿cuántos resultados distintos puede forzar? ¿Y si
+    pueden coaligarse $k$ de ellos?
+
+  \item Compara el coste total en bytes de probar la pertenencia de $t$
+    elementos distintos de un conjunto de $2^{20}$, con Merkle y con KZG. ¿A
+    partir de qué $t$ conviene cada uno? Usa la figura~\ref{fig:tamanos}.
+\end{enumerate}
+
+\vfill
+\begin{center}
+\color{inkc}\small
+\rule{0.35\textwidth}{0.4pt}\\[0.6em]
+\textsc{ChainNotes} · Módulo 02 de 9 · Anterior: funciones hash · Siguiente: firma digital\\
+{\footnotesize Versión LaTeX del apunte interactivo \texttt{temas/compromisos.html}.
+Todas las figuras se generan con TikZ y pgfplots.}
+\end{center}
+
+\end{document}

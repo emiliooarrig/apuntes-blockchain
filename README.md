@@ -23,15 +23,22 @@ apuntes-blockchain/
 │  │  └─ apuntes.css            # Estilos propios de las páginas de tema
 │  └─ js/                       # Scripts del sitio
 │     ├─ main.js                # Interacciones y animaciones globales
-│     └─ hash.js                # Laboratorios interactivos del tema de hash
-├─ latex/                       # Documento LaTeX de los apuntes (en elaboración)
+│     ├─ hash.js                # Laboratorios interactivos del tema de hash
+│     └─ compromisos.js         # Laboratorios del tema de compromisos (Pedersen con BigInt)
+├─ latex/                       # Versión en LaTeX de los apuntes
+│  ├─ funciones-hash.tex        # 01 · Hash — documento completo, figuras en TikZ/pgfplots
+│  ├─ funciones-hash.pdf        # Salida compilada (17 páginas)
+│  ├─ esquemas-de-compromiso.tex # 02 · Compromisos — idem
+│  └─ esquemas-de-compromiso.pdf # Salida compilada (15 páginas)
 └─ README.md
 ```
 
 - **Raíz**: solo `index.html`, que es lo que sirve GitHub Pages al abrir el sitio.
 - **`temas/`**: todas las páginas de tema; enlazan a `assets/` e `index.html` con el prefijo `../`.
 - **`assets/`**: CSS, JavaScript e iconos compartidos; no contiene contenido de los apuntes.
-- **`latex/`**: versión en LaTeX de los apuntes, independiente del sitio estático.
+- **`latex/`**: versión en LaTeX de los apuntes, independiente del sitio estático. Todas las
+  figuras se generan con TikZ y pgfplots, sin imágenes externas. Se compila con
+  `pdflatex funciones-hash.tex` (dos pasadas, por el índice) o con `latexmk -pdf`.
 
 ## Secciones
 
