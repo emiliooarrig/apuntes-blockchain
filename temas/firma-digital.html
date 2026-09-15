@@ -73,6 +73,644 @@
 
 <main>
 
+  <!-- ============ HERO ============ -->
+  <section class="topic-hero" id="inicio">
+    <div class="container topic-hero__inner">
+
+      <div>
+
+        <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+
+          <a href="../index.html">Apuntes</a>
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-arrow"/>
+          </svg>
+
+          <a href="../index.html#temas">Temario</a>
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-arrow"/>
+          </svg>
+
+          <span>03 · Red P2P</span>
+
+        </nav>
+
+
+        <span class="badge anim" style="--d:60ms">
+
+          <span class="badge__dot"></span>
+
+          Módulo 03 · Red P2P
+
+        </span>
+
+
+        <h1 class="topic-hero__title anim" style="--d:120ms">
+
+          Propagación de bloques
+          <span class="grad">en la red</span>
+
+        </h1>
+
+
+        <p class="topic-hero__lead anim" style="--d:180ms">
+
+          Una blockchain distribuida necesita que los bloques producidos
+          puedan compartirse entre múltiples participantes.
+          La red P2P permite difundir esta información y mantener
+          una visión común de la cadena.
+
+        </p>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ RED P2P ============ -->
+  <section class="section note" id="p2p">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Red P2P
+        </span>
+
+
+        <h2 class="section__title">
+          ¿Por qué hace falta una red?
+        </h2>
+
+
+        <div class="goal">
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <use href="#i-check"/>
+          </svg>
+
+          <p style="margin:0">
+
+            <strong>Objetivo:</strong>
+            comprender por qué una blockchain real necesita
+            una red P2P para compartir bloques entre múltiples nodos.
+
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            Una cadena de bloques artesanal puede funcionar cuando
+            una sola entidad controla la creación y almacenamiento
+            de todos los bloques.
+          </p>
+
+          <p>
+            Una blockchain distribuida funciona de manera diferente:
+            existen múltiples participantes y los bloques producidos
+            deben compartirse entre los nodos.
+          </p>
+
+          <p>
+            Los materiales señalan que, para pasar de una blockchain
+            artesanal a una blockchain real, se requiere una
+            <strong>red P2P para propagar bloques</strong>.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Idea principal
+            </span>
+
+            La red P2P permite que los diferentes nodos conozcan
+            los nuevos bloques producidos dentro del sistema.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ PROPAGACIÓN ============ -->
+  <section class="section note" id="propagacion">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Propagación
+        </span>
+
+
+        <h2 class="section__title">
+          Del bloque al resto de la red
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            Cuando se produce un nuevo bloque, esa información debe
+            difundirse entre los participantes de la red.
+          </p>
+
+          <p>
+            Esto permite que los distintos nodos conozcan la existencia
+            del nuevo bloque y puedan actualizar su visión de la cadena.
+          </p>
+
+          <p>
+            A diferencia de un sistema centralizado, la información
+            no depende de un único servidor, sino que se distribuye
+            entre los participantes.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Flujo de propagación
+            </span>
+
+            <strong>
+              Nuevo bloque → nodo que lo produce →
+              otros nodos → difusión por la red
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ RELACIÓN CON MINERÍA ============ -->
+  <section class="section note" id="mineria-red">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Minería + red
+        </span>
+
+
+        <h2 class="section__title">
+          Del Proof of Work a la propagación
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            La minería y la propagación cumplen funciones distintas,
+            pero están relacionadas.
+          </p>
+
+          <p>
+            El <strong>Proof of Work</strong> permite encontrar una
+            solución válida para un bloque.
+          </p>
+
+          <p>
+            Después, la <strong>red P2P</strong> permite que ese bloque
+            sea comunicado al resto de los participantes.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Relación
+            </span>
+
+            <strong>
+              Proof of Work → bloque válido →
+              propagación P2P → otros nodos conocen el bloque
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ CONFLICTOS ============ -->
+  <section class="section note" id="conflictos">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Conflictos
+        </span>
+
+
+        <h2 class="section__title">
+          ¿Qué ocurre si aparecen dos bloques?
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            En una red formada por múltiples nodos puede ocurrir
+            que dos participantes produzcan bloques diferentes
+            aproximadamente al mismo tiempo.
+          </p>
+
+          <p>
+            Por esta razón, una blockchain real necesita no solamente
+            una red P2P, sino también una
+            <strong>regla de resolución de conflictos</strong>.
+          </p>
+
+          <p>
+            Esta regla permite determinar cómo debe continuar la cadena
+            cuando existen temporalmente versiones diferentes.
+          </p>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              Problema distribuido
+            </span>
+
+            Si dos nodos producen bloques distintos al mismo tiempo,
+            la red necesita reglas que permitan determinar qué cadena
+            debe continuar.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ BLOCKCHAIN REAL ============ -->
+  <section class="section note" id="blockchain-real">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Blockchain distribuida
+        </span>
+
+
+        <h2 class="section__title">
+          De una cadena artesanal a una red real
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <p>
+            El pipeline artesanal de los materiales contiene funciones hash,
+            firma digital, encadenamiento y sellado de tiempo.
+          </p>
+
+          <p>
+            Sin embargo, el documento indica que para convertirse en
+            una blockchain real necesita elementos adicionales:
+          </p>
+
+
+          <ol>
+
+            <li>
+              Un <strong>mecanismo de consenso</strong>
+              para múltiples nodos.
+            </li>
+
+            <li>
+              Una <strong>red P2P</strong>
+              para propagar los bloques.
+            </li>
+
+            <li>
+              Una <strong>regla de resolución de conflictos</strong>
+              cuando aparecen bloques distintos.
+            </li>
+
+          </ol>
+
+
+          <div class="callout callout--key">
+
+            <span class="callout__title">
+              De modelo educativo a red real
+            </span>
+
+            <strong>
+              Encadenamiento + consenso + red P2P +
+              resolución de conflictos
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ RESUMEN ============ -->
+  <section class="section note" id="resumen">
+    <div class="container">
+
+      <header class="note__head reveal">
+
+        <span class="eyebrow">
+          <span class="eyebrow__line"></span>
+          Resumen
+        </span>
+
+
+        <h2 class="section__title">
+          Propagación de bloques
+        </h2>
+
+      </header>
+
+
+      <div class="note__grid">
+
+        <div class="note__body reveal">
+
+          <ul>
+
+            <li>
+              Una blockchain real tiene múltiples participantes.
+            </li>
+
+            <li>
+              Los bloques deben compartirse entre los nodos.
+            </li>
+
+            <li>
+              La red P2P permite propagar esos bloques.
+            </li>
+
+            <li>
+              La propagación permite que los nodos conozcan
+              el nuevo estado de la cadena.
+            </li>
+
+            <li>
+              Pueden aparecer temporalmente bloques distintos.
+            </li>
+
+            <li>
+              Por ello también se necesitan reglas de resolución
+              de conflictos.
+            </li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+<!-- ============ EJERCICIOS PROPAGACIÓN ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+
+    <header class="note__head reveal">
+
+      <span class="eyebrow">
+        <span class="eyebrow__line"></span>
+        Ejercicios
+      </span>
+
+      <h2 class="section__title">
+        Propagación de bloques en la red
+      </h2>
+
+      <p class="section__lead">
+        Analiza los siguientes escenarios relacionados con
+        nodos, redes P2P y propagación de bloques.
+      </p>
+
+    </header>
+
+
+    <div class="note__grid">
+
+      <div class="note__body reveal">
+
+        <!-- EJERCICIO 1 -->
+        <h3>Ejercicio 1 · Propagación P2P</h3>
+
+        <p>
+          El nodo A conoce un nuevo bloque.
+          Después comunica su existencia a los nodos B y C.
+          Posteriormente, B lo comparte con D y C lo comparte con E.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué característica de una red P2P se representa
+          en este ejemplo?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Representa la <strong>propagación distribuida</strong>.
+            La información puede pasar de un nodo a otros nodos
+            sin depender de un único servidor central.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 2 -->
+        <h3>Ejercicio 2 · Minería y propagación</h3>
+
+        <p>
+          Un minero encuentra una solución válida de Proof of Work
+          para un nuevo bloque.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿por qué no es suficiente con que solamente ese minero
+          conozca el bloque?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Porque una blockchain distribuida está formada por
+            múltiples participantes.
+          </p>
+
+          <p>
+            El nuevo bloque debe propagarse por la red para que
+            otros nodos puedan conocerlo y actualizar su visión
+            de la cadena.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 3 -->
+        <h3>Ejercicio 3 · Dos bloques al mismo tiempo</h3>
+
+        <p>
+          El nodo A recibe primero el bloque X,
+          mientras que otro grupo de nodos recibe primero
+          un bloque Y diferente.
+        </p>
+
+        <p>
+          Ambos bloques fueron producidos aproximadamente
+          al mismo tiempo.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué problema aparece y qué necesita el sistema
+          para solucionarlo?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Aparece temporalmente un
+            <strong>conflicto entre versiones de la cadena</strong>.
+          </p>
+
+          <p>
+            El sistema necesita reglas de consenso y de resolución
+            de conflictos que permitan determinar cómo debe continuar
+            la cadena.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 4 -->
+        <h3>Ejercicio 4 · Ordena el proceso</h3>
+
+        <p>
+          Ordena los siguientes acontecimientos:
+        </p>
+
+        <ul>
+          <li>Otros nodos conocen el nuevo bloque.</li>
+          <li>Se obtiene una solución válida de Proof of Work.</li>
+          <li>El bloque se propaga por la red P2P.</li>
+          <li>Se produce un nuevo bloque válido.</li>
+        </ul>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <ol>
+            <li>
+              Se obtiene una solución válida de Proof of Work.
+            </li>
+
+            <li>
+              Se produce un nuevo bloque válido.
+            </li>
+
+            <li>
+              El bloque se propaga por la red P2P.
+            </li>
+
+            <li>
+              Otros nodos conocen el nuevo bloque.
+            </li>
+          </ol>
+        </details>
+
+
+        <div class="callout callout--key">
+
+          <span class="callout__title">
+            Idea general
+          </span>
+
+          <strong>
+            Proof of Work → nuevo bloque →
+            propagación P2P → otros nodos
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+</main>
 
 
 <!-- ============ FOOTER ============ -->

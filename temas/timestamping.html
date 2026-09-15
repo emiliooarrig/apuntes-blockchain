@@ -556,6 +556,219 @@
     </div>
   </section>
 
+  <!-- ============ EJERCICIOS UTXO Y MINERÍA ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+
+    <header class="note__head reveal">
+
+      <span class="eyebrow">
+        <span class="eyebrow__line"></span>
+        Ejercicios
+      </span>
+
+      <h2 class="section__title">
+        Pon a prueba lo aprendido
+      </h2>
+
+      <p class="section__lead">
+        Resuelve los siguientes ejercicios sobre el modelo UTXO
+        y el proceso de minería mediante Proof of Work.
+      </p>
+
+    </header>
+
+
+    <div class="note__grid">
+
+      <div class="note__body reveal">
+
+        <!-- EJERCICIO 1 -->
+        <h3>Ejercicio 1 · Identificación de UTXO</h3>
+
+        <p>
+          Ana posee dos salidas no gastadas:
+          una de <strong>0.8 BTC</strong> y otra de
+          <strong>0.5 BTC</strong>.
+        </p>
+
+        <p>
+          Ana quiere realizar una transacción de
+          <strong>1 BTC</strong>.
+          Para simplificar, ignora las comisiones.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué ocurre con los dos UTXO originales y cuánto valor
+          debe regresar como una nueva salida?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Los dos UTXO suman <strong>1.3 BTC</strong>.
+            Ambos se utilizan como entradas y dejan de formar parte
+            del conjunto UTXO.
+          </p>
+
+          <p>
+            Se genera una salida de <strong>1 BTC</strong>
+            para el destinatario y otra salida de
+            <strong>0.3 BTC</strong> como cambio.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 2 -->
+        <h3>Ejercicio 2 · Salidas gastadas y no gastadas</h3>
+
+        <p>
+          Una transacción crea tres nuevas salidas:
+        </p>
+
+        <ul>
+          <li>Salida A: 0.4 BTC</li>
+          <li>Salida B: 0.3 BTC</li>
+          <li>Salida C: 0.2 BTC</li>
+        </ul>
+
+        <p>
+          Más tarde, las salidas A y C se utilizan en nuevas
+          transacciones.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿cuál de las tres salidas continúa formando parte
+          del conjunto UTXO?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Únicamente la <strong>Salida B de 0.3 BTC</strong>
+            continúa formando parte del conjunto UTXO,
+            porque todavía no ha sido gastada.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 3 -->
+        <h3>Ejercicio 3 · Proof of Work</h3>
+
+        <p>
+          Supón que, de manera simplificada, la red exige que
+          el hash encontrado sea menor que:
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">
+            Umbral
+          </span>
+
+          <strong>
+            0000FFFF...
+          </strong>
+        </div>
+
+        <p>
+          Un minero obtiene el siguiente hash:
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">
+            Hash obtenido
+          </span>
+
+          <strong>
+            00001234...
+          </strong>
+        </div>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿cumple este hash con la condición del ejercicio?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            <strong>Sí.</strong>
+            En este ejemplo simplificado,
+            <code>00001234...</code> es numéricamente menor que
+            <code>0000FFFF...</code>.
+          </p>
+
+          <p>
+            Por lo tanto, el resultado cumple con el umbral
+            definido para el ejercicio.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 4 -->
+        <h3>Ejercicio 4 · Nonce y minería</h3>
+
+        <p>
+          Un minero calcula el hash del encabezado de un bloque,
+          pero el resultado no cumple con el objetivo de dificultad.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué puede hacer para realizar un nuevo intento?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Puede modificar valores utilizados para construir
+            el encabezado, entre ellos el <strong>nonce</strong>,
+            y volver a calcular el hash.
+          </p>
+
+          <p>
+            El proceso se repite hasta obtener una solución
+            que cumpla las reglas de Proof of Work.
+          </p>
+        </details>
+
+
+        <div class="callout callout--key">
+
+          <span class="callout__title">
+            Recuerda
+          </span>
+
+          <strong>
+            UTXO → identifica salidas disponibles.
+            Minería → busca una solución válida de Proof of Work.
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
 </main>
 
 
