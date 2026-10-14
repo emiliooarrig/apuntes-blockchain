@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La prueba de trabajo y el doble gasto — ChainNotes</title>
+<meta name="description" content="Apunte: la prueba de trabajo y el problema del doble gasto. Antecedentes, una CPU un voto, el encabezado de 80 bytes, minería, ajuste de dificultad, la carrera del atacante (Poisson frente a binomial negativa) y el costo energético, con cinco laboratorios interactivos.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=3 rompe la caché: apuntes.css creció con los componentes de este apunte -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=3">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-defi" viewBox="0 0 24 24"><path d="M3.5 19.5h17M6 19.5v-6M11 19.5V8M16 19.5v-9"/><path d="m5 10 5.6-5.2 4 2.6 4.6-4.1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#problema">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#problema">Problema</a></li>
+        <li><a class="nav__link" href="#mineria">Minería</a></li>
+        <li><a class="nav__link" href="#dificultad">Dificultad</a></li>
+        <li><a class="nav__link" href="#ataque">Ataque</a></li>
+        <li><a class="nav__link" href="#sintesis">Síntesis</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#problema">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>07 · Prueba de trabajo</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 07 · Consenso
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        La <span class="grad">prueba de trabajo</span><br>
+        y el <span class="underlined">doble gasto</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Un archivo se copia gratis, así que una moneda que sólo es un archivo puede gastarse
+        dos veces. Durante décadas la solución fue un banco en medio. Este apunte cuenta cómo
+        Bitcoin lo resolvió <em>sin</em> nadie en medio: origen, matemáticas y simulaciones,
+        todo calculado en tu navegador.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> SHA-256d</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-clock"/></svg> Dificultad</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Binomial negativa</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 5 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: quién lleva el registro -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> ¿Quién lleva el registro?</h2>
+        <span class="lab__tag">en vivo · moneda #7F3A</span>
+      </div>
+      <p class="lab__intro">
+        La misma moneda se envía a dos tiendas a la vez. Cambia quién lleva el libro de
+        cuentas y mira qué pasa.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="ldgSeg" role="group" aria-label="Modelo de registro">
+            <button type="button" data-model="nadie" aria-pressed="true">Nadie</button>
+            <button type="button" data-model="banco" aria-pressed="false">Un banco</button>
+            <button type="button" data-model="red" aria-pressed="false">Red con PoW</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="ldgA">—</span>
+          <span class="metric__label">Tienda A</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="ldgB">—</span>
+          <span class="metric__label">Tienda B</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="ldgWho">—</span>
+          <span class="metric__label">Quién decide el orden</span>
+        </div>
+      </div>
+      <div class="log" id="ldgLog" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#problema"><span class="toc__n">01</span> El problema</a></li>
+        <li><a href="#antecedentes"><span class="toc__n">02</span> Las piezas previas</a></li>
+        <li><a href="#voto"><span class="toc__n">03</span> Una CPU, un voto</a></li>
+        <li><a href="#bloque"><span class="toc__n">04</span> Qué se hashea</a></li>
+        <li><a href="#mineria"><span class="toc__n">05</span> Minar un bloque</a></li>
+        <li><a href="#cadena"><span class="toc__n">06</span> La cadena con más trabajo</a></li>
+        <li><a href="#dificultad"><span class="toc__n">07</span> El reloj de 10 minutos</a></li>
+        <li><a href="#ataque"><span class="toc__n">08</span> La carrera del atacante</a></li>
+        <li><a href="#costo"><span class="toc__n">09</span> El costo</a></li>
+        <li><a href="#sintesis"><span class="toc__n">10</span> Síntesis</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · EL PROBLEMA ============ -->
+<section class="section note" id="problema">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">El problema: copiar es gratis</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver que evitar el doble gasto es, en el
+        fondo, ponerse de acuerdo sobre el <em>orden</em> de las transacciones.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un billete físico resuelve el problema solo: cambia de mano y ya no lo tienes. Un
+          archivo que dice «10 dólares» se duplica igual que una foto. Y aunque lleve firma
+          digital, la firma prueba <em>quién</em> lo emitió, no que no se haya gastado antes:
+          dos copias de un archivo firmado son igual de válidas.
+        </p>
+        <p>
+          La salida clásica es poner a alguien de confianza en medio —un banco, una red de
+          tarjetas— que lleve un libro central y marque cada moneda como usada. Funciona, pero
+          el reto real era otro: <strong>evitar el doble gasto entre desconocidos, sin esa
+          autoridad central</strong>.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">El orden resuelve el problema</span>
+          Si todos aceptan un mismo orden de las transacciones y la regla «si dos gastan la
+          misma moneda, vale la primera», la segunda es inválida por construcción. Todo el
+          diseño de Bitcoin consiste en lograr ese orden común sin coordinador y frente a
+          participantes que pueden mentir.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Definición</span>
+        <p><strong>Doble gasto:</strong> usar un mismo activo digital en dos o más pagos,
+          posible porque cada pago, visto por separado, es indistinguible de uno legítimo.</p>
+        <span class="eq">
+          tx<sub>1</sub>(#7F3A → A) &nbsp;y&nbsp; tx<sub>2</sub>(#7F3A → B)
+          <small>ambas firmadas, ambas válidas aisladamente</small>
+        </span>
+        <p>Con un orden total acordado, sólo sobrevive la que aparece primero:</p>
+        <span class="eq">
+          tx<sub>1</sub> ≺ tx<sub>2</sub> &nbsp;⟹&nbsp; tx<sub>2</sub> inválida
+          <small>el problema no es criptográfico, es de consenso</small>
+        </span>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · ANTECEDENTES ============ -->
+<section class="section note" id="antecedentes">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Las piezas que llegaron antes (1982–2009)</h2>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <p>
+        El problema no se resolvió de golpe. Durante un cuarto de siglo distintos criptógrafos
+        aportaron piezas sueltas: privacidad, sellos de tiempo encadenados, rompecabezas
+        costosos, dinero creado por cómputo. Ninguna armaba el cuadro completo.
+      </p>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <thead>
+          <tr><th scope="col">Año</th><th scope="col">Propuesta</th><th scope="col">Qué aportó</th><th scope="col">Qué le faltaba</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">1982</td><td><strong>Chaum</strong><br>firmas ciegas</td><td>Dinero digital con privacidad: el banco firma sin ver el número de serie.</td><td>El banco seguía revisando cada moneda en línea.</td></tr>
+          <tr><td class="num">1988</td><td><strong>Chaum, Fiat, Naor</strong><br>efectivo fuera de línea · DigiCash</td><td>Pagar sin consultar al banco; gastar dos veces revela tu identidad.</td><td>El doble gasto se castiga después, no se impide.</td></tr>
+          <tr><td class="num">1991</td><td><strong>Haber y Stornetta</strong><br>sellos de tiempo</td><td>Cada sello incluye el hash del anterior: la estructura de la cadena de bloques.</td><td>Dependía de un servicio de sellado.</td></tr>
+          <tr><td class="num">1992</td><td><strong>Dwork y Naor</strong><br>pagar con procesamiento</td><td>Exigir un cálculo caro de hacer y barato de verificar: la idea de la PoW.</td><td>Era un filtro contra spam, no dinero.</td></tr>
+          <tr><td class="num">1997</td><td><strong>Back</strong><br>Hashcash</td><td>Hallar un texto cuyo hash empiece con ceros. Bitcoin lo adoptó casi tal cual.</td><td>No prevenía el doble gasto.</td></tr>
+          <tr><td class="num">1998</td><td><strong>Dai · Szabo</strong><br>b-money · Bit Gold</td><td>Crear dinero resolviendo problemas y encadenar las soluciones.</td><td>Una regla para elegir entre historias en competencia.</td></tr>
+          <tr><td class="num">2004</td><td><strong>Finney</strong><br>RPOW</td><td>Fichas de Hashcash transferibles.</td><td>Un servidor central evitaba el doble gasto.</td></tr>
+          <tr><td class="num">2008</td><td><strong>Nakamoto</strong><br>Bitcoin</td><td>Usar la prueba de trabajo como mecanismo de <em>consenso</em>, no como peaje.</td><td><span class="status status--ok">la pieza que faltaba</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="note__body reveal">
+        <div class="callout callout--note" style="margin-top:0">
+          <span class="callout__title">Qué hizo falta combinar</span>
+          Las <strong>firmas</strong> identifican al emisor; las <strong>cadenas de hashes</strong>
+          encarecen alterar el pasado; la <strong>prueba de trabajo</strong> encarece producir
+          historia; un <strong>registro replicado</strong> elimina el punto central. Faltaba la
+          regla para que todos los honestos elijan la misma historia sin consultar a nadie: la
+          cadena con más trabajo acumulado (módulo 06).
+        </div>
+      </div>
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> Fechas de Bitcoin</span>
+        <ul class="plain-list" style="margin:0">
+          <li><strong>31 oct 2008</strong> — se publica el documento.</li>
+          <li style="--accent:var(--sky)"><strong>3 ene 2009</strong> — fecha del bloque génesis.</li>
+          <li style="--accent:var(--mint)"><strong>9 ene 2009</strong> — se libera el software.</li>
+          <li style="--accent:var(--coral)"><strong>12 ene 2009</strong> — Hal Finney recibe la primera transacción.</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · UNA CPU, UN VOTO ============ -->
+<section class="section note" id="voto">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">La idea de 2008: una CPU, un voto</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Si cada participante tuviera un voto, bastaría crear miles de identidades falsas
+          para controlar la votación: un <strong>ataque Sybil</strong>. Nakamoto propuso votar
+          con capacidad de cómputo. Falsificar identidades es gratis; falsificar cómputo no:
+          exige hardware real y electricidad real.
+        </p>
+        <p>
+          La consecuencia es elegante: quien aporta una fracción <var>f</var> de los hashes de
+          la red encuentra el siguiente bloque con probabilidad exactamente <var>f</var>,
+          <strong>sin importar cuántas identidades use</strong>. Repartir el mismo hardware
+          entre mil cuentas no le da ni un voto más.
+        </p>
+        <div class="callout callout--warn">
+          <span class="callout__title">«Una CPU, un voto» es el diseño de 2008</span>
+          Desde 2013 se mina con circuitos especializados (ASIC), mucho más eficientes que una
+          CPU. Hoy es más exacto decir «un hash, un voto». El principio sigue intacto: votar
+          cuesta recursos físicos.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Resistencia a Sybil</span>
+        <p>Sean <var>m</var> mineros con tasas <var>h</var><sub>1</sub>, …, <var>h</var><sub>m</sub>
+          y probabilidad <var>p</var> de éxito por hash. El tiempo del minero <var>i</var> hasta
+          su primer éxito es exponencial de tasa λ<sub><var>i</var></sub> = <var>h</var><sub><var>i</var></sub><var>p</var>.</p>
+        <span class="eq">
+          P(<var>i</var> gana) = λ<sub><var>i</var></sub> / Σ<sub><var>j</var></sub> λ<sub><var>j</var></sub>
+          = <var>h</var><sub><var>i</var></sub> / Σ<sub><var>j</var></sub> <var>h</var><sub><var>j</var></sub>
+          <small>el «voto» es proporcional al cómputo</small>
+        </span>
+        <p>Dividir el cómputo entre más identidades no cambia Σ<var>h</var><sub><var>j</var></sub>
+          ni la probabilidad de ganar.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · QUÉ SE HASHEA ============ -->
+<section class="section note" id="bloque">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Qué se hashea en realidad: 80 bytes</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> reconstruir el bloque génesis de Bitcoin
+        campo por campo y verificar su hash tú mismo.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          La herramienta es SHA-256 (vista a fondo en el <a href="hash.html">módulo 01</a>):
+          determinista, con <strong>efecto avalancha</strong> —cambiar un carácter cambia en
+          promedio 128 de los 256 bits— y <strong>resistente a preimagen</strong>. No hay forma
+          de «acercarse» a un hash deseado: cada intento es un sorteo independiente.
+        </p>
+        <p>
+          Bitcoin aplica SHA-256 dos veces (SHA-256d), y no a las transacciones completas,
+          sino a un <strong>encabezado de exactamente 80 bytes</strong>. Las transacciones
+          entran a través de un solo resumen de 32 bytes, la
+          <a href="hash.html#merkle">raíz de Merkle</a>: tocar cualquier transacción cambia la
+          raíz y, con ella, el hash del bloque.
+        </p>
+
+        <div class="bytebar" role="img" aria-label="Encabezado de 80 bytes: versión 4, bloque previo 32, raíz de Merkle 32, marca de tiempo 4, bits 4, nonce 4">
+          <span style="--w:4;--accent:var(--muted)" title="Versión · 4 bytes"><b>ver</b></span>
+          <span style="--w:32;--accent:var(--sky)"><b>hash del bloque previo</b><small>32 B</small></span>
+          <span style="--w:32;--accent:var(--mint)"><b>raíz de Merkle</b><small>32 B</small></span>
+          <span style="--w:4;--accent:var(--amber)" title="Marca de tiempo · 4 bytes"><b>t</b></span>
+          <span style="--w:4;--accent:var(--violet)" title="Bits · 4 bytes"><b>bits</b></span>
+          <span style="--w:4;--accent:var(--coral)" title="Nonce · 4 bytes"><b>n</b></span>
+        </div>
+        <p class="lab__note" style="margin-top:.6rem">
+          Versión, tiempo, bits y nonce ocupan 4 bytes cada uno. Los enteros van en
+          <em>little-endian</em> y los hashes con los bytes invertidos; por eso el hash de un
+          bloque se lee «al revés».
+        </p>
+
+        <h3>El objetivo y el campo «bits»</h3>
+        <p>
+          La regla real no es «empezar con <var>n</var> ceros», sino que el hash, leído como
+          número de 256 bits, sea <strong>menor o igual que un objetivo</strong>. Contar ceros
+          es una buena aproximación: cada cero hexadecimal más divide el objetivo entre 16.
+        </p>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">El nonce sólo tiene 32 bits</span>
+          Unos 4 300 millones de valores, que un ASIC de 200 TH/s agota en ~21 µs. Por eso
+          también se varía un <em>extranonce</em> dentro de la transacción de recompensa (que
+          cambia la raíz de Merkle), la marca de tiempo y algunos bits de la versión.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Objetivo y trabajo</span>
+        <p>El campo <em>bits</em> es notación compacta: un byte de exponente <var>e</var> y tres
+          de coeficiente <var>c</var>.</p>
+        <span class="eq">
+          objetivo = <var>c</var> · 256<sup><var>e</var> − 3</sup>
+          <small>génesis: 0x1d00ffff → 0xffff · 2<sup>208</sup></small>
+        </span>
+        <p>Como el hash se comporta como un número uniforme en [0, 2<sup>256</sup>), la
+          probabilidad de acertar en un intento es (<var>T</var>+1)/2<sup>256</sup>, y</p>
+        <span class="eq">
+          E[intentos] = 2<sup>256</sup> / (<var>T</var> + 1)
+          <small>con el objetivo del génesis: 4 295 032 833 ≈ 2<sup>32</sup> («dificultad 1»)</small>
+        </span>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">El hash del bloque 0</span>
+          <span class="mono" style="word-break:break-all"><b style="color:var(--coral)">0000000000</b>19d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</span><br>
+          43 bits iniciales en cero. Ese es el «trabajo» que se demuestra.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg> Laboratorio 1 — Verifica el bloque génesis</h2>
+        <span class="lab__tag">SHA-256d sobre 80 bytes</span>
+      </div>
+      <p class="lab__intro">
+        Los seis campos vienen precargados con los valores reales del bloque 0. Comprueba que
+        el hash coincide con el oficial; después cambia un solo dígito del nonce o de la marca
+        de tiempo y mira cómo desaparecen los ceros.
+      </p>
+
+      <div class="controls">
+        <div class="field" style="flex-basis:120px"><label class="field__label" for="genVersion">Versión</label>
+          <input type="number" id="genVersion" min="0" step="1"></div>
+        <div class="field" style="flex-basis:160px"><label class="field__label" for="genTime">Marca de tiempo</label>
+          <input type="number" id="genTime" min="0" step="1"></div>
+        <div class="field" style="flex-basis:140px"><label class="field__label" for="genBits">Bits (hex)</label>
+          <input type="text" id="genBits" spellcheck="false" autocomplete="off"></div>
+        <div class="field" style="flex-basis:160px"><label class="field__label" for="genNonce">Nonce</label>
+          <input type="number" id="genNonce" min="0" step="1"></div>
+      </div>
+      <div class="controls">
+        <div class="field field--wide"><label class="field__label" for="genPrev">Hash del bloque previo</label>
+          <input type="text" id="genPrev" class="mono" spellcheck="false" autocomplete="off"></div>
+        <div class="field field--wide"><label class="field__label" for="genMerkle">Raíz de Merkle</label>
+          <input type="text" id="genMerkle" class="mono" spellcheck="false" autocomplete="off"></div>
+      </div>
+
+      <span class="field__label">Los 80 bytes que se hashean</span>
+      <code class="hashout hashout--sm" id="genBytes"></code>
+      <span class="field__label" style="margin-top:.8em;display:block">SHA-256d, con los bytes invertidos</span>
+      <code class="hashout" id="genHash" aria-live="polite"></code>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="genZeros">—</span><span class="metric__label">Bits iniciales en cero</span></div>
+        <div class="metric"><span class="metric__num" id="genOk">—</span><span class="metric__label">¿Hash ≤ objetivo?</span></div>
+        <div class="metric"><span class="metric__num" id="genWork">—</span><span class="metric__label">Intentos esperados para ese objetivo</span></div>
+        <div class="metric"><span class="metric__num" id="genOfficial">—</span><span class="metric__label">¿Es el hash oficial?</span></div>
+      </div>
+
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto">
+          <button class="clay-btn" id="genReset" type="button">Restaurar génesis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · MINAR ============ -->
+<section class="section note" id="mineria">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">El rompecabezas: minar un bloque</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Minar es variar el nonce hasta que el hash tenga suficientes bits iniciales en
+          cero. No hay atajos: si se exigen <var>d</var> bits, cada intento acierta con
+          probabilidad 2<sup>−<var>d</var></sup>, independientemente de los anteriores. En
+          promedio hacen falta 2<sup><var>d</var></sup> intentos, pero la dispersión es enorme:
+          muchos bloques salen rápido y unos pocos tardan varias veces el promedio.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">La minería no tiene memoria</span>
+          Llevar horas buscando no acerca el éxito: quien no ha encontrado un bloque está
+          exactamente igual de lejos que al empezar. Es como tirar un dado: haber fallado diez
+          veces no hace más probable el siguiente seis.
+        </div>
+
+        <h3>Cómo calcula el hardware: el <em>midstate</em></h3>
+        <p>
+          SHA-256 procesa bloques de 64 bytes y el nonce vive en los últimos 16 de los 80. Los
+          primeros 64 se comprimen <strong>una sola vez</strong>; por cada nonce sólo se procesa
+          el resto y el segundo SHA-256. El laboratorio de abajo usa exactamente este truco.
+        </p>
+<pre class="code"><code>mid ← comprimir(IV, encabezado[0..63])        // una sola vez
+para nonce = 0 … 2³² − 1:
+    h1 ← comprimir(mid, encabezado[64..75] ‖ nonce ‖ relleno)
+    h2 ← SHA-256(h1)
+    si h2 tiene d bits iniciales en cero: devolver nonce</code></pre>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-defi"/></svg> Distribución del esfuerzo</span>
+        <p>Con <var>p</var> = 2<sup>−<var>d</var></sup>, el número de intentos <var>N</var> es geométrico:</p>
+        <span class="eq">
+          P(<var>N</var> &gt; <var>n</var>) = (1 − <var>p</var>)<sup><var>n</var></sup> ≈ <var>e</var><sup>−<var>n</var>/2<sup><var>d</var></sup></sup>,
+          &nbsp; E[<var>N</var>] = 2<sup><var>d</var></sup>
+        </span>
+        <p>En múltiplos del promedio, <var>T</var> = <var>N</var>/2<sup><var>d</var></sup> es
+          exponencial de media 1:</p>
+        <ul class="plain-list">
+          <li>mediana = ln 2 ≈ <strong>0.693</strong></li>
+          <li style="--accent:var(--coral)">P(<var>T</var> &gt; 1) = <var>e</var><sup>−1</sup> ≈ <strong>36.8 %</strong></li>
+          <li style="--accent:var(--mint)">sin memoria: P(<var>T</var> &gt; <var>s</var>+<var>t</var> | <var>T</var> &gt; <var>s</var>) = P(<var>T</var> &gt; <var>t</var>)</li>
+        </ul>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">De tu navegador a la red</span>
+          A ~1 MH/s, un navegador logra <var>d</var> = 20 en un segundo. La red (~10<sup>21</sup>
+          H/s en 2026) logra <var>d</var> ≈ 79 cada diez minutos: lo que al navegador le
+          tomaría unos 1.9×10<sup>10</sup> años. Una máquina ASIC hace cientos de TH/s; harían
+          falta ~5 millones para igualar a la red.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> Laboratorio 2 — Mina en tu navegador</h2>
+        <span class="lab__tag">SHA-256d real · midstate</span>
+      </div>
+      <p class="lab__intro">
+        Elige la dificultad y mina un bloque: verás cuántos intentos hicieron falta frente a
+        los esperados. Luego mina una serie y compara el histograma con la curva teórica
+        <var>e</var><sup>−<var>x</var></sup>: la mayoría de los bloques sale con menos
+        esfuerzo que el promedio, y unos pocos exigen varias veces más.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="minD">Bits iniciales en cero (d)</label>
+          <input type="range" id="minD" min="8" max="24" step="1" value="14">
+          <span class="field__label" id="minDOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field" style="flex-basis:150px">
+          <label class="field__label" for="minN">Bloques por serie</label>
+          <select id="minN">
+            <option value="50">50</option>
+            <option value="200" selected>200</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="minOne" type="button">Minar un bloque <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
+        </div>
+        <div class="field field--auto"><button class="clay-btn" id="minSeries" type="button">Minar serie</button></div>
+        <div class="field field--auto"><button class="clay-btn" id="minStop" type="button" disabled>Detener</button></div>
+      </div>
+
+      <span class="field__label">Último hash encontrado</span>
+      <code class="hashout hashout--sm" id="minHash"><span class="muted-p">Sin ejecutar.</span></code>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="minTries">—</span><span class="metric__label">Intentos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="minRatio">—</span><span class="metric__label">Frente al promedio 2^d</span></div>
+        <div class="metric"><span class="metric__num" id="minSpeed">—</span><span class="metric__label">Velocidad</span></div>
+        <div class="metric"><span class="metric__num" id="minTime">—</span><span class="metric__label">Tiempo</span></div>
+      </div>
+
+      <div class="szwrap" id="minHist"></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="minCount">—</span><span class="metric__label">Bloques de la serie</span></div>
+        <div class="metric"><span class="metric__num" id="minMean">—</span><span class="metric__label">Media (× 2^d)</span></div>
+        <div class="metric"><span class="metric__num" id="minMedian">—</span><span class="metric__label">Mediana (× 2^d)</span></div>
+        <div class="metric"><span class="metric__num" id="minOver">—</span><span class="metric__label">Tardaron más que el promedio</span></div>
+      </div>
+      <p class="lab__note">
+        Referencia: minando 600 bloques reales con <var>d</var> = 14 se obtuvo media 0.946,
+        mediana 0.724 y 36.2 % por encima del promedio; la teoría da 1, 0.693 y 36.8 %.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · LA CADENA CON MÁS TRABAJO ============ -->
+<section class="section note" id="cadena">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Por qué encadenar: gana la cadena con más trabajo</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cada bloque incluye el hash del anterior. Si alguien altera una transacción
+          antigua, el hash de ese bloque cambia, deja de cumplir la dificultad y rompe el
+          enlace con el siguiente. Repararlo exige <strong>volver a minar ese bloque y todos
+          los posteriores</strong>. Puedes comprobarlo en el
+          <a href="hash.html#blockchain">laboratorio 8.2 del módulo 01</a>.
+        </p>
+        <p>
+          Los nodos reconocen como válida la cadena con <strong>mayor trabajo acumulado</strong>:
+          la suma del número esperado de hashes que costó cada bloque. Casi siempre coincide
+          con la «más larga», pero no es lo mismo: muchos bloques fáciles no le ganan a pocos
+          bloques difíciles. El documento de 2008 decía «la más larga»; el software pronto
+          pasó a comparar trabajo para cerrar esa puerta.
+        </p>
+
+        <div class="quad" style="grid-template-columns:1fr 1fr">
+          <div class="quad__cell" style="--accent:var(--muted)">
+            <h4>Con un tercero de confianza</h4>
+            <p>Un banco decide qué transacción llegó primero. Su palabra es la verdad porque es
+            la única que existe.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--violet)">
+            <h4>Con prueba de trabajo</h4>
+            <p>Nadie decide: vale la historia que costó más producir, algo que cualquiera
+            verifica con un cálculo barato.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Trabajo acumulado</span>
+        <p>Un bloque con objetivo <var>T</var><sub><var>i</var></sub> aporta
+          <var>w</var><sub><var>i</var></sub> = 2<sup>256</sup>/(<var>T</var><sub><var>i</var></sub>+1).
+          Una cadena de <var>n</var> bloques acumula</p>
+        <span class="eq">
+          <var>W</var> = Σ<sub><var>i</var>=1…<var>n</var></sub> <var>w</var><sub><var>i</var></sub>
+          <small>los nodos adoptan la cadena válida con mayor W</small>
+        </span>
+        <p><strong>Ejemplo.</strong> La cadena A tiene 10 bloques de dificultad 1; la B, sólo 4
+          bloques de dificultad 4.</p>
+        <span class="eq">
+          <var>W</var><sub>A</sub> = 10·2<sup>32</sup> ≈ 4.3×10<sup>10</sup> &nbsp;&lt;&nbsp;
+          <var>W</var><sub>B</sub> = 16·2<sup>32</sup> ≈ 6.9×10<sup>10</sup>
+          <small>gana B, aunque sea más corta</small>
+        </span>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · DIFICULTAD ============ -->
+<section class="section note" id="dificultad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">El reloj: diez minutos por bloque, pase lo que pase</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Si el cómputo de la red se duplica, los bloques saldrían el doble de rápido. Para
+          evitarlo, cada <strong>2016 bloques</strong> (unas dos semanas) todos los nodos
+          recalculan la dificultad: si el periodo fue más rápido de lo previsto, sube en la
+          misma proporción; si fue más lento, baja. El ajuste está limitado a un factor 4.
+        </p>
+        <p>
+          Aun con cómputo constante, los bloques no salen cada diez minutos exactos: el tiempo
+          entre bloques es exponencial de media 10 min. De ahí salen cifras que sorprenden:
+        </p>
+        <div class="readout" style="margin-top:0">
+          <div class="metric"><span class="metric__num metric__num--coral">9.5 %</span><span class="metric__label">bloques en menos de 1 min</span></div>
+          <div class="metric"><span class="metric__num">36.8 %</span><span class="metric__label">tardan más de 10 min</span></div>
+          <div class="metric"><span class="metric__num metric__num--violet">4.98 %</span><span class="metric__label">tardan más de 30 min</span></div>
+          <div class="metric"><span class="metric__num">0.25 %</span><span class="metric__label">tardan más de 1 h</span></div>
+        </div>
+        <p class="lab__note">Uno de cada veinte bloques tarda más de media hora: es la naturaleza de la búsqueda, no una falla de la red.</p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> Regla de ajuste</span>
+        <p>Si los últimos 2016 bloques tardaron <var>T</var><sub>real</sub>:</p>
+        <span class="eq">
+          <var>D</var><sub>nueva</sub> = <var>D</var> · (2016 × 10 min) / <var>T</var><sub>real</sub>
+          <small>con el factor acotado a [¼, 4]</small>
+        </span>
+        <p>Tiempo entre bloques: P(<var>T</var> &gt; <var>t</var>) = <var>e</var><sup>−<var>t</var>/10</sup>.</p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">¿Cuánto fluctúa un periodo?</span>
+          La suma de 2016 exponenciales tiene media 14 días y desviación relativa
+          1/√2016 ≈ 2.2 % (unas 7.5 horas). Por eso la dificultad se mueve ±2 % entre periodos
+          aunque el hardware no cambie. (Detalle: el software mide 2015 intervalos, no 2016;
+          el efecto es despreciable.)
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-clock"/></svg> Laboratorio 3 — Simula 26 periodos</h2>
+        <span class="lab__tag">con y sin ajuste · mismos números aleatorios</span>
+      </div>
+      <p class="lab__intro">
+        Cada periodo genera 2016 tiempos exponenciales y aplica la regla. La línea continua es
+        la red real; la discontinua, una red hipotética sin ajuste.
+      </p>
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="difScenario">Escenario de poder de cómputo</label>
+          <select id="difScenario">
+            <option value="crecimiento">Crecimiento sostenido: +6 % por periodo</option>
+            <option value="caida">Caída súbita del 50 % en el periodo 9 (como junio de 2021)</option>
+            <option value="duplicacion">Duplicación súbita en el periodo 9</option>
+            <option value="constante">Poder de cómputo constante</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="difRun" type="button">Simular otra vez <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+      <div class="szwrap" id="difChart"></div>
+      <div class="legend">
+        <span><i style="background:var(--mint)"></i> con ajuste</span>
+        <span><i style="background:var(--coral)"></i> sin ajuste (discontinua)</span>
+        <span><i style="background:var(--violet)"></i> objetivo: 10 min</span>
+      </div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--mint" id="difLast">—</span><span class="metric__label">Periodo 26, con ajuste</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="difLastNo">—</span><span class="metric__label">Periodo 26, sin ajuste</span></div>
+        <div class="metric"><span class="metric__num" id="difWorst">—</span><span class="metric__label">Peor periodo con ajuste</span></div>
+      </div>
+      <p class="lab__note">
+        Tras una caída del 50 %, el primer periodo sale a ~20 min por bloque: 2016 × 20 min ≈
+        28 días. Después la regla devuelve el reloj a 10 minutos. Sin ajuste, un crecimiento
+        del 6 % por periodo dejaría los bloques en 10/1.06<sup>25</sup> ≈ 2.3 min.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · LA CARRERA DEL ATACANTE ============ -->
+<section class="section note" id="ataque">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">La carrera del atacante</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> calcular cuántas confirmaciones hay que
+        esperar, y ver por qué la fórmula de 2008 no es exacta.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El atacante paga a un comerciante y, a la vez, mina en secreto una cadena
+          alternativa donde ese pago nunca ocurrió. El comerciante espera <var>z</var>
+          <strong>confirmaciones</strong> (bloques a partir del que incluye el pago) antes de
+          entregar. Si la cadena secreta llega a acumular más trabajo que la pública, el
+          atacante la publica, los nodos la adoptan y el pago desaparece: doble gasto.
+        </p>
+        <p>
+          Con <var>q</var> la fracción de cómputo del atacante y <var>p</var> = 1 − <var>q</var>
+          la de la red honesta, la carrera tiene dos etapas:
+        </p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Mientras se confirman los z bloques</h4>
+            <p>La red honesta produce <var>z</var> bloques y el atacante, en secreto, <var>K</var>.
+            <var>K</var> sigue una <strong>binomial negativa</strong>.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Después: ruina del jugador</h4>
+            <p>La diferencia entre cadenas es una caminata aleatoria. Desde <var>k</var> bloques
+            atrás, el atacante alcanza a la red con probabilidad (<var>q</var>/<var>p</var>)<sup><var>k</var></sup>
+            si <var>q</var> &lt; <var>p</var>, y con certeza si <var>q</var> ≥ <var>p</var>.</p>
+          </div></div>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">Una corrección a una idea muy difundida</span>
+          Nakamoto aproximó <var>K</var> con una Poisson. No es exacto: ambas tienen la misma
+          media, pero la binomial negativa tiene más varianza (factor 1/<var>p</var>), así que
+          las rachas de suerte del atacante son más probables de lo que Poisson supone
+          (Rosenfeld 2012; Grunspan y Pérez-Marco 2017). Además, Nakamoto cuenta como éxito
+          <em>empatar</em>, cuando en la práctica el atacante debe <em>superar</em> a la red por
+          un bloque.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Tres cálculos, r = q/p</span>
+        <span class="eq">
+          P(<var>K</var>=<var>k</var>) = C(<var>z</var>+<var>k</var>−1, <var>k</var>) <var>p</var><sup><var>z</var></sup><var>q</var><sup><var>k</var></sup>
+          <small>E[K] = zq/p, Var[K] = zq/p² (binomial negativa)</small>
+        </span>
+        <span class="eq">
+          P<sub>Poisson</sub> = 1 − Σ<sub><var>k</var>≤<var>z</var></sub> Pois(<var>k</var>; <var>zq/p</var>)(1 − <var>r</var><sup><var>z</var>−<var>k</var></sup>)
+          <small>Nakamoto 2008 · empatar</small>
+        </span>
+        <span class="eq">
+          P<sub>empate</sub> = 1 − Σ<sub><var>k</var>&lt;<var>z</var></sub> NB(<var>k</var>)(1 − <var>r</var><sup><var>z</var>−<var>k</var></sup>)
+          <small>exacta · empatar</small>
+        </span>
+        <span class="eq">
+          P<sub>superar</sub> = 1 − Σ<sub><var>k</var>≤<var>z</var></sub> NB(<var>k</var>)(1 − <var>r</var><sup><var>z</var>−<var>k</var>+1</sup>)
+          <small>exacta · superar</small>
+        </span>
+        <p><strong>Ejemplo, <var>q</var> = 10 %, <var>z</var> = 6:</strong> Poisson da 0.0243 %,
+          la exacta con empate 0.0591 % (2.4× más) y la exacta con superar 0.0110 %.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Laboratorio 4 — Fórmulas contra Monte Carlo</h2>
+        <span class="lab__tag">Poisson · binomial negativa · simulación</span>
+      </div>
+      <p class="lab__intro">
+        Mueve el poder del atacante y las confirmaciones: las tres fórmulas se recalculan al
+        instante. Luego simula miles de carreras bloque a bloque y comprueba cuál de las
+        fórmulas cae dentro del intervalo de confianza del 95 %.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="rcQ">Poder del atacante (q)</label>
+          <input type="range" id="rcQ" min="1" max="49" step="1" value="30">
+          <span class="field__label" id="rcQOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field">
+          <label class="field__label" for="rcZ">Confirmaciones (z)</label>
+          <input type="range" id="rcZ" min="1" max="30" step="1" value="6">
+          <span class="field__label" id="rcZOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--violet" id="rcBeat">—</span><span class="metric__label">Exacta · superar</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="rcTie">—</span><span class="metric__label">Exacta · empatar</span></div>
+        <div class="metric"><span class="metric__num" id="rcPois">—</span><span class="metric__label">Poisson 2008 · empatar</span></div>
+        <div class="metric"><span class="metric__num" id="rcRatio">—</span><span class="metric__label">Exacta / Poisson (empate)</span></div>
+      </div>
+
+      <div class="szwrap" id="rcChart"></div>
+      <div class="legend">
+        <span><i style="background:var(--violet)"></i> exacta · superar</span>
+        <span><i style="background:var(--coral)"></i> exacta · empatar</span>
+        <span><i style="background:var(--amber)"></i> Poisson 2008 (discontinua)</span>
+        <span><i style="background:var(--ink)"></i> Monte Carlo ± IC 95 %</span>
+      </div>
+
+      <div class="controls" style="margin-top:1.3rem;margin-bottom:0">
+        <div class="field" style="flex-basis:170px">
+          <label class="field__label" for="rcN">Carreras</label>
+          <select id="rcN">
+            <option value="20000">20 000</option>
+            <option value="200000" selected>200 000</option>
+            <option value="1000000">1 000 000</option>
+          </select>
+        </div>
+        <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="rcRun" type="button">Simular carreras <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button></div>
+        <div class="field field--auto"><button class="clay-btn" id="rcStop" type="button" disabled>Detener</button></div>
+        <div class="field field--auto"><span class="field__label" id="rcProg"></span></div>
+      </div>
+      <div class="log" id="rcLog" aria-live="polite"><p class="dim">Sin ejecutar.</p></div>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3>¿Cuántas confirmaciones hacen falta?</h3>
+        <p>
+          Mínimo de <var>z</var> para que el atacante tenga menos de 0.1 % de éxito,
+          recalculado en tu navegador. La columna de Poisson reproduce la tabla del documento
+          de 2008.
+        </p>
+        <div class="table-wrap" style="margin-top:0">
+          <table class="nb" style="min-width:420px">
+            <thead><tr><th scope="col">Atacante q</th><th scope="col">Poisson 2008</th><th scope="col">Exacta · empatar</th><th scope="col">Exacta · superar</th></tr></thead>
+            <tbody id="confTable"></tbody>
+          </table>
+        </div>
+        <p class="lab__note">
+          Con <var>q</var> = 30 % Nakamoto pedía 24; el cálculo exacto pide 32 (empatar) o 29
+          (superar). Con <var>q</var> = 10 % y criterio estricto bastan 4, una menos que en la
+          tabla original: no conviene decir que Poisson «siempre» subestima; depende de qué se
+          le exija al atacante.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> El ataque del 51 %</span>
+        <p>
+          La seguridad no es absoluta: es una apuesta cuantificable que mejora
+          <strong>exponencialmente</strong> con cada bloque, siempre que el atacante tenga
+          menos de la mitad del cómputo. Con <var>q</var> = 10 % cada confirmación extra
+          multiplica el riesgo por ~0.34; con <var>q</var> = 30 %, sólo por ~0.82.
+        </p>
+        <p>
+          Con <var>q</var> ≥ 50 % la caminata aleatoria deja de jugar en contra del atacante y
+          su éxito a la larga es seguro: ese es el famoso <strong>ataque del 51 %</strong>.
+        </p>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">Lo que el modelo ignora</span>
+          La latencia de la red y estrategias como la minería egoísta (Eyal y Sirer, 2014),
+          que pueden dar ventaja a mineros con bastante menos del 50 %.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · EL COSTO ============ -->
+<section class="section note" id="costo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">El otro lado: el costo de esta solución</h2>
+    </header>
+
+    <div class="readout reveal" style="margin-top:0">
+      <div class="metric"><span class="metric__num metric__num--violet">≈ 138 TWh</span><span class="metric__label">consumo eléctrico anual (CCAF, abr. 2025), ~0.5 % de la electricidad mundial: entre Bélgica y Países Bajos</span></div>
+      <div class="metric"><span class="metric__num metric__num--mint">52.4 %</span><span class="metric__label">de fuentes sostenibles según la encuesta del CCAF: 42.6 % renovable + 9.8 % nuclear</span></div>
+      <div class="metric"><span class="metric__num">3.125 BTC</span><span class="metric__label">recompensa por bloque desde el halving de abril de 2024; el siguiente, hacia 2028</span></div>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Mezcla energética de la minería</h3>
+        <div class="mix" role="img" aria-label="Renovable 42.6 %, nuclear 9.8 %, resto 47.6 %">
+          <span style="--w:42.6;--accent:var(--mint)">Renovable 42.6 %</span>
+          <span style="--w:9.8;--accent:var(--sky)">9.8 %</span>
+          <span style="--w:47.6;--accent:var(--muted)">Resto 47.6 %</span>
+        </div>
+        <p class="lab__note">La encuesta cubrió empresas que suman cerca de la mitad del cómputo de la red: las cifras tienen incertidumbre importante.</p>
+
+        <h3>La recompensa se divide entre dos cada ~4 años</h3>
+        <div class="decay">
+          <div class="decay__row"><span class="decay__name">2009</span><div class="decay__track"><span class="decay__fill" data-w="100" data-label="50 BTC" style="--accent:var(--violet)"></span></div></div>
+          <div class="decay__row"><span class="decay__name">2012</span><div class="decay__track"><span class="decay__fill" data-w="50" data-label="25" style="--accent:var(--violet)"></span></div></div>
+          <div class="decay__row"><span class="decay__name">2016</span><div class="decay__track"><span class="decay__fill" data-w="25" data-label="12.5" style="--accent:var(--violet)"></span></div></div>
+          <div class="decay__row"><span class="decay__name">2020</span><div class="decay__track"><span class="decay__fill" data-w="12.5" data-label="6.25" style="--accent:var(--violet)"></span></div></div>
+          <div class="decay__row"><span class="decay__name">2024</span><div class="decay__track"><span class="decay__fill" data-w="6.25" data-label="" style="--accent:var(--coral)"></span></div></div>
+        </div>
+        <p class="lab__note">2024: 3.125 BTC. Cada 210 000 bloques la recompensa se reduce a la mitad; hacia 2028 será 1.5625.</p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> Factura eléctrica de un ataque</span>
+        <p>Para controlar una fracción <var>q</var> del total, el atacante debe aportar
+          <var>q</var>/(1−<var>q</var>) veces lo que ya tiene la red honesta
+          (<var>H</var><sub>red</sub> ≈ 1 ZH/s, <var>P</var><sub>red</sub> ≈ 15.7 GW):</p>
+        <span class="eq">
+          <var>P</var><sub>a</sub> = <var>q</var>/(1−<var>q</var>) · <var>P</var><sub>red</sub>,
+          &nbsp; <var>C</var> = <var>P</var><sub>a</sub> · <var>t</var> · π
+          <small>t en horas, π en USD por kWh; el hardware (lo más caro) no está incluido</small>
+        </span>
+        <p><strong>Ejemplo:</strong> <var>q</var> = 30 %, 6 h, 0.05 USD/kWh → 428.6 EH/s,
+          6.75 GW y ~2.03 millones de dólares sólo en electricidad, para un 8.9 % de éxito con
+          6 confirmaciones.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 5 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> Laboratorio 5 — ¿Cuánto cuesta atacar?</h2>
+        <span class="lab__tag">orden de magnitud</span>
+      </div>
+      <div class="controls">
+        <div class="field"><label class="field__label" for="cstQ">Fracción del atacante</label>
+          <input type="range" id="cstQ" min="5" max="45" step="1" value="30">
+          <span class="field__label" id="cstQOut" style="text-transform:none;letter-spacing:0"></span></div>
+        <div class="field"><label class="field__label" for="cstH">Duración</label>
+          <input type="range" id="cstH" min="1" max="72" step="1" value="6">
+          <span class="field__label" id="cstHOut" style="text-transform:none;letter-spacing:0"></span></div>
+        <div class="field"><label class="field__label" for="cstP">Precio de la electricidad</label>
+          <input type="range" id="cstP" min="2" max="20" step="1" value="5">
+          <span class="field__label" id="cstPOut" style="text-transform:none;letter-spacing:0"></span></div>
+      </div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="cstHs">—</span><span class="metric__label">Cómputo necesario</span></div>
+        <div class="metric"><span class="metric__num" id="cstGw">—</span><span class="metric__label">Potencia eléctrica</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="cstUsd">—</span><span class="metric__label">Electricidad del ataque</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="cstWin">—</span><span class="metric__label">Éxito con z = 6 (superar)</span></div>
+      </div>
+    </div>
+
+    <div class="quad" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="quad__cell reveal" style="--accent:var(--mint)">
+        <h4>Quienes defienden el diseño</h4>
+        <p>El gasto no es desperdicio sino el fundamento de la seguridad: un costo real y
+        auditable vuelve inviable reescribir la historia. Más de la mitad de la energía es
+        sostenible, y la minería puede absorber excedentes o apagarse cuando la red eléctrica
+        lo necesita, como en las tormentas invernales de Texas.</p>
+      </div>
+      <div class="quad__cell reveal" style="--accent:var(--coral)">
+        <h4>Quienes lo cuestionan</h4>
+        <p>El consumo total es comparable al de países europeos medianos, persisten emisiones
+        de gas y carbón y la minería se concentra en pocas empresas y regiones. Proponen la
+        prueba de participación (Ethereum, 2022), que logra consenso sin gasto energético
+        intensivo, a cambio de otros supuestos de seguridad.</p>
+      </div>
+    </div>
+    <p class="lab__note reveal">Ambas posturas coinciden en algo: la prueba de trabajo no elimina la posibilidad de un ataque, la vuelve costosa. Si ese costo vale la pena frente a otros diseños sigue siendo un debate abierto.</p>
+  </div>
+</section>
+
+
+<!-- ============ 10 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Síntesis: qué resolvió la prueba de trabajo</h2>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead><tr><th scope="col">Lo que aporta</th><th scope="col">Cómo</th><th scope="col">Módulo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Resistencia a Sybil</strong></td><td>Cada voto cuesta hardware y electricidad; las identidades falsas no suman cómputo.</td><td class="num"><a href="#voto">03</a></td></tr>
+          <tr><td><strong>Un orden común sin coordinador</strong></td><td>Todos adoptan la cadena con más trabajo acumulado; la segunda moneda gastada es inválida.</td><td class="num"><a href="#cadena">06</a></td></tr>
+          <tr><td><strong>Un reloj autorregulado</strong></td><td>El ajuste cada 2016 bloques mantiene ~10 minutos por bloque, entre o salga el hardware que sea.</td><td class="num"><a href="#dificultad">07</a></td></tr>
+          <tr><td><strong>Un fraude cada vez más caro</strong></td><td>Para un atacante minoritario, revertir un pago cae exponencialmente con las confirmaciones; verificar cuesta un solo hash.</td><td class="num"><a href="#ataque">08</a></td></tr>
+          <tr><td><span class="status status--warn">lo que no garantiza</span></td><td>Seguridad absoluta: es probabilística, supone mayoría honesta del cómputo y tiene un costo energético medible.</td><td class="num"><a href="#costo">09</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>El doble gasto es un problema de <strong>orden</strong>: con un banco es trivial; sin él hace falta un acuerdo entre desconocidos.</li>
+          <li style="--accent:var(--sky)">La prueba de trabajo convierte el voto en algo que cuesta recursos físicos; el hash garantiza que no hay atajos: ensayos independientes, tiempos exponenciales, sin memoria.</li>
+          <li style="--accent:var(--mint)">Encadenar obliga a rehacer todo el trabajo posterior para reescribir el pasado; la regla del mayor trabajo y el ajuste de dificultad dan una historia única y un reloj estable.</li>
+          <li style="--accent:var(--coral)">La seguridad mejora exponencialmente con las confirmaciones mientras el atacante tenga menos del 50 %. La fórmula correcta es la binomial negativa, no la Poisson de 2008.</li>
+          <li style="--accent:var(--amber)">Esa seguridad tiene un costo energético real y un debate abierto sobre si merece la pena.</li>
+        </ul>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Confirmación</dt><dd>Bloque añadido a partir del que contiene el pago (z cuenta ese bloque).</dd></div>
+          <div><dt>Dificultad</dt><dd>Cuánto menor es el objetivo actual que el del génesis; dificultad 1 ≈ 2³² hashes.</dd></div>
+          <div><dt>Objetivo (target)</dt><dd>Número de 256 bits; un hash válido debe ser ≤ objetivo.</dd></div>
+          <div><dt>Nonce · extranonce</dt><dd>Campo de 32 bits que se varía al minar; el extranonce, dentro de la recompensa, amplía la búsqueda.</dd></div>
+          <div><dt>Midstate</dt><dd>Estado de SHA-256 tras los primeros 64 bytes del encabezado.</dd></div>
+          <div><dt>Ataque Sybil</dt><dd>Fabricar identidades para ganar influencia.</dd></div>
+        </dl>
+      </aside>
+    </div>
+
+    <p class="lab__note reveal">
+      <strong>Referencias:</strong> Nakamoto (2008) · Chaum (1983) · Chaum, Fiat y Naor (1990) ·
+      Haber y Stornetta (1991) · Dwork y Naor (1993) · Back (1997) · Dai (1998) · Szabo (2005) ·
+      Finney (2004) · Rosenfeld (2012, arXiv:1402.2009) · Grunspan y Pérez-Marco (2017,
+      arXiv:1702.02867) · Eyal y Sirer (2014) · Cambridge Centre for Alternative Finance (2025).
+      Fuente temática: <a href="http://math.com.mx/pt.html" rel="noopener">math.com.mx/pt.html</a>.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>¿Quieres el desarrollo completo?</h2>
+        <p>El PDF incluye las derivaciones, todas las gráficas y los datos de las simulaciones.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="../latex/problemas.pdf" download type="application/pdf">
+          <svg viewBox="0 0 24 24"><use href="#i-download"/></svg> Descargar PDF
+        </a>
+        <a class="clay-btn clay-btn--lg" href="hash.html">Repasar funciones hash</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="timestamping.html">Time stamping</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="../latex/problemas.pdf" download>Apunte en PDF</a></li>
+          <li><a href="http://math.com.mx/pt.html" rel="noopener">Fuente temática</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/prueba-de-trabajo.js" defer></script>
+</body>
+</html>

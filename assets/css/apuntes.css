@@ -576,3 +576,58 @@ html[data-theme="dark"] .status--bad{color:#ffb0b8}
   .quad{grid-template-columns:1fr}
   .params{grid-template-columns:1fr}
 }
+
+/* =========================================================
+   N. Apunte 07 — Prueba de trabajo y doble gasto
+   ========================================================= */
+
+/* Encabezado de 80 bytes: cada campo ocupa su ancho real (--w en bytes) */
+.bytebar{
+  display:flex;gap:3px;margin:1.3rem 0 0;padding:8px;
+  border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.bytebar span{
+  flex:var(--w) 1 0;min-width:0;padding:.7em .3em;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  background:color-mix(in srgb,var(--accent) 26%,transparent);
+  border-top:3px solid var(--accent);
+  font-family:"Space Grotesk",sans-serif;font-size:.74rem;color:var(--ink);
+}
+.bytebar b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.bytebar small{font-size:.68rem;color:var(--muted)}
+
+/* Barra apilada (mezcla energética) */
+.mix{
+  display:flex;height:46px;padding:6px;gap:4px;
+  border-radius:var(--r-pill);box-shadow:var(--clay-inset);
+}
+.mix span{
+  flex:var(--w) 1 0;min-width:0;border-radius:var(--r-pill);
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,transparent));
+  font-size:.76rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;
+}
+
+/* Gráficas SVG: complementan las clases .sz* del apunte 02 */
+.szbar{fill:color-mix(in srgb,var(--violet) 45%,transparent);stroke:var(--violet);stroke-width:1}
+.szline--violet{stroke:var(--violet)}
+.szline--ink{stroke:var(--ink);stroke-width:1.6}
+.szdot--violet{fill:var(--violet)}
+.szdot--coral,.szdot--violet{stroke:var(--surface);stroke-width:2}
+
+/* Pseudocódigo */
+pre.code{
+  margin:1.1em 0 0;padding:1em 1.15em;overflow-x:auto;
+  border-radius:var(--r-md);box-shadow:var(--clay-inset);
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.8rem;line-height:1.75;
+  color:var(--ink-soft);
+}
+/* Sin esto, el <pre> impone su ancho mínimo a la columna de la rejilla en móvil */
+.note__grid > *{min-width:0}
+.field input.mono{font-family:"Space Grotesk",ui-monospace,monospace;font-size:.82rem}
+
+@media (max-width:640px){
+  .bytebar{flex-wrap:wrap}
+  .bytebar span{flex:1 1 30%}
+  .mix span:nth-child(2){font-size:0}
+}
