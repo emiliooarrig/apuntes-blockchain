@@ -1,0 +1,1466 @@
+%% ==========================================================================
+%%  LA PRUEBA DE TRABAJO Y EL PROBLEMA DEL DOBLE GASTO
+%%  Origen, matemáticas y simulaciones de la prueba de trabajo de Bitcoin
+%%
+%%  Fuente temática : http://math.com.mx/pt.html
+%%  Compilación     : xelatex main.tex   (dos pasadas)
+%%  Datos           : data/*.csv, data/genesis_header.json, data/summary.json
+%%                    (se regeneran con:  python3 scripts/gen_data.py)
+%%
+%%  CONTRATO PARA LA CONVERSIÓN A PÁGINA WEB  (ver Apéndice A)
+%%  ------------------------------------------------------------------------
+%%  * El macro \webhint{...} NO imprime nada en el PDF.  Contiene metadatos
+%%    "clave=valor" separados por «;» que indican a quien convierta el
+%%    documento a HTML qué es cada bloque y cómo dibujarlo:
+%%        \webhint{section;  id=...; slug=...; kicker=...}
+%%        \webhint{figure;   id=...; chart=...; data=...; x=...; y=...; alt=...}
+%%        \webhint{widget;   id=...; inputs=...; outputs=...}
+%%        \webhint{table;    id=...; data=...}
+%%  * Todas las gráficas con datos leen un CSV de data/.  La página web debe
+%%    leer esos mismos CSV (Chart.js, D3, Plotly...) en lugar de copiar cifras.
+%%  * Los diagramas (TikZ) se describen con alt=... y se redibujan como SVG.
+%% ==========================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[a4paper,margin=2.5cm,headheight=14pt]{geometry}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}[Scale=MatchLowercase,BoldFont={Latin Modern Mono}]
+
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs,array,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{placeins}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{siunitx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage[most]{tcolorbox}
+
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,fit,backgrounds,decorations.pathreplacing,patterns}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+
+\usepackage{hyperref}
+\emergencystretch=2em
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\linespread{1.06}
+
+%% ---- Paleta (apta para daltonismo; el significado no depende solo del color) ----
+\definecolor{pbblue}{HTML}{1F4E79}
+\definecolor{pborange}{HTML}{D95F02}
+\definecolor{pbgreen}{HTML}{1B7F5C}
+\definecolor{pbpurple}{HTML}{6A5ACD}
+\definecolor{pbred}{HTML}{B22222}
+\definecolor{pbgray}{HTML}{5F6368}
+
+\hypersetup{colorlinks=true,linkcolor=pbblue,urlcolor=pbblue,citecolor=pbblue,
+  pdftitle={La prueba de trabajo y el problema del doble gasto},
+  pdfsubject={Prueba de trabajo, Bitcoin, doble gasto},
+  pdfkeywords={prueba de trabajo, Bitcoin, doble gasto, SHA-256, minería, consenso},
+  pdflang={es},plainpages=false,pdfpagelabels=true}
+
+\gappto\captionsspanish{\renewcommand{\tablename}{Tabla}\renewcommand{\listtablename}{Índice de tablas}}
+
+%% ---- Números y unidades ----
+\sisetup{group-separator={\,},group-minimum-digits=4,output-decimal-marker={.},
+  per-mode=symbol,range-phrase={--}}
+\DeclareSIUnit\hash{H}
+\DeclareSIUnit\usd{USD}
+\DeclareSIUnit\btc{BTC}
+
+%% ---- Macros de matemáticas ----
+\newcommand{\Prob}[1]{\operatorname{P}\!\left(#1\right)}
+\newcommand{\Esp}[1]{\operatorname{E}\!\left[#1\right]}
+\newcommand{\Var}[1]{\operatorname{Var}\!\left[#1\right]}
+\newcommand{\SHA}{\operatorname{SHA\text{-}256}}
+\newcommand{\SHAd}{\operatorname{SHA\text{-}256d}}
+\newcommand{\Pexp}{\operatorname{\mathrm{Exp}}}
+\newcommand{\NB}{\operatorname{NB}}
+\newcommand{\Pois}{\operatorname{Pois}}
+
+%% ---- Metadatos para la conversión web (no imprimen nada) ----
+\newcommand{\webhint}[1]{}
+\newcommand{\fuentedatos}[1]{\par\smallskip{\footnotesize\textit{Datos:}~\texttt{\detokenize{#1}}}}
+
+%% ---- Cajas semánticas (cada una se convierte en <aside class="callout callout--TIPO">) ----
+\tcbset{pbbox/.style={enhanced,breakable,arc=0pt,boxrule=0.4pt,leftrule=2.6pt,
+  left=7pt,right=7pt,top=5pt,bottom=5pt,before skip=9pt,after skip=9pt,
+  fonttitle=\sffamily\bfseries\small,
+  attach title to upper={\ \textemdash\ },
+  coltitle=black, colbacktitle=white}}
+%% Cada caja tiene su propio contador (con \refstepcounter) para que \label y \ref den el número correcto.
+\newcommand{\defcaja}[4]{%
+  \newcounter{pbc#1}[section]%
+  \expandafter\renewcommand\csname thepbc#1\endcsname{\thesection.\arabic{pbc#1}}%
+  \newenvironment{#1}[1]{\refstepcounter{pbc#1}%
+    \tcolorbox[pbbox,colback=#4,colframe=#3,title={#2~\csname thepbc#1\endcsname\ \textemdash\ ##1}]}{\endtcolorbox}}
+\defcaja{definicion}{Definición}{pbblue}{pbblue!5}
+\defcaja{resultado}{Resultado}{pbpurple}{pbpurple!6}
+\defcaja{ejemplo}{Ejemplo}{pbgreen}{pbgreen!6}
+\defcaja{verificacion}{Verificación numérica}{pbgreen!70!black}{pbgreen!5}
+\defcaja{nota}{Nota}{pbgray}{pbgray!7}
+\defcaja{cuidado}{Ojo}{pborange}{pborange!7}
+
+%% ---- Estilo de figuras y gráficas ----
+\captionsetup{font=small,labelfont={bf,sf},labelsep=period,justification=raggedright,singlelinecheck=false}
+\captionsetup[subfigure]{font=footnotesize,labelfont=bf}
+
+\pgfplotsset{
+  table/col sep=comma,
+  pb/.style={scale only axis,width=12.6cm,height=6cm,grid=major,grid style={gray!25},
+    tick label style={font=\footnotesize},label style={font=\small},
+    title style={font=\small\bfseries},
+    legend style={font=\scriptsize,draw=gray!50,fill=white,fill opacity=0.9,text opacity=1,row sep=1pt},
+    every axis plot/.append style={line width=0.9pt}},
+  pbhalf/.style={pb,width=5.5cm,height=5cm},
+  c1/.style={color=pbblue,mark options={solid,fill=pbblue}},
+  c2/.style={color=pborange,mark options={solid,fill=pborange}},
+  c3/.style={color=pbgreen,mark options={solid,fill=pbgreen}},
+  c4/.style={color=pbpurple,mark options={solid,fill=pbpurple}},
+  c5/.style={color=pbred,mark options={solid,fill=pbred}},
+}
+
+\tikzset{
+  caja/.style={draw=pbgray,rounded corners=2pt,fill=white,minimum height=6.5mm,font=\footnotesize,align=center,inner sep=3pt},
+  ok/.style={caja,draw=pbgreen,fill=pbgreen!12,text=black},
+  mal/.style={caja,draw=pbred,fill=pbred!10,text=black},
+  aviso/.style={caja,draw=pborange,fill=pborange!14,text=black},
+  flecha/.style={-{Stealth[length=2mm]},thick,color=pbgray},
+}
+
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,rulecolor=\color{pbgray!60},
+  backgroundcolor=\color{gray!4},columns=fullflexible,keepspaces=true,
+  keywordstyle=\color{pbblue}\bfseries,commentstyle=\color{pbgray}\itshape,
+  showstringspaces=false,xleftmargin=2pt,xrightmargin=2pt,aboveskip=6pt,belowskip=6pt}
+\lstdefinelanguage{pseudo}{morekeywords={function,return,for,while,if,else,end,let,in,until,repeat},
+  sensitive=true,comment=[l]{//}}
+
+%% ---- Encabezados y pies ----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{pbgray}La prueba de trabajo y el doble gasto}
+\fancyhead[R]{\small\sffamily\color{pbgray}\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\sffamily\color{pbgray}\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\sectionmark}[1]{\markboth{\thesection\ #1}{}}
+
+\usepackage{titlesec}
+\titleformat{\section}{\Large\sffamily\bfseries\color{pbblue}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\sffamily\bfseries\color{pbblue!85!black}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\sffamily\bfseries}{\thesubsubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex minus .2ex}{1.1ex plus .2ex}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+%% ==========================================================================
+%%  PORTADA
+%% ==========================================================================
+\webhint{section; id=portada; slug=inicio; kicker=origen · problema · solución · simulación; role=hero}
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\sffamily\small\color{pbgray}DOCUMENTO TÉCNICO \textperiodcentered{} CRIPTOGRAFÍA Y SISTEMAS DISTRIBUIDOS\par}
+\vspace{1.4cm}
+{\sffamily\bfseries\fontsize{30}{34}\selectfont\color{pbblue} La prueba de trabajo\\[0.2em] y el problema del\\[0.2em] doble gasto\par}
+\vspace{0.9cm}
+{\sffamily\large\color{black!75} Origen, matemáticas y simulaciones\\ de la prueba de trabajo de Bitcoin\par}
+\vspace{1.2cm}
+{\color{pbblue}\rule{\linewidth}{1.2pt}}
+\vspace{0.8cm}
+
+{\sffamily\small\color{pbgray}Hash del bloque génesis (bloque 0), calculado con doble SHA-256 sobre 80 bytes:\par}
+\vspace{0.4em}
+{\ttfamily\large
+{\color{pborange}0000000000}19d6689c085ae165831e934\\
+ff763ae46a2a6c172b3f1b60a8ce26f\par}
+\vspace{0.4em}
+{\sffamily\small\color{pbgray}Diez ceros hexadecimales: 43 bits iniciales en cero. Ese es el «trabajo» que se demuestra.\par}
+
+\vfill
+{\sffamily\small\color{black!70}
+\textbf{Documentación base:} \url{http://math.com.mx/pt.html}\\
+\textbf{Cifras de red:} actualizadas a septiembre de 2026\\
+\textbf{Fecha de este documento:} 13 de octubre de 2026\\
+\textbf{Gráficas y datos:} generados a partir de archivos CSV reproducibles (Apéndice~\ref{app:repro})\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\setcounter{page}{2}
+
+\begin{abstract}
+\noindent Antes de 2008, el dinero digital tenía un defecto de fábrica: un archivo se puede copiar sin costo, de modo que una moneda que es solo un archivo puede gastarse dos veces. La solución clásica era un banco que llevara el libro de cuentas; el reto real era evitar el doble gasto \emph{sin} esa autoridad central. Este documento desarrolla, de forma autocontenida, el tema de la página «La prueba de trabajo y el problema del doble gasto»: las piezas criptográficas que llegaron antes de 2008, la idea de usar la prueba de trabajo como mecanismo de consenso, el funcionamiento de las funciones hash y del encabezado de bloque de 80 bytes (con verificación independiente del bloque génesis), la minería como proceso de ensayos independientes, el ajuste de dificultad y la carrera de un atacante contra la red honesta. Se compara la aproximación de Poisson de 2008 con la fórmula exacta (binomial negativa) y se contrasta con simulaciones de Monte Carlo. Se cierra con el costo energético de la solución y con las posturas que genera. Las simulaciones interactivas de la página original se sustituyen por cálculos reproducibles y por gráficas leídas de archivos de datos, que también sirven como especificación para reconstruir las visualizaciones en una página web.
+
+\medskip
+\noindent\textbf{Palabras clave:} prueba de trabajo, doble gasto, Bitcoin, SHA-256, minería, ajuste de dificultad, binomial negativa, consenso.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+%% ==========================================================================
+%%  01 — EL PROBLEMA
+%% ==========================================================================
+\section{El problema: el doble gasto}\label{sec:problema}
+\webhint{section; id=sec-problema; slug=el-problema; kicker=01 — el problema; role=narrative}
+
+Cuando pagas con un billete físico, el problema se resuelve solo: el papel cambia de mano y ya no lo tienes. No puedes dárselo a dos personas a la vez. El dinero digital no tiene esa propiedad. Un archivo que representa «10 dólares» se puede duplicar exactamente igual que una fotografía. Incluso si la moneda lleva una firma digital, la firma prueba \emph{quién} la emitió, no que no se haya gastado antes: dos copias de un archivo firmado son igual de válidas.
+
+\begin{definicion}{Doble gasto}\label{def:doble-gasto}
+Se llama \emph{doble gasto} a la posibilidad de que un mismo activo digital se utilice en dos o más pagos distintos, porque cada pago, visto por separado, es indistinguible de un pago legítimo.
+\end{definicion}
+
+La solución tradicional siempre fue la misma: poner a alguien de confianza en el medio. Un banco, una red de tarjetas, un procesador de pagos. Esa entidad lleva un libro de cuentas central y, cuando gastas una moneda, la marca como usada. El doble gasto se evita porque hay una sola versión de la verdad, custodiada por un tercero.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-modelos-confianza; chart=diagram; interactive=selector de tres modelos (nadie, un banco, red con prueba de trabajo) que envía la misma moneda a dos comerciantes; alt=Tres paneles. (a) Sin registro: la moneda 7F3A llega a las tiendas A y B y ambas la aceptan, doble gasto exitoso. (b) Con un banco: las dos tiendas consultan el libro central; la primera acepta y la segunda rechaza. (c) Con prueba de trabajo: las dos tiendas consultan a la red de nodos, que reconoce la cadena con más trabajo; la primera acepta y la segunda rechaza.}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+% (a) nadie
+\node[font=\small\bfseries\sffamily] at (2.3,6.15) {(a) Nadie lleva el registro};
+\node[caja] (c1) at (2.3,5.1) {moneda \texttt{\#7F3A}};
+\node[caja] (a1) at (0.95,3.4) {Tienda A};
+\node[caja] (b1) at (3.65,3.4) {Tienda B};
+\draw[flecha] (c1) -- (a1); \draw[flecha] (c1) -- (b1);
+\node[ok,minimum width=2.2cm] (a1r) at (0.95,1.9) {acepta};
+\node[ok,minimum width=2.2cm] (b1r) at (3.65,1.9) {acepta};
+\draw[flecha] (a1) -- (a1r); \draw[flecha] (b1) -- (b1r);
+\node[mal,text width=4.2cm] at (2.3,0.45) {doble gasto exitoso:\\ dos copias válidas};
+% (b) banco
+\node[font=\small\bfseries\sffamily] at (7.75,6.15) {(b) Un banco lleva el libro};
+\node[caja] (c2) at (7.75,5.1) {moneda \texttt{\#7F3A}};
+\node[caja] (a2) at (6.4,3.4) {Tienda A};
+\node[caja] (b2) at (9.1,3.4) {Tienda B};
+\draw[flecha] (c2) -- (a2); \draw[flecha] (c2) -- (b2);
+\node[aviso,minimum width=2.6cm] (bank) at (7.75,1.9) {Banco\\[-1pt]{\scriptsize libro central}};
+\draw[flecha] (a2) -- (bank); \draw[flecha] (b2) -- (bank);
+\node[ok,minimum width=2.2cm] (a2r) at (6.4,0.45) {acepta (primera)};
+\node[mal,minimum width=2.2cm] (b2r) at (9.1,0.45) {rechaza (ya usada)};
+\draw[flecha] (bank) -- (a2r); \draw[flecha] (bank) -- (b2r);
+% (c) prueba de trabajo
+\node[font=\small\bfseries\sffamily] at (13.2,6.15) {(c) Red con prueba de trabajo};
+\node[caja] (c3) at (13.2,5.1) {moneda \texttt{\#7F3A}};
+\node[caja] (a3) at (11.85,3.4) {Tienda A};
+\node[caja] (b3) at (14.55,3.4) {Tienda B};
+\draw[flecha] (c3) -- (a3); \draw[flecha] (c3) -- (b3);
+\node[aviso,minimum width=3.0cm] (net) at (13.2,1.9) {Red de nodos\\[-1pt]{\scriptsize cadena con más trabajo}};
+\draw[flecha] (a3) -- (net); \draw[flecha] (b3) -- (net);
+\node[ok,minimum width=2.2cm] (a3r) at (11.85,0.45) {acepta (primera)};
+\node[mal,minimum width=2.2cm] (b3r) at (14.55,0.45) {rechaza (ya usada)};
+\draw[flecha] (net) -- (a3r); \draw[flecha] (net) -- (b3r);
+\end{tikzpicture}}
+\caption{Quién lleva el registro. El mismo archivo-moneda se envía a dos comerciantes a la vez. Con un registro central (b) el orden lo decide el banco; con prueba de trabajo (c) lo decide la red, y cualquiera puede verificar el resultado.}\label{fig:modelos-confianza}
+\end{figure}
+
+El reto, entonces, no era solo «evitar el doble gasto» ---eso ya se sabía hacer con un banco de por medio---. El reto real era evitarlo \emph{sin} esa autoridad central, entre desconocidos que no tienen por qué confiar unos en otros. En palabras técnicas: lograr que una red abierta se ponga de acuerdo sobre el \emph{orden} de las transacciones, porque, si hay orden, la primera gana y la segunda se rechaza.
+
+\begin{nota}{El orden resuelve el problema}
+Supón que existe un orden total y acordado de todas las transacciones, y la regla «una moneda solo puede gastarse una vez; si dos transacciones la gastan, vale la primera en ese orden». Entonces el doble gasto es imposible por construcción: la segunda transacción es simplemente inválida. Todo el diseño de Bitcoin consiste en conseguir ese orden común sin coordinador, sin identidades confiables y frente a participantes que pueden mentir. Las secciones siguientes muestran cómo la prueba de trabajo lo hace posible y con qué garantías.
+\end{nota}
+
+%% ==========================================================================
+%%  02 — ANTECEDENTES
+%% ==========================================================================
+\section{Antecedentes: las piezas que llegaron antes}\label{sec:antecedentes}
+\webhint{section; id=sec-antecedentes; slug=antecedentes; kicker=02 — antecedentes; role=narrative}
+
+El problema no se resolvió de un día para otro. Durante un cuarto de siglo, distintos criptógrafos aportaron piezas sueltas: anonimato, sellos de tiempo encadenados, rompecabezas costosos, dinero creado por cómputo. Ninguna, por sí sola, armaba el cuadro completo.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-linea-tiempo; chart=timeline; data=data/timeline.csv; x=anio; label=autor,aportacion; color_by=categoria; note=escala no proporcional al tiempo; alt=Línea de tiempo con once hitos entre 1982 y 2009: firmas ciegas de Chaum, efectivo fuera de línea, DigiCash, sellos de tiempo de Haber y Stornetta, pagar con procesamiento de Dwork y Naor, Hashcash de Back, b-money de Dai, Bit Gold de Szabo, RPOW de Finney y el documento de Bitcoin y bloque génesis de Nakamoto.}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+\draw[-{Stealth[length=2.4mm]},very thick,color=pbgray!70] (-0.7,0) -- (15.0,0);
+\foreach \i/\anio/\autor/\txt/\col in {
+  0/1982/{Chaum}/{firmas ciegas}/pbblue,
+  1/1988/{Chaum, Fiat, Naor}/{efectivo fuera de línea}/pbblue,
+  2/1989/{Chaum}/{DigiCash}/pbblue,
+  3/1991/{Haber, Stornetta}/{sellos de tiempo encadenados}/pbpurple,
+  4/1992/{Dwork, Naor}/{pagar con procesamiento}/pborange,
+  5/1997/{Back}/{Hashcash}/pborange,
+  6/1998/{Dai}/{b-money}/pbgreen,
+  7/1998/{Szabo}/{Bit Gold}/pbgreen,
+  8/2004/{Finney}/{RPOW}/pborange,
+  9/2008/{Nakamoto}/{documento de Bitcoin}/pbred,
+  10/2009/{Nakamoto}/{bloque génesis}/pbred}
+{
+  \pgfmathsetmacro{\xx}{\i*1.36}
+  \ifodd\i
+    \draw[\col,thick] (\xx,0) -- (\xx,-0.45);
+    \fill[\col] (\xx,0) circle (3pt);
+    \node[anchor=north,align=center,font=\scriptsize,text width=2.55cm] at (\xx,-0.45) {\textbf{\anio}\\ \autor\\ {\itshape\txt}};
+  \else
+    \draw[\col,thick] (\xx,0) -- (\xx,0.45);
+    \fill[\col] (\xx,0) circle (3pt);
+    \node[anchor=south,align=center,font=\scriptsize,text width=2.55cm] at (\xx,0.45) {\textbf{\anio}\\ \autor\\ {\itshape\txt}};
+  \fi
+}
+\foreach \col/\nom/\xx in {pbblue/privacidad/0.4, pbpurple/cadena de hashes/3.3, pborange/prueba de trabajo/6.4, pbgreen/dinero por cómputo/9.7, pbred/consenso/12.9}
+{ \fill[\col] (\xx,-2.55) circle (3pt); \node[anchor=west,font=\scriptsize] at (\xx+0.15,-2.55) {\nom}; }
+\end{tikzpicture}}
+\caption{Once hitos entre 1982 y 2009 (escala no proporcional al tiempo). El color indica el aporte principal de cada propuesta.}\label{fig:linea-tiempo}
+\fuentedatos{data/timeline.csv}
+\end{figure}
+
+\begin{table}[tbp]
+\centering
+\webhint{table; id=tab-antecedentes; kind=comparison; columns=Año,Propuesta,Aporte,Lo que le faltaba}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}p{2.9cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Año} & \textbf{Propuesta} & \textbf{Aporte} & \textbf{Lo que le faltaba}\\
+\midrule
+1982--83 & Chaum: firmas ciegas \cite{chaum1983} & Un banco que firma monedas sin ver su número de serie: dinero digital con privacidad. & El banco, en línea, revisaba cada moneda contra su lista de monedas usadas: el problema se delegaba, no se eliminaba.\\
+1988--90 & Chaum, Fiat, Naor: efectivo fuera de línea; DigiCash \cite{chaum1990} & La moneda funciona sin consultar al banco; si alguien la gasta dos veces, las dos transacciones juntas revelan su identidad. & El doble gasto no se impide: se detecta después y se castiga. DigiCash (fundada en 1989--90) quebró en 1998.\\
+1991 & Haber y Stornetta: sellos de tiempo encadenados \cite{haber1991} & Cada sello incluye el hash del anterior: alterar uno obliga a alterar todos los posteriores. Es la estructura de la cadena de bloques. & Aún dependían de un servicio de sellado o de testigos. El documento de Bitcoin cita tres trabajos suyos.\\
+1992 & Dwork y Naor: «pagar con procesamiento» \cite{dwork1993} & Primera propuesta formal de exigir un cálculo costoso, pero fácil de verificar, para enviar un correo y combatir el spam. Es la idea de la prueba de trabajo. & No era dinero; sirve solo como filtro contra el abuso.\\
+1997 & Back: Hashcash \cite{back1997} & Hallar un texto cuyo hash (SHA-1 en la versión original) empiece con cierta cantidad de bits en cero. Es el rompecabezas que Bitcoin adoptó casi tal cual, ahora con doble SHA-256. & No prevenía el doble gasto. El término «prueba de trabajo» lo acuñaron Jakobsson y Juels en 1999 \cite{jakobsson1999}.\\
+1998 & Dai: b-money \cite{dai1998} & Participantes que crean dinero resolviendo problemas computacionales y mantienen colectivamente un registro de cuentas. & Un mecanismo concreto para que una red de desconocidos acuerde ese registro. Nakamoto lo cita como primera referencia.\\
+1998/2005 & Szabo: Bit Gold \cite{szabo2005} & Encadenar soluciones de prueba de trabajo, cada una dependiente de la anterior, para crear escasez digital verificable. & Un consenso para decidir qué historia es la válida cuando hay versiones en competencia.\\
+2004 & Finney: RPOW \cite{finney2004} & Pruebas de trabajo reutilizables: fichas de Hashcash que un servidor puede transferir entre usuarios. & El servidor evita el doble gasto, así que vuelve a ser un punto central (aunque auditable).\\
+2008--09 & Nakamoto: Bitcoin \cite{nakamoto2008} & Usar la prueba de trabajo no como peaje, sino como mecanismo de \emph{consenso}. & ---\\
+\bottomrule
+\end{tabularx}
+\caption{Antecedentes de Bitcoin: qué aportó cada propuesta y qué le faltaba para resolver el doble gasto sin autoridad central.}\label{tab:antecedentes}
+\end{table}
+
+Las fechas de Bitcoin son parte de la historia: el documento apareció el 31 de octubre de 2008; el bloque génesis tiene fecha del 3 de enero de 2009; el software se liberó el 9 de enero; y Hal Finney recibió la primera transacción de la historia el 12 de enero de 2009.
+
+\begin{nota}{Qué hizo falta combinar}
+Visto en retrospectiva, cada pieza resuelve una parte: las \emph{firmas} identifican al emisor, las \emph{cadenas de hashes} vuelven costoso alterar el pasado, la \emph{prueba de trabajo} hace costoso producir historia, y un \emph{registro replicado} elimina el punto central. Lo que faltaba era una regla para que, ante historias en competencia, todos los participantes honestos elijan la misma sin consultar a nadie: la regla de la cadena con más trabajo acumulado (sección~\ref{sec:cadena}).
+\end{nota}
+
+%% ==========================================================================
+%%  03 — LA IDEA DE 2008
+%% ==========================================================================
+\section{La idea de 2008: una CPU, un voto}\label{sec:cpu-un-voto}
+\webhint{section; id=sec-idea-2008; slug=una-cpu-un-voto; kicker=03 — la idea de 2008; role=narrative}
+
+El aporte de Nakamoto no fue inventar la criptografía de hash ni la prueba de trabajo ---ambas ya existían--- sino darles un uso nuevo. Si cada participante tuviera un voto, bastaría crear miles de identidades falsas para controlar la votación (un \emph{ataque Sybil}). En cambio, el documento propone que se vote con capacidad de cómputo: «una CPU, un voto».
+
+\begin{definicion}{Ataque Sybil}\label{def:sybil}
+Un ataque Sybil consiste en presentarse con muchas identidades falsas para obtener más influencia de la que corresponde a un solo participante. Un sistema es \emph{resistente a Sybil} si fabricar identidades adicionales no aumenta el poder de quien las fabrica.
+\end{definicion}
+
+Falsificar identidades es gratis. Falsificar poder de cómputo no lo es: requiere comprar hardware real y pagar electricidad real. Esa es la base de todo lo que sigue.
+
+\begin{resultado}{El voto es proporcional al cómputo}\label{res:proporcional}
+Si cada intento de hash es un ensayo independiente con la misma probabilidad de éxito, un minero que aporta una fracción $f$ del total de hashes por segundo encuentra el siguiente bloque con probabilidad exactamente $f$, sin importar cuántas identidades use para hacerlo. (Demostración en el Apéndice~\ref{app:deriv}, resultado~\ref{der:proporcional}.)
+\end{resultado}
+
+\begin{cuidado}{«Una CPU, un voto» es el diseño de 2008}
+La frase describe el diseño original. Desde 2013 la minería se hace con circuitos especializados (ASIC), mucho más eficientes que una CPU, así que hoy es más exacto decir «un hash, un voto». El principio sigue intacto: el voto cuesta recursos físicos.
+\end{cuidado}
+
+%% ==========================================================================
+%%  04 — LA HERRAMIENTA: HASH
+%% ==========================================================================
+\section{La herramienta: qué es un hash}\label{sec:hash}
+\webhint{section; id=sec-hash; slug=que-es-un-hash; kicker=04 — la herramienta; role=narrative+widget}
+
+Una función hash criptográfica como SHA-256 convierte cualquier entrada en 256 bits, que se escriben como 64 caracteres hexadecimales. Importan tres propiedades:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Determinista:} la misma entrada da siempre la misma salida.
+  \item \textbf{Efecto avalancha:} cambiar un solo carácter cambia, en promedio, la mitad de los 256 bits de salida, sin ningún patrón aprovechable.
+  \item \textbf{Resistencia a preimagen:} dado un hash, encontrar una entrada que lo produzca es computacionalmente inviable; no se conoce un método mejor que probar candidatos, y hay $2^{256}\approx 1.16\times 10^{77}$ salidas posibles. No es «imposible» en sentido matemático, sino que está fuera del alcance de cualquier cómputo físico concebible.
+\end{itemize}
+
+\begin{definicion}{SHA-256 y SHA-256d}\label{def:sha}
+$\SHA$ es la función hash que a cualquier cadena de bytes $m$ le asigna un valor de 256 bits. Bitcoin utiliza su versión \emph{doble},
+\[
+  \SHAd(m)\;=\;\SHA\bigl(\SHA(m)\bigr),
+\]
+y no la aplica a un texto, sino a un encabezado binario de exactamente 80 bytes (sección~\ref{sec:bloque}).
+\end{definicion}
+
+\subsection{El efecto avalancha, en números}
+
+Para medirlo se comparan dos entradas casi idénticas. Por ejemplo, las cadenas «\texttt{prueba de trabajo}» y «\texttt{prueba de trabaio}» (un solo carácter distinto) producen
+
+\begin{center}
+\small\ttfamily
+\begin{tabular}{@{}rl@{}}
+$\SHA$(A) & 47743df0939a0429477463cc0b5cd06b\,33e343f4761b949aeb3fa6bc6f18483e\\
+$\SHA$(B) & cc7cef41670a0df1c90d0fe8865e503c\,07465f2ab3440d67f40ef2de683309fa\\
+\end{tabular}
+\end{center}
+
+\noindent que difieren en 115 de los 256 bits. Con doble SHA-256 los resultados son tan distintos como antes (135 bits de diferencia). Para ver que no es una coincidencia basta preguntarse cuántos bits difieren \emph{en promedio}: si cada bit de salida cambiara de forma independiente con probabilidad $\tfrac12$, el número de bits distintos seguiría una distribución binomial con $n=256$ y $p=\tfrac12$:
+\[
+  X\sim\mathrm{Bin}\!\left(256,\tfrac12\right),\qquad
+  \Esp{X}=128,\qquad \sqrt{\Var{X}}=\sqrt{256\cdot\tfrac14}=8 .
+\]
+
+\begin{verificacion}{20\,000 pares de entradas}\label{ver:avalancha}
+Se generaron 20\,000 mensajes aleatorios de 32 bytes y, para cada uno, se alteró un único bit al azar. Se calculó SHA-256 de ambas versiones y se contaron los bits distintos de la salida. Resultado: media \num{128.08}, desviación estándar \num{7.94}, mínimo 98 y máximo 159, prácticamente iguales a los valores teóricos 128 y 8 (figura~\ref{fig:avalancha}).
+\end{verificacion}
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-avalancha; chart=bar+line; data=data/avalanche_hist.csv; x=bits_distintos; y=frecuencia_empirica(barras),binomial_256_05(línea); interactive=el lector escribe dos entradas y ve la cuadrícula de 256 bits con los bits distintos resaltados; alt=Histograma de la cantidad de bits distintos en la salida de SHA-256 tras cambiar un bit de la entrada, centrado en 128 con desviación 8, que coincide con la curva binomial teórica.}
+\begin{tikzpicture}
+\begin{axis}[pb,xmin=95,xmax=161,ymin=0,ymax=0.058,scaled y ticks=false,
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  xlabel={Bits distintos entre $\SHA$(A) y $\SHA$(B)},ylabel={Frecuencia relativa},
+  xtick distance=8,legend pos=north west,legend cell align=left,area legend]
+\addplot[ybar,bar width=0.17cm,fill=pbblue!45,draw=pbblue!80] table[x=bits_distintos,y=frecuencia_empirica]{data/avalanche_hist.csv};
+\addlegendentry{20\,000 pares (SHA-256 real)}
+\addplot[c2,no marks,thick] table[x=bits_distintos,y=binomial_256_05]{data/avalanche_hist.csv};
+\addlegendentry{Binomial$(256,\tfrac12)$}
+\draw[dashed,gray] (axis cs:128,0) -- (axis cs:128,0.056);
+\node[font=\scriptsize,anchor=south west,fill=white,fill opacity=0.8,text opacity=1] at (axis cs:128.6,0.0505) {media 128, $\sigma=8$};
+\end{axis}
+\end{tikzpicture}
+\caption{Bits que cambian en la salida de SHA-256 al alterar un solo bit de la entrada. Las barras son el experimento con SHA-256 real; la curva es la binomial teórica.}\label{fig:avalancha}
+\fuentedatos{data/avalanche_hist.csv}
+\end{figure}
+
+La consecuencia práctica es que no hay forma de «acercarse» a un hash deseado: cada candidato nuevo es un sorteo independiente. Esa es la propiedad que convierte la búsqueda de un nonce en un juego de azar puro (sección~\ref{sec:minar}).
+
+%% ==========================================================================
+%%  05 — ANATOMÍA DE UN BLOQUE
+%% ==========================================================================
+\section{Anatomía de un bloque real}\label{sec:bloque}
+\webhint{section; id=sec-bloque; slug=anatomia-de-un-bloque; kicker=05 — qué se hashea en realidad; role=narrative+widget}
+
+Lo que un minero hashea no son las transacciones completas, sino un encabezado de exactamente 80 bytes con seis campos. Las transacciones entran a través de un único resumen, la \emph{raíz de Merkle}: modificar cualquier transacción cambia esa raíz y, con ella, el hash del bloque.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-anatomia-encabezado; chart=diagram; data=data/genesis_header.json; layout=barra proporcional de 80 bytes con seis campos; alt=Barra de 80 bytes dividida en versión (4 bytes), hash del bloque previo (32), raíz de Merkle (32), marca de tiempo (4), bits (4) y nonce (4).}
+\begin{tikzpicture}[x=0.19cm,y=1cm]
+\foreach \a/\b/\col in {0/4/pbgray, 4/36/pbblue, 36/68/pbgreen, 68/72/pborange, 72/76/pbpurple, 76/80/pbred}
+  \draw[fill=\col!16,draw=\col,thick] (\a,0) rectangle (\b,1);
+\node[font=\footnotesize,align=center] at (20,0.5) {Hash del bloque previo\\[-1pt]{\scriptsize 32 bytes}};
+\node[font=\footnotesize,align=center] at (52,0.5) {Raíz de Merkle\\[-1pt]{\scriptsize 32 bytes}};
+% desplazamientos
+\foreach \x in {0,4,36,68,72,76,80}
+  \node[font=\tiny,color=pbgray,anchor=south] at (\x,1.12) {\x};
+\draw[decorate,decoration={brace,amplitude=4pt},color=pbgray] (0,1.5) -- (80,1.5) node[midway,above=4pt,font=\scriptsize,black]{80 bytes: lo que realmente se hashea};
+% etiquetas con guía
+\draw[pbgray] (2,0) -- (2,-0.5);        \node[anchor=west,font=\scriptsize] at (2,-0.5)  {Versión · 4 bytes};
+\draw[pborange] (70,0) -- (70,-0.5);    \node[anchor=east,font=\scriptsize] at (70,-0.5) {Marca de tiempo · 4 bytes};
+\draw[pbpurple] (74,0) -- (74,-1.1);    \node[anchor=east,font=\scriptsize] at (74,-1.1) {Bits (objetivo compacto) · 4 bytes};
+\draw[pbred] (78,0) -- (78,-1.7);       \node[anchor=east,font=\scriptsize] at (78,-1.7) {Nonce · 4 bytes};
+\end{tikzpicture}
+\caption{Encabezado de bloque de Bitcoin: seis campos, 80 bytes. La barra es proporcional al tamaño de cada campo; los números son desplazamientos en bytes.}\label{fig:anatomia}
+\fuentedatos{data/genesis_header.json}
+\end{figure}
+
+\subsection{El bloque génesis, campo por campo}
+
+Los enteros del encabezado se escriben en orden \emph{little-endian} (el byte menos significativo primero) y los hashes con los bytes invertidos respecto a como se muestran; por eso el hash de un bloque se lee «al revés». La tabla~\ref{tab:genesis} muestra el bloque 0 con sus valores reales.
+
+\begin{table}[tbp]
+\centering
+\webhint{table; id=tab-genesis; kind=data; data=data/genesis_header.json; columns=Campo,Bytes,Valor,Bytes en el encabezado (little-endian); interactive=editar cada campo y recalcular SHA-256d}
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l c >{\raggedright\arraybackslash}p{4.7cm} >{\raggedright\arraybackslash}p{4.7cm}@{}}
+\toprule
+\textbf{Campo} & \textbf{Bytes} & \textbf{Valor} & \textbf{En el encabezado}\\
+\midrule
+Versión & 4 & $1$ & \texttt{01000000}\\
+Hash del bloque previo & 32 & 64 ceros (no hay bloque previo) & 64 ceros\\
+Raíz de Merkle & 32 & \texttt{\scriptsize 4a5e1e4baab89f3a32518a88c31bc87f}\par\texttt{\scriptsize 618f76673e2cc77ab2127b7afdeda33b} & \texttt{\scriptsize 3ba3edfd7a7b12b27ac72c3e67768f61}\par\texttt{\scriptsize 7fc81bc3888a51323a9fb8aa4b1e5e4a}\\
+Marca de tiempo & 4 & \num{1231006505} (3 ene.\ 2009, 18:15:05 UTC) & \texttt{29ab5f49}\\
+Bits & 4 & \texttt{0x1d00ffff} & \texttt{ffff001d}\\
+Nonce & 4 & \num{2083236893} & \texttt{1dac2b7c}\\
+\bottomrule
+\end{tabular}
+\caption{Encabezado del bloque génesis de Bitcoin (bloque 0).}\label{tab:genesis}
+\end{table}
+
+\begin{verificacion}{el hash del bloque génesis}\label{ver:genesis}
+Se concatenaron los 80 bytes de la tabla~\ref{tab:genesis} y se aplicó SHA-256 dos veces. Invirtiendo los bytes del resultado, tal como se muestra en los exploradores, se obtiene
+\begin{center}\ttfamily\small 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\end{center}
+que es el hash oficial del bloque 0. Leído como número de 256 bits tiene 43 bits iniciales en cero.
+\end{verificacion}
+
+\subsection{El objetivo y el campo «bits»}
+
+La regla real no es «empezar con $n$ ceros», sino que el hash, leído como número de 256 bits, sea menor o igual que un \emph{objetivo} (\emph{target}) que fija el campo \emph{bits}. Ese campo es una notación compacta: el primer byte es un exponente $e$ y los otros tres un coeficiente $c$, de modo que
+\[
+  \text{objetivo}\;=\;c\cdot 256^{\,e-3}.
+\]
+Para el génesis, \texttt{0x1d00ffff} significa $e=\mathtt{0x1d}=29$ y $c=\mathtt{0x00ffff}$, es decir, $\text{objetivo}=\mathtt{0xffff}\cdot 2^{208}$, o en hexadecimal $\mathtt{00000000ffff}$ seguido de 52 ceros. Contar ceros iniciales es una aproximación muy buena, porque cada cero hexadecimal adicional divide el objetivo entre 16.
+
+\begin{resultado}{Trabajo asociado a un objetivo}\label{res:trabajo-objetivo}
+Como el hash se comporta como un número uniforme en $[0,2^{256})$, la probabilidad de que un intento cumpla el objetivo $T$ es $p=(T+1)/2^{256}$ y el número esperado de intentos es
+\[
+  \Esp{\text{intentos}}\;=\;\frac{2^{256}}{T+1}.
+\]
+Con el objetivo del génesis resulta \num{4295032833}, es decir, $2^{32.00002}$: la \emph{dificultad 1} equivale a unos $2^{32}\approx 4.3\times10^{9}$ hashes.
+\end{resultado}
+
+\subsection{La raíz de Merkle}
+
+Las transacciones del bloque se resumen en un único valor de 32 bytes mediante un árbol de hashes: cada transacción se hashea, los hashes se emparejan y se hashean de nuevo, y así sucesivamente hasta quedar uno solo, la raíz. Si algún nivel tiene un número impar de elementos, el último se duplica. Con cuatro transacciones:
+\[
+  \text{raíz}\;=\;H\bigl(H(H_1\,\|\,H_2)\,\|\,H(H_3\,\|\,H_4)\bigr),\qquad H_i=\SHAd(\text{Tx}_i).
+\]
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-merkle; chart=diagram; interactive=al editar una transacción se resalta el camino hasta la raíz; alt=Árbol de Merkle con cuatro transacciones. Se modifica la transacción 3 y quedan en rojo su hash, el hash H34, la raíz de Merkle y el encabezado del bloque.}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\foreach \i/\x/\sty in {1/0/caja, 2/2.4/caja, 3/4.8/mal, 4/7.2/caja}{
+  \node[\sty,minimum width=1.7cm] (t\i) at (\x,0) {Tx\,\i};
+  \node[\sty,minimum width=1.7cm] (h\i) at (\x,1.5) {$H_{\i}$};
+  \draw[flecha] (t\i) -- (h\i);}
+\node[caja] (h12) at (1.2,3.0) {$H_{12}=H(H_1\,\|\,H_2)$};
+\node[mal] (h34) at (6.0,3.0) {$H_{34}=H(H_3\,\|\,H_4)$};
+\node[mal,minimum width=4.2cm] (raiz) at (3.6,4.5) {raíz de Merkle $=H(H_{12}\,\|\,H_{34})$};
+\node[mal,minimum width=2.6cm,align=left] (enc) at (11.4,4.5) {Encabezado\\[-1pt]{\scriptsize (80 bytes)}};
+\draw[flecha] (h1) -- (h12); \draw[flecha] (h2) -- (h12);
+\draw[flecha] (h3) -- (h34); \draw[flecha] (h4) -- (h34);
+\draw[flecha] (h12) -- (raiz); \draw[flecha] (h34) -- (raiz);
+\draw[flecha] (raiz) -- (enc) node[midway,above,font=\scriptsize]{32 bytes};
+% camino que cambia al modificar Tx 3
+\draw[flecha,color=pbred] (t3) -- (h3);
+\draw[flecha,color=pbred] (h3) -- (h34);
+\draw[flecha,color=pbred] (h34) -- (raiz);
+\draw[flecha,color=pbred] (raiz) -- (enc);
+\node[font=\footnotesize,align=left,anchor=north west,color=pbred!80!black] at (8.4,2.4) {Se modifica Tx\,3:\\ cambian $H_3$, $H_{34}$,\\ la raíz y el hash del bloque.};
+\end{tikzpicture}
+\caption{Árbol de Merkle de cuatro transacciones. En rojo, el camino que cambia si se altera la transacción 3: basta una raíz de 32 bytes para comprometer todas las transacciones del bloque.}\label{fig:merkle}
+\end{figure}
+
+\begin{cuidado}{El nonce solo tiene 32 bits}
+El nonce ocupa 4 bytes: unos 4\,300 millones de valores. Un equipo de minería moderno, que calcula cientos de billones de hashes por segundo (cientos de TH/s), los agota en unas decenas de microsegundos ($4.3\times10^{9}/2\times10^{14}\approx 21\ \mu\text{s}$ a \SI{200}{\tera\hash\per\second}). Por eso, además, se varía un \emph{extranonce} dentro de la transacción de recompensa ---lo que cambia la raíz de Merkle---, y se ajustan la marca de tiempo y algunos bits de la versión.
+\end{cuidado}
+
+%% ==========================================================================
+%%  06 — MINAR
+%% ==========================================================================
+\section{El rompecabezas: minar un bloque}\label{sec:minar}
+\webhint{section; id=sec-minar; slug=minar-un-bloque; kicker=06 — el rompecabezas; role=narrative+widget}
+
+Minar consiste en variar el nonce hasta que el hash del encabezado tenga suficientes bits iniciales en cero. No hay forma inteligente de buscarlo: cada intento tiene la misma probabilidad de éxito, $2^{-d}$ si se exigen $d$ bits en cero, independientemente de los intentos anteriores. Por eso el número esperado de intentos es $2^{d}$.
+
+\begin{resultado}{Intentos hasta el éxito}\label{res:geometrica}
+Sea $N$ el número de intentos hasta el primer éxito, con probabilidad de éxito $p=2^{-d}$ por intento. Entonces $N$ tiene distribución geométrica,
+\[
+  \Prob{N>n}=(1-p)^n\approx e^{-n/2^{d}},\qquad \Esp{N}=2^{d}.
+\]
+Medido en unidades del valor esperado, $T=N/2^{d}$ es, con excelente aproximación, una variable exponencial de media 1: la mediana es $\ln 2\approx 0.693$ y la probabilidad de superar la media es $e^{-1}\approx 36.8\,\%$. (Apéndice~\ref{app:deriv}, resultado~\ref{der:exponencial}.)
+\end{resultado}
+
+\begin{nota}{La minería no tiene memoria}\label{nota:memoria}
+Como cada intento es independiente, llevar mucho tiempo buscando no acerca el éxito: $\Prob{N>n+m\mid N>n}\approx\Prob{N>m}$. Quien lleva horas sin hallar un bloque está exactamente igual de lejos que al empezar.
+\end{nota}
+
+\subsection{Cómo calcula el hardware: el \emph{midstate}}
+
+El encabezado mide 80 bytes y SHA-256 procesa bloques de 64 bytes. Los primeros 64 bytes no incluyen el nonce, así que su estado intermedio (\emph{midstate}) se calcula una sola vez. Para cada nonce solo se procesan los 16 bytes restantes ---que incluyen el nonce--- y después el segundo SHA-256:
+
+\begin{lstlisting}[language=pseudo]
+function minar(encabezado76, d):
+    mid <- estado_SHA256(encabezado76[0..63])       // se calcula UNA sola vez
+    for nonce = 0 .. 2^32 - 1:
+        bloque2 <- encabezado76[64..75] || nonce_LE(nonce) || relleno
+        h1 <- continuar_SHA256(mid, bloque2)
+        h2 <- SHA256(h1)
+        if entero_LE(h2) < 2^(256 - d):             // d bits iniciales en cero
+            return nonce
+\end{lstlisting}
+
+\subsection{Un experimento con minería real}
+
+Para comprobar el Resultado~\ref{res:geometrica} se minaron \num{600} bloques con SHA-256 doble real sobre encabezados de 80 bytes, exigiendo $d=14$ bits iniciales en cero (\num{16384} intentos esperados por bloque). En total fueron \num{9297759} hashes, calculados en Python a unos \SI{0.69}{\mega\hash\per\second}.
+
+\begin{table}[tbp]
+\centering
+\webhint{table; id=tab-mineria-real; kind=comparison; data=data/summary.json#mineria_real}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Cantidad (en unidades de $2^{14}$ intentos)} & \textbf{Medido (600 bloques)} & \textbf{Teoría}\\
+\midrule
+Media de intentos & \num{0.946}\ ($\pm 0.041$) & 1\\
+Mediana & \num{0.724} & $\ln 2=0.693$\\
+Desviación estándar & \num{0.883} & 1\\
+Fracción que tardó más que la media & \SI{36.2}{\percent} & $e^{-1}=\SI{36.8}{\percent}$\\
+$\Prob{T>2\mid T>1}$ (sin memoria) & \SI{33.2}{\percent} & $e^{-1}=\SI{36.8}{\percent}$\\
+Mayor valor observado & \num{5.89} & ---\\
+\bottomrule
+\end{tabular}
+\caption{Minería real de 600 bloques con $d=14$ frente a la distribución exponencial. La media medida cae a poco más de un error estándar de 1 ($1/\sqrt{600}=0.041$).}\label{tab:mineria-real}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-minado-histograma; chart=histogram+line; data=data/mining_hist.csv; x=izq; y=densidad_empirica(barras),densidad_teorica; curve=exp(-x); interactive=el lector mina una serie de bloques y compara el histograma con la curva; alt=Histograma de los intentos necesarios para minar 600 bloques, en múltiplos del valor esperado, que decrece como la curva exponencial e a la menos x.}
+\begin{tikzpicture}
+\begin{axis}[pb,xmin=0,xmax=6,ymin=0,ymax=1.05,
+  xlabel={Intentos hasta el éxito, en múltiplos del valor esperado $2^{d}$},ylabel={Densidad},
+  legend pos=north east,area legend]
+\addplot[ybar,bar width=0.5cm,fill=pbblue!45,draw=pbblue!80] table[x expr=\thisrow{izq}+0.125,y=densidad_empirica]{data/mining_hist.csv};
+\addlegendentry{600 bloques minados con SHA-256 real}
+\addplot[c2,domain=0:6,samples=120,no marks] {exp(-x)};
+\addlegendentry{teoría: densidad exponencial $e^{-x}$}
+\end{axis}
+\end{tikzpicture}
+\caption{Distribución del esfuerzo necesario para minar un bloque ($d=14$). La mayoría de los bloques sale con menos esfuerzo que el promedio, y unos pocos exigen varias veces el valor esperado.}\label{fig:minado}
+\fuentedatos{data/mining_hist.csv}
+\end{figure}
+
+\subsection{La escala: de tu navegador a la red de Bitcoin}
+
+La figura~\ref{fig:escala} pone en la misma gráfica cuánto tardaría en promedio un navegador (alrededor de \SI{1}{\mega\hash\per\second}) y la red completa de Bitcoin (alrededor de \SI{1}{\zetta\hash\per\second}\footnote{Un zetta-hash por segundo son $10^{21}$ hashes por segundo: mil trillones.}, a septiembre de 2026) en hallar un hash con $d$ bits iniciales en cero. Con \SI{1}{\mega\hash\per\second}, $d\approx 20$ bits se alcanzan en aproximadamente un segundo. La red, en cambio, necesita unos diez minutos para $d\approx 79$ bits: $10^{21}\times 600\ \text{s}=6\times10^{23}\approx 2^{79}$ intentos esperados. La red es del orden de mil billones ($10^{15}$) de veces más rápida que un navegador: lo mismo que haría el navegador en unos $1.9\times 10^{10}$ años.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-escala-dificultad; chart=line; yscale=log; data=data/difficulty_scale.csv; x=bits; y=seg_navegador_1MHs,seg_red_1ZHs; reference_lines=600 s (10 min),4.35e17 s (edad del universo); markers=d=20,d=79; alt=Gráfica logarítmica del tiempo esperado para hallar un hash con d bits iniciales en cero, para un navegador y para la red de Bitcoin. La recta de la red cruza los diez minutos cerca de 79 bits; la del navegador tardaría más que la edad del universo.}
+\begin{tikzpicture}
+\begin{axis}[pb,ymode=log,xmin=0,xmax=90,ymin=1e-22,ymax=1e24,
+  xlabel={Bits iniciales en cero exigidos ($d$)},ylabel={Tiempo esperado (segundos)},
+  xtick distance=10,ytick={1e-18,1e-12,1e-6,1,1e6,1e12,1e18},legend pos=north west,legend cell align=left]
+\addplot[c1,no marks] table[x=bits,y=seg_navegador_1MHs]{data/difficulty_scale.csv};
+\addlegendentry{Tu navegador, \SI{1}{\mega\hash\per\second}}
+\addplot[c2,no marks] table[x=bits,y=seg_red_1ZHs]{data/difficulty_scale.csv};
+\addlegendentry{Red de Bitcoin, $\approx\SI{1e21}{\hash\per\second}$}
+\addplot[dashed,color=pbgray,no marks,domain=0:90,samples=2] {600};
+\addplot[dashed,color=pbred,no marks,domain=0:90,samples=2] {4.35e17};
+\node[font=\scriptsize,anchor=south west,color=pbgray!90!black] at (axis cs:1,900) {10 min};
+\node[font=\scriptsize,anchor=north east,color=pbred!85!black] at (axis cs:89,2.5e17) {edad del universo ($\approx 4.4\times10^{17}$ s)};
+\draw[dotted,thick,color=pbblue] (axis cs:20,1e-22) -- (axis cs:20,1);
+\draw[dotted,thick,color=pborange] (axis cs:79,1e-22) -- (axis cs:79,600);
+\node[font=\scriptsize,anchor=west,fill=white,fill opacity=0.85,text opacity=1] at (axis cs:21,1e-17) {$d=20$: 1 s en el navegador};
+\node[font=\scriptsize,anchor=east,fill=white,fill opacity=0.85,text opacity=1] at (axis cs:78,1e-13) {$d\approx 79$: la red cada 10 min};
+\end{axis}
+\end{tikzpicture}
+\caption{Tiempo esperado para hallar un hash con $d$ bits iniciales en cero. El eje vertical es logarítmico: cada bit adicional duplica el trabajo.}\label{fig:escala}
+\fuentedatos{data/difficulty_scale.csv}
+\end{figure}
+
+\begin{nota}{Una máquina frente a la red}
+Una sola máquina ASIC actual calcula cientos de billones de hashes por segundo (cientos de TH/s). Aun así, la red completa es mucho mayor: con $\SI{200}{\tera\hash\per\second}$ por máquina harían falta unos cinco millones de máquinas para igualar $10^{21}$ H/s.
+\end{nota}
+
+%% ==========================================================================
+%%  07 — POR QUÉ ENCADENAR
+%% ==========================================================================
+\section{Por qué encadenar: la cadena con más trabajo gana}\label{sec:cadena}
+\webhint{section; id=sec-cadena; slug=la-cadena-con-mas-trabajo; kicker=07 — por qué encadenar; role=narrative+widget}
+
+Cada bloque incluye el hash del anterior. Si alguien altera una transacción antigua, el hash de ese bloque cambia, deja de cumplir la dificultad y, además, rompe el enlace con el bloque siguiente, que apuntaba al hash viejo. Repararlo exige volver a minar ese bloque y todos los posteriores.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-cadena; chart=diagram; interactive=cadena de cinco bloques con dificultad baja (14 bits) editable en el navegador; botones «reminar todos los bloques inválidos» y «restaurar la cadena»; alt=Dos filas de cinco bloques encadenados. En la fila superior todos los bloques son válidos. En la inferior se altera el bloque 2: su hash ya no tiene ceros iniciales y los bloques 3, 4 y 5, que dependen de él, deben volver a minarse.}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm,blk/.style={draw,rounded corners=2pt,minimum width=2.7cm,minimum height=1.7cm,align=left,font=\scriptsize,inner sep=4pt}]
+\node[font=\small\bfseries\sffamily,anchor=west] at (-1.35,1.7) {(a) Cadena íntegra};
+\foreach \i/\pp/\hh in {1/{0000\ldots 0}/{0000a3\ldots}, 2/{0000a3\ldots}/{0000c7\ldots}, 3/{0000c7\ldots}/{0000e1\ldots}, 4/{0000e1\ldots}/{0000f9\ldots}, 5/{0000f9\ldots}/{00004b\ldots}}{
+  \node[blk,draw=pbgreen,fill=pbgreen!10] (a\i) at ({(\i-1)*3.4},0) {\textbf{Bloque \i}\\ previo:\ \texttt{\pp}\\ datos \textperiodcentered{} nonce\\ hash:\ \texttt{\hh}};}
+\foreach \i/\j in {2/1,3/2,4/3,5/4} \draw[flecha] (a\i.west) -- (a\j.east);
+\node[font=\small\bfseries\sffamily,anchor=west] at (-1.35,-2.5) {(b) Se altera el bloque 2};
+\node[blk,draw=pbgreen,fill=pbgreen!10] (b1) at (0,-4.2) {\textbf{Bloque 1}\\ previo:\ \texttt{0000\ldots 0}\\ datos \textperiodcentered{} nonce\\ hash:\ \texttt{0000a3\ldots}};
+\node[blk,draw=pbred,fill=pbred!10] (b2) at (3.4,-4.2) {\textbf{Bloque 2 (alterado)}\\ previo:\ \texttt{0000a3\ldots}\\ \textcolor{pbred}{datos modificados}\\ hash:\ \texttt{9e3b57\ldots}\ $\times$};
+\node[blk,draw=pborange,fill=pborange!14] (b3) at (6.8,-4.2) {\textbf{Bloque 3}\\ previo:\ \texttt{0000c7\ldots}\\ \textcolor{pborange!80!black}{enlace roto}\\ hash:\ \texttt{0000e1\ldots}};
+\node[blk,draw=pborange,fill=pborange!14] (b4) at (10.2,-4.2) {\textbf{Bloque 4}\\ previo:\ \texttt{0000e1\ldots}\\ \textcolor{pborange!80!black}{debe reminarse}\\ hash:\ \texttt{0000f9\ldots}};
+\node[blk,draw=pborange,fill=pborange!14] (b5) at (13.6,-4.2) {\textbf{Bloque 5}\\ previo:\ \texttt{0000f9\ldots}\\ \textcolor{pborange!80!black}{debe reminarse}\\ hash:\ \texttt{00004b\ldots}};
+\draw[flecha] (b2.west) -- (b1.east);
+\draw[flecha,color=pbred,dashed] (b3.west) -- (b2.east);
+\draw[flecha] (b4.west) -- (b3.east);
+\draw[flecha] (b5.west) -- (b4.east);
+\node[font=\scriptsize,color=pbred!80!black,anchor=north] at (5.1,-5.15) {enlace roto};
+\fill[pbgreen!30] (-1.3,-6.5) rectangle (-1.0,-6.2); \node[font=\scriptsize,anchor=west] at (-0.9,-6.35) {válido};
+\fill[pbred!40] (1.2,-6.5) rectangle (1.5,-6.2);  \node[font=\scriptsize,anchor=west] at (1.6,-6.35) {hash inválido (no cumple la dificultad)};
+\fill[pborange!40] (7.2,-6.5) rectangle (7.5,-6.2); \node[font=\scriptsize,anchor=west] at (7.6,-6.35) {hay que rehacerlo al cambiar el enlace anterior};
+\end{tikzpicture}}
+\caption{Una cadena de cinco bloques. Alterar el bloque 2 invalida su hash y, al cambiar su valor, obliga a rehacer los bloques 3, 4 y 5, cada uno con su propia prueba de trabajo. Los hashes son ilustrativos.}\label{fig:cadena}
+\end{figure}
+
+\subsection{La regla de consenso}
+
+Los nodos reconocen como válida la cadena con la mayor cantidad acumulada de trabajo, es decir, la suma, sobre todos sus bloques, del número esperado de hashes que costó producirlos. Casi siempre coincide con la «más larga», pero no es lo mismo: una cadena con muchos bloques fáciles no gana a una con menos bloques más difíciles. De hecho, el documento de 2008 habla de «la cadena más larga»; el software pronto pasó a comparar trabajo acumulado, precisamente para cerrar esa puerta.
+
+\begin{definicion}{Trabajo acumulado de una cadena}\label{def:trabajo}
+Si un bloque tiene objetivo $T_i$, su \emph{trabajo} es el número esperado de hashes para producirlo, $w_i=2^{256}/(T_i+1)$ (Resultado~\ref{res:trabajo-objetivo}). El trabajo de una cadena de $n$ bloques es
+\[
+  W\;=\;\sum_{i=1}^{n} w_i ,
+\]
+y los nodos adoptan la cadena válida con mayor $W$.
+\end{definicion}
+
+\begin{ejemplo}{Más larga no es lo mismo que con más trabajo}\label{ej:trabajo}
+Una cadena A tiene 10 bloques de dificultad 1: $W_A=10\cdot 2^{32}\approx 4.3\times 10^{10}$. Una cadena B tiene solo 4 bloques, pero de dificultad 4: $W_B=4\cdot 4\cdot 2^{32}\approx 6.9\times10^{10}$. Gana B, aunque sea más corta. (Ejemplo ilustrativo: en la práctica la dificultad solo cambia cada 2\,016 bloques, sección~\ref{sec:reloj}.)
+\end{ejemplo}
+
+\subsection{Dos formas de decidir quién llegó primero}
+
+\begin{minipage}[t]{0.485\linewidth}
+\begin{tcolorbox}[pbbox,colback=pbgray!6,colframe=pbgray,title={Con un tercero de confianza}]
+Un banco decide qué transacción llegó primero. Su palabra es la verdad porque es la única que existe.
+\end{tcolorbox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\linewidth}
+\begin{tcolorbox}[pbbox,colback=pborange!7,colframe=pborange,title={Con prueba de trabajo}]
+Nadie decide: se reconoce como verdad la historia que costó más trabajo producir, algo que cualquiera puede verificar de forma independiente con un cálculo barato.
+\end{tcolorbox}
+\end{minipage}
+
+%% ==========================================================================
+%%  08 — EL RELOJ
+%% ==========================================================================
+\section{El reloj: diez minutos por bloque, pase lo que pase}\label{sec:reloj}
+\webhint{section; id=sec-reloj; slug=ajuste-de-dificultad; kicker=08 — el reloj; role=narrative+widget}
+
+Si el poder de cómputo de la red se duplica, los bloques saldrían el doble de rápido. Para evitarlo, cada 2\,016 bloques (unas dos semanas) todos los nodos recalculan el objetivo con una regla simple: si los últimos 2\,016 bloques tardaron menos de lo previsto, la dificultad sube en la misma proporción; si tardaron más, baja. El ajuste está acotado a un factor de 4 por periodo.
+
+\begin{resultado}{Regla de ajuste de dificultad}\label{res:ajuste}
+Sea $D$ la dificultad del periodo que termina y $T_{\text{real}}$ el tiempo que tardaron sus 2\,016 bloques. La dificultad del siguiente periodo es
+\[
+  D_{\text{nueva}}\;=\;D\cdot\frac{2\,016\times 10\ \text{min}}{T_{\text{real}}},
+\]
+con el factor $\frac{2\,016\times10\,\text{min}}{T_{\text{real}}}$ limitado al intervalo $\left[\tfrac14,\,4\right]$. Con el poder de cómputo $H$ constante, el tiempo esperado por bloque es $10\ \text{min}\cdot D/H$ (en unidades relativas).
+\end{resultado}
+
+\begin{nota}{Nota de implementación}
+En la implementación de referencia, $T_{\text{real}}$ se mide entre la primera y la última marca de tiempo del periodo, es decir, sobre 2\,015 intervalos y no 2\,016. El efecto es de apenas unas décimas de punto porcentual y no altera nada de lo que sigue.
+\end{nota}
+
+\subsection{Los tiempos entre bloques son exponenciales}
+
+Aun con el poder de cómputo constante, los bloques no salen cada diez minutos exactos: el tiempo entre bloques es una variable exponencial de media 10 minutos (sección~\ref{sec:minar}). De ahí salen cifras que sorprenden:
+\begin{align*}
+  \Prob{T>30\ \text{min}}&=e^{-3}\approx 4.98\,\%,\\
+  \Prob{T<1\ \text{min}}&=1-e^{-0.1}\approx 9.5\,\%,\\
+  \Prob{T>60\ \text{min}}&=e^{-6}\approx 0.25\,\%.
+\end{align*}
+Es decir, uno de cada veinte bloques tarda más de media hora y alrededor del 10\,\% sale en menos de un minuto: es la naturaleza exponencial de la búsqueda, no una falla de la red.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-tiempo-bloques; chart=area+line (dos paneles); data=data/block_time_dist.csv; x=minutos; y=densidad (panel a),supervivencia (panel b); highlights=T<1 min (9.52 \%),T>30 min (4.98 \%); alt=Densidad exponencial del tiempo entre bloques con media de diez minutos, con las colas de menos de un minuto y más de treinta minutos sombreadas, y su función de supervivencia.}
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,xmin=0,xmax=60,ymin=0,ymax=0.108,scaled y ticks=false,
+  xlabel={Minutos entre bloques},ylabel={Densidad (1/min)},title={Densidad $f(t)=\frac{1}{10}e^{-t/10}$},xtick distance=10]
+\addplot[c1,no marks] table[x=minutos,y=densidad]{data/block_time_dist.csv};
+\addplot[draw=none,fill=pbred!45,domain=0:1,samples=10] {0.1*exp(-x/10)} \closedcycle;
+\addplot[draw=none,fill=pborange!45,domain=30:60,samples=30] {0.1*exp(-x/10)} \closedcycle;
+\node[font=\scriptsize,anchor=west,color=pbred!80!black] at (axis cs:3,0.1) {$T<1$ min: 9.5\,\%};
+\node[font=\scriptsize,anchor=south,color=pborange!80!black,align=center] at (axis cs:44,0.007) {$T>30$ min:\\ 4.98\,\%};
+\end{axis}
+\end{tikzpicture}
+\subcaption{Densidad del tiempo entre bloques.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,xmin=0,xmax=60,ymin=0,ymax=1.05,
+  xlabel={Minutos entre bloques},ylabel={$\Prob{T>t}$},title={Supervivencia $S(t)=e^{-t/10}$},xtick distance=10]
+\addplot[c1,no marks] table[x=minutos,y=supervivencia]{data/block_time_dist.csv};
+\addplot[only marks,mark=*,c2,mark size=2pt] coordinates {(10,0.3679) (30,0.0498)};
+\node[font=\scriptsize,anchor=west] at (axis cs:12,0.42) {36.8\,\% pasan de 10 min};
+\node[font=\scriptsize,anchor=south east] at (axis cs:59,0.09) {4.98\,\% pasan de 30 min};
+\end{axis}
+\end{tikzpicture}
+\subcaption{Probabilidad de tardar más de $t$.}
+\end{subfigure}
+\caption{Tiempo entre bloques con poder de cómputo constante: exponencial de media 10 minutos.}\label{fig:tiempo-bloques}
+\fuentedatos{data/block_time_dist.csv}
+\end{figure}
+
+\subsection{Simulación del ajuste}
+
+El simulador de la página original genera cada bloque como una variable exponencial con media $10\ \text{min}\cdot D/H$. Aquí se hace lo mismo periodo por periodo: la suma de 2\,016 tiempos exponenciales sigue una distribución gamma; el tiempo medio por bloque de cada periodo se obtiene de ella y se aplica la regla del Resultado~\ref{res:ajuste}. Se comparan cuatro escenarios, \emph{con} y \emph{sin} ajuste, usando los mismos números aleatorios en ambos casos (figura~\ref{fig:ajuste}).
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-ajuste-dificultad; chart=line (cuadrícula 2x2); data=data/difficulty_sim.csv; filter=escenario_id (1 crecimiento, 2 caída 50 \%, 3 duplicación, 4 constante); x=periodo; y=min_por_bloque_con_ajuste,min_por_bloque_sin_ajuste; reference_line=10 min; interactive=el lector elige el escenario y pulsa «Simular 26 periodos»; alt=Cuatro paneles con el tiempo medio por bloque de 26 periodos de 2016 bloques, con y sin ajuste de dificultad. Con ajuste, el tiempo vuelve a diez minutos; sin ajuste, se acelera o se retrasa de forma permanente.}
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 2,horizontal sep=1.6cm,vertical sep=1.9cm,xlabels at=edge bottom,ylabels at=edge left},
+  pb,width=5.9cm,height=4.2cm,xmin=1,xmax=26,ymin=0,xtick={1,5,10,15,20,25},
+  xlabel={Periodo (2\,016 bloques)},ylabel={Min por bloque},title style={font=\scriptsize\bfseries}]
+\nextgroupplot[title={Crecimiento: $+6\,\%$ por periodo},ymax=12,legend to name=leg-dificultad,legend columns=3]
+\addplot[c1,no marks] table[x=periodo,y=min_por_bloque_con_ajuste,restrict expr to domain={\thisrow{escenario_id}}{0.5:1.5}]{data/difficulty_sim.csv};
+\addlegendentry{con ajuste}
+\addplot[c5,dashed,no marks] table[x=periodo,y=min_por_bloque_sin_ajuste,restrict expr to domain={\thisrow{escenario_id}}{0.5:1.5}]{data/difficulty_sim.csv};
+\addlegendentry{sin ajuste}
+\addplot[gray,dotted,thick,no marks,domain=1:26,samples=2] {10};
+\addlegendentry{objetivo: 10 min}
+\nextgroupplot[title={Caída súbita del 50\,\% (periodo 9)},ymax=23]
+\addplot[c1,no marks] table[x=periodo,y=min_por_bloque_con_ajuste,restrict expr to domain={\thisrow{escenario_id}}{1.5:2.5}]{data/difficulty_sim.csv};
+\addplot[c5,dashed,no marks] table[x=periodo,y=min_por_bloque_sin_ajuste,restrict expr to domain={\thisrow{escenario_id}}{1.5:2.5}]{data/difficulty_sim.csv};
+\addplot[gray,dotted,thick,no marks,domain=1:26,samples=2] {10};
+\nextgroupplot[title={Duplicación súbita (periodo 9)},ymax=12]
+\addplot[c1,no marks] table[x=periodo,y=min_por_bloque_con_ajuste,restrict expr to domain={\thisrow{escenario_id}}{2.5:3.5}]{data/difficulty_sim.csv};
+\addplot[c5,dashed,no marks] table[x=periodo,y=min_por_bloque_sin_ajuste,restrict expr to domain={\thisrow{escenario_id}}{2.5:3.5}]{data/difficulty_sim.csv};
+\addplot[gray,dotted,thick,no marks,domain=1:26,samples=2] {10};
+\nextgroupplot[title={Poder de cómputo constante},ymax=12]
+\addplot[c1,no marks] table[x=periodo,y=min_por_bloque_con_ajuste,restrict expr to domain={\thisrow{escenario_id}}{3.5:4.5}]{data/difficulty_sim.csv};
+\addplot[c5,dashed,no marks] table[x=periodo,y=min_por_bloque_sin_ajuste,restrict expr to domain={\thisrow{escenario_id}}{3.5:4.5}]{data/difficulty_sim.csv};
+\addplot[gray,dotted,thick,no marks,domain=1:26,samples=2] {10};
+\end{groupplot}
+\end{tikzpicture}
+
+\smallskip
+\ref{leg-dificultad}
+\caption{Tiempo medio por bloque en cada periodo de 2\,016 bloques, con y sin ajuste de dificultad. Con ajuste, el reloj regresa a 10 minutos en uno o dos periodos; sin él, el sistema queda acelerado o frenado para siempre.}\label{fig:ajuste}
+\fuentedatos{data/difficulty_sim.csv}
+\end{figure}
+
+Lo que muestran los cuatro escenarios:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Crecimiento sostenido ($+6\,\%$ por periodo).} Sin ajuste, el tiempo por bloque se desplomaría hasta $10/1.06^{25}\approx 2.3$ minutos al cabo de 26 periodos. Con ajuste, solo se retrasa un periodo respecto al crecimiento.
+  \item \textbf{Caída súbita del 50\,\%} (como la de junio de 2021, citada en la página original). El primer periodo posterior a la caída tarda el doble por bloque: unos 20 minutos, lo que equivale a $2\,016\times 20\ \text{min}\approx 28$ días. Después el ajuste restablece los 10 minutos.
+  \item \textbf{Duplicación súbita.} El primer periodo saldría a unos 5 minutos por bloque (la mitad); el ajuste lo corrige.
+  \item \textbf{Poder de cómputo constante.} Aun así el tiempo medio fluctúa un poco de un periodo a otro (véase la nota siguiente).
+\end{itemize}
+
+\begin{nota}{¿Cuánto fluctúa un periodo de 2\,016 bloques?}
+La suma de 2\,016 exponenciales de media 10 minutos tiene media $20\,160$ min $=14$ días y desviación relativa $1/\sqrt{2\,016}\approx 2.2\,\%$, es decir, unas 7.5 horas. Por eso, incluso sin cambios en el hardware, la dificultad se mueve alrededor de $\pm 2\,\%$ de un periodo al siguiente.
+\end{nota}
+
+%% ==========================================================================
+%%  09 — EL ATAQUE CLÁSICO
+%% ==========================================================================
+\section{Cómo se intentaría el doble gasto hoy}\label{sec:ataque}
+\webhint{section; id=sec-ataque; slug=el-ataque-clasico; kicker=09 — el ataque clásico; role=narrative+math}
+
+Imagina que alguien paga a un comerciante y, al mismo tiempo, empieza a minar en secreto una cadena alternativa a partir del bloque anterior a ese pago, una en la que la transacción nunca ocurrió (o en la que el mismo dinero va a otra dirección suya). El comerciante, prudente, espera $z$ confirmaciones ---$z$ bloques en la cadena pública a partir del pago, contando el bloque que lo incluye--- antes de entregar la mercancía.
+
+Mientras tanto, el atacante sigue minando su cadena privada. Si alguna vez logra que su cadena acumule más trabajo que la pública, la publica de golpe: los nodos la adoptan por ser la de mayor trabajo, y el pago original desaparece de la historia. Ahí está el doble gasto.
+
+\subsection{El modelo}
+
+Sean $q$ la fracción del poder de cómputo del atacante y $p=1-q$ la de la red honesta. Cada bloque nuevo lo encuentra la red honesta con probabilidad $p$ y el atacante con probabilidad $q$. Nakamoto modeló la carrera en dos etapas:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
+  \item \textbf{Mientras la red honesta produce sus $z$ bloques}, el atacante produce $K$ bloques.
+  \item \textbf{Después}, la diferencia entre ambas cadenas es una caminata aleatoria: sube con probabilidad $p$ (la red honesta encuentra un bloque) y baja con probabilidad $q$ (lo encuentra el atacante).
+\end{enumerate}
+
+\begin{resultado}{Ruina del jugador}\label{res:ruina}
+Si el atacante va $k$ bloques atrás, la probabilidad de que alguna vez alcance a la red honesta es
+\[
+  \Prob{\text{alcanzar desde }k\text{ atrás}}\;=\;
+  \begin{cases}
+    (q/p)^{k}, & q<p,\\[2pt]
+    1, & q\ge p.
+  \end{cases}
+\]
+(Demostración en el Apéndice~\ref{app:deriv}, resultado~\ref{der:ruina}.)
+\end{resultado}
+
+\begin{resultado}{Los bloques del atacante siguen una binomial negativa}\label{res:nb}
+El número $K$ de bloques que encuentra el atacante antes de que la red honesta acumule $z$ tiene distribución binomial negativa:
+\[
+  \Prob{K=k}\;=\;\binom{z+k-1}{k}\,p^{z}\,q^{k},\qquad k=0,1,2,\dots
+\]
+con $\Esp{K}=zq/p$ y $\Var{K}=zq/p^{2}$.
+\end{resultado}
+
+\subsection{Tres cálculos de la misma probabilidad}
+
+La pregunta es cuánto vale $K$. Aquí conviene corregir una idea muy difundida: Nakamoto aproximó $K$ con una distribución de Poisson de media $\lambda=zq/p$. Esa aproximación \textbf{no es exacta}: el valor correcto sigue la binomial negativa del Resultado~\ref{res:nb}, como señalaron Rosenfeld (2012) \cite{rosenfeld2012} y Grunspan y Pérez-Marco (2017) \cite{grunspan2017}. Hay un segundo matiz: Nakamoto cuenta como éxito que el atacante \emph{empate}, pero en la práctica los nodos se quedan con la primera cadena que vieron, así que el atacante necesita \emph{superar} a la red por un bloque. Resultan tres versiones:
+
+\begin{resultado}{Probabilidad de éxito del atacante con $z$ confirmaciones}\label{res:formulas}
+Con $r=q/p<1$:
+\begin{align}
+  P_{\text{Poisson}}(z)&=1-\sum_{k=0}^{z}\frac{\lambda^{k}e^{-\lambda}}{k!}\Bigl(1-r^{\,z-k}\Bigr),\qquad \lambda=\frac{zq}{p}
+    &&\text{(Nakamoto 2008)}\label{eq:poisson}\\[2pt]
+  P_{\text{empate}}(z)&=1-\sum_{k=0}^{z-1}\binom{z+k-1}{k}\,p^{z}q^{k}\Bigl(1-r^{\,z-k}\Bigr)
+    &&\text{(exacta; empatar)}\label{eq:empate}\\[2pt]
+  P_{\text{superar}}(z)&=1-\sum_{k=0}^{z}\binom{z+k-1}{k}\,p^{z}q^{k}\Bigl(1-r^{\,z-k+1}\Bigr)
+    &&\text{(exacta; superar)}\label{eq:superar}
+\end{align}
+Si $q\ge p$, las tres valen $1$. En la ecuación~\eqref{eq:poisson} el término $k=z$ se anula (su factor es $1-r^{0}=0$); se conserva por fidelidad a la fórmula original de Nakamoto.
+\end{resultado}
+
+\begin{nota}{¿Por qué Poisson subestima el riesgo?}\label{nota:poisson}
+Ambas distribuciones tienen la misma media, $zq/p$. Pero la varianza de la binomial negativa, $zq/p^2$, es mayor que la de Poisson, $zq/p$, por el factor $1/p>1$. Una cola derecha más pesada significa que las «rachas de suerte» del atacante (valores grandes de $K$) son más probables de lo que Poisson supone, y esas rachas son justamente las que dominan la probabilidad de éxito.
+\end{nota}
+
+\begin{ejemplo}{$q=10\,\%$ y $z=6$}\label{ej:q10z6}
+Con las fórmulas anteriores:
+\begin{center}
+\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Cálculo} & \textbf{Probabilidad de éxito}\\
+\midrule
+Poisson, empate (Nakamoto 2008), ecuación~\eqref{eq:poisson} & \SI{0.0243}{\percent}\\
+Exacta, empate, ecuación~\eqref{eq:empate} & \SI{0.0591}{\percent}\\
+Exacta, superar, ecuación~\eqref{eq:superar} & \SI{0.0110}{\percent}\\
+\bottomrule
+\end{tabular}
+\end{center}
+Para ataques minoritarios típicos, la aproximación de Poisson \emph{subestima} el riesgo: aquí da \SI{0.024}{\percent}, cuando el valor exacto con el mismo criterio de empate es \SI{0.059}{\percent}, más del doble ($2.4\times$). Exigir que el atacante \emph{supere} a la red (y no solo empate) reduce la probabilidad a \SI{0.011}{\percent}.
+\end{ejemplo}
+
+%% ==========================================================================
+%%  10 — SIMULACIÓN DE LA CARRERA
+%% ==========================================================================
+\section{Simulación: la carrera contra la red honesta}\label{sec:simulacion}
+\webhint{section; id=sec-simulacion; slug=simulacion-de-la-carrera; kicker=10 — comprobándolo; role=narrative+widget}
+
+Para comprobar las fórmulas de la sección anterior se simula la carrera bloque a bloque. Se fija el poder de cómputo del atacante $q$ y las confirmaciones $z$ que espera el comerciante, y se repite la carrera miles de veces.
+
+\begin{lstlisting}[language=pseudo]
+function carrera(q, z):
+    h <- 0; a <- 0                          // bloques de la red honesta y del atacante
+    while h < z:                            // etapa 1: la red honesta produce z bloques
+        if aleatorio() < q: a <- a + 1 else: h <- h + 1
+    d <- h - a                              // deficit del atacante
+    empate <- (d <= 0);  superar <- (d <= -1)
+    while d > -1 and d < 60:                // etapa 2: caminata aleatoria del deficit
+        if aleatorio() < q: d <- d - 1 else: d <- d + 1
+        if d <= 0:  empate <- true
+        if d <= -1: superar <- true
+    return (empate, superar)
+\end{lstlisting}
+
+El tope de 60 bloques de ventaja se trata como «fracaso»; para $q=30\,\%$ la probabilidad que se descarta es $(q/p)^{60}\approx 8\times10^{-23}$.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-carrera-trayectorias; chart=line (múltiples series); data=data/race_paths.csv; x=paso; y=c1..c20; missing=nan significa que la carrera terminó; los puntos aislados en paso 0 son carreras ganadas de inmediato; reference_lines=y=0 (empate),y=-1 (superar); interactive=cada pulsación de «Simular carreras» dibuja nuevas trayectorias; alt=Veinte trayectorias del déficit del atacante a lo largo de los bloques posteriores a la confirmación z=6 con q=30 por ciento. Casi todas se alejan hacia arriba; dos empiezan ya por debajo de cero y logran el doble gasto de inmediato.}
+\begin{tikzpicture}
+\begin{axis}[pb,height=5.6cm,xmin=0,xmax=60,ymin=-3,ymax=21,unbounded coords=jump,
+  xlabel={Bloques nuevos tras la confirmación $z=6$},ylabel={Déficit del atacante (bloques)},ytick={-2,0,5,10,15,20}]
+\foreach \i in {1,...,20}{
+  \addplot[color=pbblue!70,line width=0.6pt,no marks,opacity=0.85] table[x=paso,y=c\i]{data/race_paths.csv};
+  \addplot[only marks,mark=*,mark size=1.1pt,color=pbblue!80] table[x=paso,y=c\i,restrict x to domain=-0.5:0.5]{data/race_paths.csv};}
+\addplot[pbred,dashed,thick,no marks,domain=0:60,samples=2] {0};
+\addplot[pborange,dashed,thick,no marks,domain=0:60,samples=2] {-1};
+\node[font=\scriptsize,anchor=south west,color=pbred!80!black,fill=white,fill opacity=0.8,text opacity=1,inner sep=1pt] at (axis cs:35,0.2) {empate (déficit 0)};
+\node[font=\scriptsize,anchor=north west,color=pborange!70!black,fill=white,fill opacity=0.8,text opacity=1,inner sep=1pt] at (axis cs:35,-1.2) {superar (déficit $-1$)};
+\end{axis}
+\end{tikzpicture}
+\caption{Veinte carreras de ejemplo con $q=30\,\%$ y $z=6$ (muestra natural, sin selección). Cada línea parte del déficit con el que el atacante inicia la etapa 2 y termina cuando alcanza el déficit $-1$ o se aleja demasiado. Dos carreras (puntos aislados en el paso 0) empiezan ya por debajo de cero, es decir, el atacante produjo más de $z$ bloques mientras la red honesta producía $z$, y logran el doble gasto de inmediato; ninguna otra alcanza la línea punteada. La probabilidad teórica de éxito es \SI{8.9}{\percent}, y aquí $2/20=\SI{10}{\percent}$.}\label{fig:trayectorias}
+\fuentedatos{data/race_paths.csv}
+\end{figure}
+
+\subsection{El resultado empírico coincide con la fórmula exacta}
+
+Se corrieron \num{1000000} de carreras por cada punto con $q=10\,\%$ ($z=1,\dots,8$) y \num{400000} con $q=30\,\%$ ($z=1,\dots,15$), con intervalos de confianza de Wilson al \SI{95}{\percent}. La tabla~\ref{tab:z6} resume el caso $z=6$ y la figura~\ref{fig:ds-paneles} muestra todos los puntos.
+
+\begin{table}[tbp]
+\centering
+\webhint{table; id=tab-z6; kind=comparison; data=data/double_spend_mc.csv; filter=z=6}
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}l c c c c c c@{}}
+\toprule
+ & & \multicolumn{2}{c}{\textbf{Criterio: empatar}} & \multicolumn{2}{c}{\textbf{Criterio: superar}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+\textbf{Atacante} & \textbf{Poisson (2008)} & \textbf{Exacta} & \textbf{Monte Carlo} & \textbf{Exacta} & \textbf{Monte Carlo}\\
+\midrule
+$q=10\,\%$ & \SI{0.0243}{\percent} & \SI{0.0591}{\percent} & \SI{0.0583}{\percent}\ {\scriptsize[0.0538; 0.0632]} & \SI{0.0110}{\percent} & \SI{0.0117}{\percent}\ {\scriptsize[0.0098; 0.0140]}\\
+$q=30\,\%$ & \SI{13.21}{\percent} & \SI{15.65}{\percent} & \SI{15.58}{\percent}\ {\scriptsize[15.47; 15.70]} & \SI{8.91}{\percent} & \SI{8.88}{\percent}\ {\scriptsize[8.79; 8.96]}\\
+\bottomrule
+\end{tabular}
+\caption{Probabilidad de éxito del atacante con $z=6$ confirmaciones. Entre corchetes, el intervalo de confianza al 95\,\% del Monte Carlo.}\label{tab:z6}
+\end{table}
+
+\begin{verificacion}{¿Coincide la simulación con la teoría?}\label{ver:mc}
+En los 23 puntos simulados, el valor exacto del criterio «empatar» cae dentro del intervalo de confianza del \SI{95}{\percent} en los 23, y el del criterio «superar» en 22 (uno queda apenas fuera, lo esperable por azar con intervalos al \SI{95}{\percent}). La aproximación de Poisson, en cambio, se aleja sistemáticamente del experimento: por ejemplo, con $q=30\,\%$ y $z=6$ da \SI{13.2}{\percent} cuando la simulación da \SI{15.6}{\percent}.
+\end{verificacion}
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-ds-paneles; chart=line+scatter con barras de error (dos paneles); yscale=log; data=data/double_spend_curves.csv,data/double_spend_mc.csv; filter=q=0.10 (panel a),q=0.30 (panel b); x=z; y=poisson_empate,exacta_empate,exacta_superar,mc_empate,mc_superar; error_bars=mc_*_lo,mc_*_hi; interactive=sliders de q y z, selector de criterio y de número de carreras; alt=Dos gráficas logarítmicas de la probabilidad de éxito del atacante frente al número de confirmaciones, para q de 10 y de 30 por ciento. La aproximación de Poisson queda por debajo de la fórmula exacta con empate; los puntos de Monte Carlo coinciden con las curvas exactas.}
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,height=5.6cm,ymode=log,xmin=1,xmax=20,ymin=1e-10,ymax=1,title={$q=10\,\%$},
+  xlabel={Confirmaciones $z$},ylabel={Prob. de éxito del atacante},
+  legend to name=leg-ds,legend columns=3,legend style={/tikz/every even column/.append style={column sep=0.35cm}}]
+\addplot[black!70,dashed,no marks] table[x=z,y=poisson_empate,restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_curves.csv};
+\addlegendentry{Poisson (2008)}
+\addplot[c2,no marks] table[x=z,y=exacta_empate,restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_curves.csv};
+\addlegendentry{Exacta, empate}
+\addplot[c1,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_curves.csv};
+\addlegendentry{Exacta, superar}
+\addplot[c2,only marks,mark=o,mark size=1.8pt,error bars/.cd,y dir=both,y explicit] table[x=z,y=mc_empate,y error plus expr=\thisrow{mc_empate_hi}-\thisrow{mc_empate},y error minus expr=\thisrow{mc_empate}-\thisrow{mc_empate_lo},restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_mc.csv};
+\addlegendentry{Monte Carlo, empate}
+\addplot[c1,only marks,mark=square*,mark size=1.6pt,error bars/.cd,y dir=both,y explicit] table[x=z,y=mc_superar,y error plus expr=\thisrow{mc_superar_hi}-\thisrow{mc_superar},y error minus expr=\thisrow{mc_superar}-\thisrow{mc_superar_lo},restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_mc.csv};
+\addlegendentry{Monte Carlo, superar}
+\end{axis}
+\end{tikzpicture}
+\subcaption{Atacante con el \SI{10}{\percent}.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,height=5.6cm,ymode=log,xmin=1,xmax=40,ymin=1e-4,ymax=1,title={$q=30\,\%$},
+  xlabel={Confirmaciones $z$},ylabel={Prob. de éxito del atacante}]
+\addplot[black!70,dashed,no marks] table[x=z,y=poisson_empate,restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_curves.csv};
+\addplot[c2,no marks] table[x=z,y=exacta_empate,restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_curves.csv};
+\addplot[c1,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_curves.csv};
+\addplot[c2,only marks,mark=o,mark size=1.8pt,error bars/.cd,y dir=both,y explicit] table[x=z,y=mc_empate,y error plus expr=\thisrow{mc_empate_hi}-\thisrow{mc_empate},y error minus expr=\thisrow{mc_empate}-\thisrow{mc_empate_lo},restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_mc.csv};
+\addplot[c1,only marks,mark=square*,mark size=1.6pt,error bars/.cd,y dir=both,y explicit] table[x=z,y=mc_superar,y error plus expr=\thisrow{mc_superar_hi}-\thisrow{mc_superar},y error minus expr=\thisrow{mc_superar}-\thisrow{mc_superar_lo},restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_mc.csv};
+\end{axis}
+\end{tikzpicture}
+\subcaption{Atacante con el \SI{30}{\percent}.}
+\end{subfigure}
+
+\smallskip
+\ref{leg-ds}
+\caption{Probabilidad de que el atacante revierta un pago según las confirmaciones que espera el comerciante (escala logarítmica). Los puntos son simulaciones con intervalo de confianza al 95\,\%; coinciden con las curvas exactas y no con la aproximación de Poisson.}\label{fig:ds-paneles}
+\fuentedatos{data/double_spend_curves.csv, data/double_spend_mc.csv}
+\end{figure}
+
+\subsection{El riesgo, confirmación por confirmación}
+
+La probabilidad cae de forma exponencial con cada bloque adicional: para $q=10\,\%$, el cociente entre dos valores consecutivos de la curva exacta ronda $0.34$ ($6.7\times10^{-5}/2.0\times10^{-4}$ entre $z=8$ y $z=7$); para $q=30\,\%$ es de $0.82$, mucho más lento. Cuanto más cerca del 50\,\%, más confirmaciones hacen falta (figura~\ref{fig:ds-familia}).
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-ds-familia; chart=line; yscale=log; data=data/double_spend_curves.csv; filter=q in {0.10,0.20,0.30,0.40}; x=z; y=exacta_superar; reference_line=0.001; alt=Cuatro curvas logarítmicas de la probabilidad exacta de éxito del atacante según las confirmaciones, para q de 10, 20, 30 y 40 por ciento. Cuanto mayor es q, más lentamente decrece.}
+\begin{tikzpicture}
+\begin{axis}[pb,ymode=log,xmin=1,xmax=100,ymin=1e-10,ymax=1.5,
+  xlabel={Confirmaciones $z$},ylabel={Prob. de éxito (exacta, superar)},legend columns=4,legend style={at={(0.5,1.03)},anchor=south,draw=none,fill=none},legend cell align=left]
+\addplot[c1,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.095:0.105}]{data/double_spend_curves.csv};
+\addlegendentry{$q=10\,\%$}
+\addplot[c3,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.195:0.205}]{data/double_spend_curves.csv};
+\addlegendentry{$q=20\,\%$}
+\addplot[c2,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.295:0.305}]{data/double_spend_curves.csv};
+\addlegendentry{$q=30\,\%$}
+\addplot[c5,no marks] table[x=z,y=exacta_superar,restrict expr to domain={\thisrow{q}}{0.395:0.405}]{data/double_spend_curves.csv};
+\addlegendentry{$q=40\,\%$}
+\addplot[dashed,gray,no marks,domain=1:100,samples=2] {0.001};
+\node[font=\scriptsize,anchor=north,color=pbgray!90!black] at (axis cs:75,0.0009) {umbral de $0.1\,\%$};
+\end{axis}
+\end{tikzpicture}
+\caption{Cómo cae la probabilidad de éxito del atacante al esperar más bloques, para distintos poderes de cómputo del atacante. La línea punteada marca el umbral de $0.1\,\%$ usado en la tabla~\ref{tab:confirmaciones}.}\label{fig:ds-familia}
+\fuentedatos{data/double_spend_curves.csv}
+\end{figure}
+
+\subsection{¿Cuántas confirmaciones hacen falta?}
+
+El documento original incluye una tabla con el mínimo de confirmaciones para que la probabilidad de éxito del atacante baje de $0.1\,\%$. La tabla~\ref{tab:confirmaciones} la recalcula con los tres criterios. La columna de Nakamoto reproduce su tabla de 2008; las otras dos muestran cuánto cambian los números al hacer el cálculo exacto.
+
+\begin{table}[tbp]
+\centering
+\webhint{table; id=tab-confirmaciones; kind=data; data=data/confirmations_table.csv; columns=q,poisson_empate_2008,exacta_empate,exacta_superar}
+\small
+\pgfplotstabletypeset[col sep=comma,
+  every head row/.style={before row=\toprule,after row=\midrule},
+  every last row/.style={after row=\bottomrule},
+  columns/q/.style={column name={\textbf{Atacante ($q$)}},fixed,fixed zerofill,precision=2,column type={@{}c}},
+  columns/poisson_empate_2008/.style={column name={\textbf{Poisson, empate (2008)}},column type=c,int detect},
+  columns/exacta_empate/.style={column name={\textbf{Exacta, empate}},column type=c,int detect},
+  columns/exacta_superar/.style={column name={\textbf{Exacta, superar}},column type={c@{}},int detect}
+]{data/confirmations_table.csv}
+\caption{Confirmaciones mínimas para que el éxito del atacante sea inferior a $0.1\,\%$.}\label{tab:confirmaciones}
+\fuentedatos{data/confirmations_table.csv}
+\end{table}
+
+Con $q=30\,\%$, Nakamoto indicaba 24 confirmaciones; el cálculo exacto con empate pide 32 y, exigiendo superar, 29. Con $q=45\,\%$ la diferencia es mayor: 340 frente a 539 y 530. Con $q=10\,\%$ ocurre lo contrario para el criterio estricto: basta con 4 confirmaciones, una menos que en la tabla original. No conviene, por tanto, resumir que Poisson «siempre subestima»: depende de qué se exija al atacante.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-confirmaciones; chart=line+markers; yscale=log; data=data/confirmations_table.csv; x=q; y=poisson_empate_2008,exacta_empate,exacta_superar; alt=Confirmaciones necesarias para que el atacante tenga menos de 0.1 por ciento de éxito en función de su poder de cómputo, entre 10 y 45 por ciento, con los tres criterios. Crece de forma muy pronunciada al acercarse al 50 por ciento.}
+\begin{tikzpicture}
+\begin{axis}[pb,height=5.4cm,ymode=log,xmin=0.08,xmax=0.47,ymin=2,ymax=1000,
+  xlabel={Poder de cómputo del atacante $q$},ylabel={Confirmaciones necesarias},legend pos=north west,legend cell align=left,
+  xtick={0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45},x tick label style={/pgf/number format/fixed,/pgf/number format/fixed zerofill,/pgf/number format/precision=2}]
+\addplot[c4,mark=triangle*,mark size=2pt] table[x=q,y=poisson_empate_2008]{data/confirmations_table.csv};
+\addlegendentry{Poisson, empate (2008)}
+\addplot[c2,mark=o,mark size=2pt] table[x=q,y=exacta_empate]{data/confirmations_table.csv};
+\addlegendentry{Exacta, empate}
+\addplot[c1,mark=square*,mark size=1.8pt] table[x=q,y=exacta_superar]{data/confirmations_table.csv};
+\addlegendentry{Exacta, superar}
+\end{axis}
+\end{tikzpicture}
+\caption{Confirmaciones necesarias para bajar de $0.1\,\%$, según el poder de cómputo del atacante y el criterio de éxito. La escala vertical es logarítmica.}\label{fig:confirmaciones}
+\fuentedatos{data/confirmations_table.csv}
+\end{figure}
+
+\subsection{El ataque del \texorpdfstring{51\,\%}{51 \%}}
+
+La seguridad no es absoluta: es una apuesta cuantificable que mejora exponencialmente con cada bloque, siempre que el atacante tenga menos de la mitad del poder de cómputo. Con la mitad o más, la caminata aleatoria ya no tiene deriva a su favor (Resultado~\ref{res:ruina}: la probabilidad de alcanzar a la red es 1 si $q\ge p$) y el éxito a la larga es seguro: ese es el famoso «ataque del 51\,\%».
+
+%% ==========================================================================
+%%  11 — QUÉ SE RESOLVIÓ
+%% ==========================================================================
+\section{Lo que la prueba de trabajo aporta}\label{sec:aporta}
+\webhint{section; id=sec-aporta; slug=que-se-resolvio; kicker=11 — qué se resolvió, en concreto; role=summary}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Resistencia a Sybil:} nadie puede fingir tener más votos que poder de cómputo real, porque cada voto cuesta electricidad y hardware (Resultado~\ref{res:proporcional}).
+  \item \textbf{Un orden común sin coordinador:} la red se pone de acuerdo sobre qué transacción fue primero reconociendo la cadena con más trabajo acumulado; la segunda moneda gastada simplemente es inválida (sección~\ref{sec:cadena}).
+  \item \textbf{Un reloj autorregulado:} el ajuste de dificultad mantiene el ritmo de unos diez minutos por bloque sin importar cuánto hardware entre o salga (sección~\ref{sec:reloj}).
+  \item \textbf{Un costo creciente y verificable para el fraude:} para un atacante minoritario, la probabilidad de revertir un pago cae exponencialmente con las confirmaciones, y verificar el trabajo de otros cuesta un solo hash (sección~\ref{sec:ataque}).
+\end{itemize}
+
+Y lo que \textbf{no} garantiza: la seguridad es probabilística, no absoluta; supone que la mayoría del poder de cómputo actúa honestamente; y el modelo simple de este texto ignora la latencia de la red y estrategias más sofisticadas, como la minería egoísta (Eyal y Sirer, 2014) \cite{eyal2014}, que pueden dar ventaja a mineros con bastante menos del \SI{50}{\percent}.
+
+%% ==========================================================================
+%%  12 — EL COSTO
+%% ==========================================================================
+\section{El costo de esta solución}\label{sec:costo}
+\webhint{section; id=sec-costo; slug=el-costo; kicker=12 — el otro lado; role=narrative+widget}
+
+La misma prueba de trabajo que da seguridad tiene un precio medible. Las cifras de referencia más citadas provienen del Centro de Finanzas Alternativas de Cambridge (CCAF) \cite{ccaf2025}:
+
+\begin{center}
+\webhint{table; id=tab-cifras-energia; kind=stat-tiles; items=138 TWh/año,52.4 \%,3.125 BTC}
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\Large\color{pbblue}}l >{\raggedright\arraybackslash}X@{}}
+$\approx$ \SI{138}{\tera\watt\hour} & consumo eléctrico anual estimado (informe CCAF, abril de 2025), cerca del \SI{0.5}{\percent} de la electricidad mundial.\\[4pt]
+\SI{52.4}{\percent} & de esa energía proviene de fuentes sostenibles según la encuesta del CCAF: \SI{42.6}{\percent} renovable y \SI{9.8}{\percent} nuclear.\\[4pt]
+\SI{3.125}{\btc} & recompensa por bloque desde el cuarto halving (abril de 2024); el siguiente se espera hacia 2028.\\
+\end{tabularx}
+\end{center}
+
+Para dimensionar: \SI{138}{\tera\watt\hour} al año está entre el consumo eléctrico de Bélgica y el de los Países Bajos. Las estimaciones tienen incertidumbre importante; la encuesta del CCAF cubrió empresas que suman cerca de la mitad del poder de cómputo de la red.
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-energia; chart=stacked-bar; data=data/energy_mix.csv; x=fuente; y=porcentaje; alt=Barra apilada del consumo energético de la minería de Bitcoin: 42.6 por ciento renovable, 9.8 por ciento nuclear y 47.6 por ciento resto, para un total de 52.4 por ciento sostenible.}
+\begin{tikzpicture}[x=0.14cm,y=1cm]
+\fill[pbgreen!55] (0,0) rectangle (42.6,1);
+\fill[pbblue!45] (42.6,0) rectangle (52.4,1);
+\fill[pbgray!25] (52.4,0) rectangle (100,1);
+\draw[pbgray] (0,0) rectangle (100,1);
+\node[font=\small] at (21.3,0.5) {Renovable 42.6\,\%};
+\node[font=\scriptsize,align=center] at (47.5,0.5) {Nuclear\\ 9.8\,\%};
+\node[font=\small] at (76.2,0.5) {Resto 47.6\,\%};
+\draw[decorate,decoration={brace,amplitude=4pt,mirror},pbgreen!70!black] (0,-0.15) -- (52.4,-0.15) node[midway,below=5pt,font=\small,black]{52.4\,\% fuentes sostenibles (CCAF)};
+\end{tikzpicture}
+\caption{Mezcla energética de la minería de Bitcoin según la encuesta del CCAF (abril de 2025).}\label{fig:energia}
+\fuentedatos{data/energy_mix.csv}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-halving; chart=bar; data=data/halving_schedule.csv; x=anio; y=recompensa_btc; annotation=la barra punteada es la proyección (≈2028) por la regla de división entre dos; alt=Recompensa por bloque a lo largo de las eras: 50 bitcoin en 2009, 25 en 2012, 12.5 en 2016, 6.25 en 2020, 3.125 en 2024 y una proyección de 1.5625 hacia 2028.}
+\begin{tikzpicture}
+\begin{axis}[pb,height=5cm,xmin=2006,xmax=2031,ymin=0,ymax=58,
+  xlabel={Año de inicio de la era},ylabel={Recompensa por bloque (BTC)},
+  xtick={2009,2012,2016,2020,2024,2028},xticklabel style={/pgf/number format/set thousands separator={}},
+  nodes near coords,nodes near coords style={font=\scriptsize,/pgf/number format/fixed,/pgf/number format/precision=4},every node near coord/.append style={yshift=1pt}]
+\addplot[ybar,bar width=0.9cm,fill=pbblue!45,draw=pbblue!80] table[x=anio,y=recompensa_btc]{data/halving_schedule.csv};
+\addplot[ybar,bar width=0.9cm,fill=none,draw=pbblue!80,dashed] coordinates {(2028,1.5625)};
+\end{axis}
+\end{tikzpicture}
+\caption{Recompensa por bloque: se divide entre dos cada \num{210000} bloques (alrededor de cuatro años). La barra punteada es la proyección para el próximo halving (hacia 2028).}\label{fig:halving}
+\fuentedatos{data/halving_schedule.csv}
+\end{figure}
+
+\subsection{¿Cuánto cuesta atacar? Una estimación de orden de magnitud}
+
+Si el atacante quiere controlar una fracción $q$ del poder de cómputo total, debe aportar $q/(1-q)$ veces lo que ya tiene la red honesta. Con la potencia actual de la red se puede estimar solo la factura eléctrica del ataque; el hardware, que sería el costo dominante, no está incluido.
+
+\begin{resultado}{Factura eléctrica del ataque}\label{res:costo}
+Con una red honesta de $H_{\text{red}}\approx 1\ \text{ZH/s}$ y $P_{\text{red}}\approx 15.7\ \text{GW}$ ($138\ \text{TWh}/8\,760\ \text{h}$, es decir, unos $16\ \text{J}$ por TH), un atacante con fracción $q$ necesita
+\[
+  H_a=\frac{q}{1-q}H_{\text{red}},\qquad
+  P_a=\frac{q}{1-q}P_{\text{red}},\qquad
+  C=P_a\cdot t\cdot \pi,
+\]
+donde $t$ es la duración en horas y $\pi$ el precio de la electricidad (USD por kWh).
+\end{resultado}
+
+\begin{ejemplo}{Un atacante con el 30\,\% durante 6 horas}\label{ej:costo}
+Con $q=0.30$, $t=6$ h y $\pi=\SI{0.05}{\usd\per\kilo\watt\hour}$: $H_a=0.43\ \text{ZH/s}$ (\SI{428.6}{\exa\hash\per\second}), $P_a\approx 6.75\ \text{GW}$ y una factura eléctrica de unos \SI{2.03}{\mega\usd} (millones de dólares). Con $z=6$ confirmaciones y criterio de superar, su probabilidad de éxito es \SI{8.9}{\percent}.
+\end{ejemplo}
+
+\begin{figure}[tbp]
+\centering
+\webhint{figure; id=fig-costo; chart=bar + line (dos paneles); data=data/attack_cost.csv; x=q; y=usd_millones_6h (panel a),p_exito_z6_superar (panel b, escala log); interactive=calculadora con sliders de q (5–45 \%), duración (1–72 h) y precio (0.02–0.20 USD/kWh) que muestra poder de cómputo, potencia eléctrica, electricidad y probabilidad de éxito; alt=Dos paneles. A la izquierda, la factura eléctrica de un ataque de seis horas crece con el poder de cómputo del atacante hasta unos 3.9 millones de dólares con el 45 por ciento. A la derecha, la probabilidad de éxito con seis confirmaciones crece de casi cero a cerca del 65 por ciento.}
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,ybar,bar width=0.42cm,xmin=0.02,xmax=0.48,ymin=0,
+  xlabel={Poder de cómputo del atacante $q$},ylabel={Electricidad (millones de USD)},
+  xtick={0.05,0.15,0.25,0.35,0.45},x tick label style={/pgf/number format/fixed,/pgf/number format/fixed zerofill,/pgf/number format/precision=2}]
+\addplot[fill=pbblue!45,draw=pbblue!80] table[x=q,y=usd_millones_6h]{data/attack_cost.csv};
+\end{axis}
+\end{tikzpicture}
+\subcaption{Factura eléctrica de 6 horas de ataque.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[pbhalf,ymode=log,xmin=0.03,xmax=0.47,ymin=1e-7,ymax=1,
+  xlabel={Poder de cómputo del atacante $q$},ylabel={Prob. de éxito con $z=6$},
+  xtick={0.05,0.15,0.25,0.35,0.45},x tick label style={/pgf/number format/fixed,/pgf/number format/fixed zerofill,/pgf/number format/precision=2}]
+\addplot[c2,mark=*,mark size=1.8pt] table[x=q,y=p_exito_z6_superar]{data/attack_cost.csv};
+\end{axis}
+\end{tikzpicture}
+\subcaption{Probabilidad de éxito con 6 confirmaciones.}
+\end{subfigure}
+\caption{Orden de magnitud de un ataque: costo eléctrico de seis horas (supuestos del Resultado~\ref{res:costo}, \SI{0.05}{\usd\per\kilo\watt\hour}) y probabilidad de éxito con $z=6$ (criterio de superar).}\label{fig:costo}
+\fuentedatos{data/attack_cost.csv}
+\end{figure}
+
+\subsection{Dos posturas sobre si ese gasto vale la pena}
+
+Sobre si ese gasto vale la pena hay posturas encontradas, y conviene presentarlas sin inclinar la balanza.
+
+\textbf{Quienes defienden el diseño} argumentan que el gasto energético no es un desperdicio sino el fundamento de la seguridad: un costo real y auditable es lo que hace que reescribir la historia sea económicamente inviable. Señalan además que más de la mitad de la energía proviene de fuentes sostenibles según la encuesta del CCAF, y que la minería puede aprovechar excedentes o ajustarse a la demanda de la red eléctrica, como ocurrió en las tormentas invernales de Texas.
+
+\textbf{Quienes lo cuestionan} señalan el consumo total ---comparable al de países europeos medianos---, las emisiones de la parte que sigue usando gas y carbón, la concentración de la minería en pocas empresas y regiones, y proponen alternativas como la \emph{prueba de participación} (\emph{proof of stake}), adoptada por Ethereum en 2022, que logra consenso sin gasto energético intensivo, a cambio de otros supuestos de seguridad.
+
+Ambas posturas coinciden en un punto: la prueba de trabajo no elimina la posibilidad de un ataque, la vuelve costosa. Qué tan costosa debe ser, y si ese costo vale la pena frente a otros diseños, sigue siendo un debate abierto en la comunidad técnica y regulatoria.
+
+%% ==========================================================================
+%%  13 — CONCLUSIONES
+%% ==========================================================================
+\section{Conclusiones}\label{sec:conclusiones}
+\webhint{section; id=sec-conclusiones; slug=conclusiones; kicker=cierre; role=summary}
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+  \item El doble gasto es un problema de \emph{orden}: si todos acuerdan qué transacción fue primera, la segunda es inválida. Con un banco el orden es trivial; sin banco hace falta un mecanismo de acuerdo entre desconocidos.
+  \item La prueba de trabajo convierte el voto en algo que cuesta recursos físicos, lo que neutraliza los ataques Sybil. El hash criptográfico garantiza que no hay atajos: encontrar un nonce es un proceso de ensayos independientes, con tiempos exponenciales y sin memoria.
+  \item Al encadenar los bloques mediante hashes, reescribir el pasado exige rehacer todo el trabajo posterior. La regla de la cadena con más trabajo acumulado, junto con el ajuste de dificultad cada 2\,016 bloques, da un reloj estable y una historia única.
+  \item La seguridad contra el doble gasto es probabilística y mejora exponencialmente con las confirmaciones, mientras el atacante tenga menos de la mitad del poder de cómputo. La fórmula correcta es la binomial negativa; la aproximación de Poisson de 2008 subestima el riesgo en el criterio de empate, y el número de confirmaciones recomendable depende del criterio de éxito que se suponga.
+  \item Esa seguridad tiene un costo energético medible y un debate abierto sobre si merece la pena frente a otros diseños de consenso.
+\end{enumerate}
+
+%% ==========================================================================
+%%  APÉNDICES
+%% ==========================================================================
+\appendix
+
+\section{Guía para convertir este documento en una página web}\label{app:web}
+\webhint{section; id=app-web; slug=guia-web; kicker=apéndice; role=meta; render=false}
+
+Este apéndice es el contrato entre el documento y quien (persona o IA) lo convierta a HTML. La página resultante debe reproducir el espíritu de la original: un recorrido narrativo de 12 secciones, \emph{origen $\rightarrow$ problema $\rightarrow$ solución $\rightarrow$ simulación}, con herramientas interactivas calculadas en el navegador.
+
+\subsection{Marcado semántico}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \texttt{\textbackslash webhint\{...\}} no imprime nada en el PDF. Es una lista \texttt{clave=valor} separada por «;» cuyo primer elemento es el tipo de bloque (\texttt{section}, \texttt{figure}, \texttt{table}). Debe leerse del código fuente \texttt{.tex}.
+  \item Para \texttt{section}: \texttt{id} (ancla HTML), \texttt{slug} (URL), \texttt{kicker} (etiqueta en mayúsculas pequeñas sobre el título, p.\,ej. «06 --- el rompecabezas»), \texttt{role} (\texttt{narrative}, \texttt{widget}, \texttt{math}, \texttt{summary}, \texttt{meta}). Las secciones con \texttt{render=false} no se publican.
+  \item Para \texttt{figure}: \texttt{id}, \texttt{chart} (tipo de gráfica), \texttt{data} (CSV de origen, relativo a la raíz del proyecto), \texttt{x} y \texttt{y} (columnas), \texttt{yscale}, \texttt{filter} (qué filas usar), \texttt{interactive} (comportamiento deseado) y \texttt{alt} (texto alternativo, obligatorio en la página).
+  \item Las cajas \texttt{definicion}, \texttt{resultado}, \texttt{ejemplo}, \texttt{verificacion}, \texttt{nota} y \texttt{cuidado} se convierten en \texttt{\detokenize{<aside class="callout callout--TIPO">}} con su título. Las que tengan \texttt{\textbackslash label} deben conservar un ancla.
+\end{itemize}
+
+\subsection{Correspondencia LaTeX \texorpdfstring{$\rightarrow$}{->} HTML}
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}>{\ttfamily}l X@{}}
+\toprule
+\textnormal{\textbf{LaTeX}} & \textbf{HTML / componente}\\
+\midrule
+\textbackslash section & \texttt{\detokenize{<section id=…>}} con \texttt{\detokenize{<h2>}} y el kicker; menú lateral fijo con las 12 secciones\\
+\textbackslash subsection & \texttt{\detokenize{<h3>}}\\
+\$…\$, equation, align & KaTeX (las macros propias \texttt{\textbackslash Prob}, \texttt{\textbackslash Esp}, \texttt{\textbackslash Var}, \texttt{\textbackslash SHA}, \texttt{\textbackslash SHAd} deben definirse como macros de KaTeX)\\
+tabular, tabularx & \texttt{\detokenize{<table>}} con \texttt{\detokenize{<thead>}}, \texttt{\detokenize{<caption>}} y desplazamiento horizontal en pantallas estrechas\\
+figure + tikzpicture & SVG en línea (diagramas) con \texttt{\detokenize{<figcaption>}} y el \texttt{alt} del \texttt{\textbackslash webhint}\\
+figure + axis (pgfplots) & Gráfica interactiva (Chart.js, D3 o Plotly) leyendo el CSV indicado en \texttt{data}\\
+lstlisting & \texttt{\detokenize{<pre><code>}} con resaltado de sintaxis\\
+\textbackslash cite, \textbackslash ref & Enlaces a \texttt{\#ref-clave} y a las anclas de figuras, tablas y secciones\\
+\textbackslash SI, \textbackslash num & Texto con espacio fino como separador de miles y punto decimal\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Gráficas: qué dibujar y de dónde sale cada número}
+
+Todas las gráficas con datos leen un CSV en \texttt{data/}. La página web debe cargar esos mismos archivos y \emph{no} copiar cifras a mano.
+
+\begin{center}
+\webhint{table; id=tab-figuras-web; kind=index; columns=Figura,Tipo,Datos,Interacción sugerida}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}p{2.2cm} >{\ttfamily\raggedright\arraybackslash}p{4.3cm} >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Figura} & \textbf{Tipo} & \textnormal{\textbf{Datos}} & \textbf{Interacción sugerida}\\
+\midrule
+\ref{fig:modelos-confianza} & diagrama & --- & Selector de modelo (nadie / banco / red) que anima el envío a dos tiendas\\
+\ref{fig:linea-tiempo} & línea de tiempo & timeline.csv & Tarjeta emergente con la aportación; color por categoría\\
+\ref{fig:avalancha} & barras + línea & avalanche\_hist.csv & Dos cuadros de texto y cuadrícula de 256 bits con los distintos resaltados\\
+\ref{fig:anatomia}, \ref{fig:merkle} & diagrama & genesis\_header.json & Editar campos y recalcular SHA-256d; resaltar el camino de Merkle\\
+\ref{fig:minado} & histograma + curva & mining\_hist.csv & Botón «minar serie» con dificultad y número de bloques seleccionables\\
+\ref{fig:escala} & líneas, eje log & difficulty\_scale.csv & Marcadores en $d=20$ y $d\approx 79$; etiqueta con el tiempo esperado\\
+\ref{fig:cadena} & diagrama & --- & Cadena editable de 5 bloques con 14 bits; «reminar inválidos»\\
+\ref{fig:tiempo-bloques} & área + línea & block\_time\_dist.csv & Colas $T<1$ min y $T>30$ min sombreadas\\
+\ref{fig:ajuste} & líneas 2$\times$2 & difficulty\_sim.csv & Selector de escenario; interruptor con/sin ajuste; «simular 26 periodos»\\
+\ref{fig:trayectorias} & líneas múltiples & race\_paths.csv & «Simular carreras» dibuja trayectorias nuevas\\
+\ref{fig:ds-paneles} & curvas + puntos con IC & double\_spend\_curves.csv, double\_spend\_mc.csv & Sliders de $q$ y $z$; criterio (empatar / superar); 20\,000 / 200\,000 / 1\,000\,000 carreras\\
+\ref{fig:ds-familia} & líneas, eje log & double\_spend\_curves.csv & Resaltar la curva al pasar el cursor\\
+\ref{fig:confirmaciones} & líneas con marcadores & confirmations\_table.csv & Tabla enlazada a la gráfica\\
+\ref{fig:energia}, \ref{fig:halving} & barras & energy\_mix.csv, halving\_schedule.csv & Tooltip con valores\\
+\ref{fig:costo} & barras + línea log & attack\_cost.csv & Calculadora: $q$, horas y precio por kWh\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Herramientas interactivas que la página debe incluir}
+
+Son las de la página original. Se calculan en el navegador, sin servidor; el SHA-256 puede implementarse a mano (para obtener el \emph{midstate}) y la minería debe ejecutarse en un \emph{Web Worker} para no bloquear la interfaz.
+
+\begin{center}
+\webhint{table; id=tab-widgets; kind=widget-spec}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Id} & \textbf{Sec.} & \textbf{Entradas} & \textbf{Salidas / fórmula}\\
+\midrule
+\texttt{w-modelos} & 1 & Modelo: nadie, banco, red de prueba de trabajo & Estado de las dos tiendas (acepta / rechaza)\\
+\texttt{w-hash} & 4 & Entrada A, entrada B & SHA-256 y SHA-256d de cada una; cuadrícula de 256 bits con los distintos; recuento\\
+\texttt{w-bloque} & 5 & Seis campos del encabezado (precargados con \texttt{genesis\_header.json}) & 80 bytes en hexadecimal; SHA-256d invertido; comparación con el objetivo; botón «restaurar génesis»\\
+\texttt{w-minero} & 6 & Dificultad $d\in[1,28]$ & Intentos, intentos esperados $2^{d}$, hashes/s, tiempo; algoritmo con \emph{midstate}\\
+\texttt{w-serie} & 6 & $d\in\{12,14,16,18\}$; bloques $\in\{50,200,500\}$ & Histograma frente a $e^{-x}$ en múltiplos de $2^{d}$\\
+\texttt{w-cadena} & 7 & Texto de cada uno de 5 bloques; $d=14$ & Estado válido/inválido; «reminar todos»; «restaurar»\\
+\texttt{w-dificultad} & 8 & Escenario; con/sin ajuste & 26 periodos; $D_{\text{nueva}}=D\cdot 20160/T_{\text{real}}$ acotado a $[\frac14,4]$; porcentaje de bloques $>30$ min (teoría $e^{-3}=4.98\,\%$)\\
+\texttt{w-carrera} & 10 & $q\in[1,49]\,\%$; $z\in[1,20]$; criterio; carreras & Poisson, exacta (binomial negativa) y Monte Carlo con IC de Wilson; gráfica y tabla de confirmaciones\\
+\texttt{w-costo} & 12 & $q$, horas, USD/kWh & $H_a$, $P_a$, electricidad, $P_{\text{éxito}}(z=6)$ (Resultado~\ref{res:costo})\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Diseño, formato y accesibilidad}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Paleta} (variables CSS): azul \texttt{\#1F4E79}, naranja \texttt{\#D95F02}, verde \texttt{\#1B7F5C}, violeta \texttt{\#6A5ACD}, rojo \texttt{\#B22222}, gris \texttt{\#5F6368}. Apta para daltonismo; ningún dato debe depender solo del color (usar marcadores y etiquetas). Debe haber tema claro y oscuro.
+  \item \textbf{Tipografía:} serifa para el texto largo, sans para títulos y kickers, monoespaciada para hashes y código. Los hashes largos deben partirse en grupos legibles (8 caracteres) y permitir copiar.
+  \item \textbf{Números:} punto decimal y espacio fino como separador de miles (\texttt{2\,016}, \texttt{4\,295\,032\,833}), igual que el documento. Usar escala logarítmica donde el eje abarque órdenes de magnitud y rotularla.
+  \item \textbf{Accesibilidad:} cada gráfica lleva su \texttt{alt}; los controles deben operarse con teclado; las tablas con \texttt{scope}; respetar \texttt{prefers-reduced-motion}.
+  \item \textbf{Rendimiento:} el minero y las simulaciones de Monte Carlo (hasta $10^{6}$ carreras) deben correr en un \emph{Web Worker} y poder detenerse.
+\end{itemize}
+
+\subsection{Vectores de prueba para validar la página}
+
+La página convertida debe reproducir exactamente estas cifras (proceden de los datos de este documento y de cálculos independientes):
+
+\begin{center}
+\webhint{table; id=tab-vectores; kind=test-vectors}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Prueba} & \textbf{Resultado esperado}\\
+\midrule
+SHA-256d del encabezado del génesis (bytes invertidos) & \texttt{000000000019d6689c085ae1\allowbreak 65831e934ff763ae46a2a6c172\allowbreak b3f1b60a8ce26f}; 43 bits iniciales en cero\\
+Intentos esperados con dificultad 1 & \num{4295032833} ($\approx 2^{32}$)\\
+SHA-256 de «\texttt{prueba de trabajo}» y de «\texttt{prueba de trabaio}» & \texttt{47743df0…18483e} y \texttt{cc7cef41…3309fa}; 115 bits distintos\\
+Efecto avalancha, distribución & $\mathrm{Bin}(256,\tfrac12)$: media 128, desviación 8\\
+$\Prob{T>30\,\text{min}}$, $\Prob{T<1\,\text{min}}$ & $e^{-3}=4.98\,\%$; $1-e^{-0.1}=9.52\,\%$\\
+Doble gasto, $q=10\,\%$, $z=6$ & Poisson \SI{0.0243}{\percent}; exacta (empate) \SI{0.0591}{\percent}; exacta (superar) \SI{0.0110}{\percent}\\
+Doble gasto, $q=30\,\%$, $z=6$ & Poisson \SI{13.21}{\percent}; exacta (empate) \SI{15.65}{\percent}; exacta (superar) \SI{8.91}{\percent}\\
+Confirmaciones para $<0.1\,\%$, $q=30\,\%$ & 24 (Poisson), 32 (exacta, empate), 29 (exacta, superar)\\
+Confirmaciones para $<0.1\,\%$, $q=45\,\%$ & 340, 539 y 530\\
+Costo, $q=30\,\%$, 6 h, \SI{0.05}{\usd\per\kilo\watt\hour} & \SI{428.6}{\exa\hash\per\second}; \SI{6.75}{\giga\watt}; \SI{2.03}{\mega\usd}; éxito $z=6$ (superar) \SI{8.9}{\percent}\\
+Bits «cero» exigidos a la red de 2026 & $\log_2(10^{21}\times 600)\approx 79$\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Reproducibilidad}\label{app:repro}
+\webhint{section; id=app-repro; slug=reproducibilidad; kicker=apéndice; role=meta; render=false}
+
+Todas las cifras y gráficas de este documento se generan a partir de un único script con semilla fija.
+
+\begin{lstlisting}[language=pseudo]
+pow-latex/
+  main.tex                 // este documento (XeLaTeX)
+  main.pdf
+  data/
+    genesis_header.json    // 6 campos, 80 bytes en hex, hash, objetivo
+    avalanche_hist.csv     // 20 000 pares de SHA-256
+    mining_hist.csv        // 600 bloques minados con d = 14
+    block_time_dist.csv    // densidad y supervivencia exponencial
+    difficulty_scale.csv   // intentos esperados y tiempos segun d
+    difficulty_sim.csv     // 4 escenarios x 26 periodos
+    double_spend_curves.csv, double_spend_mc.csv, race_paths.csv
+    confirmations_table.csv, attack_cost.csv
+    energy_mix.csv, halving_schedule.csv, timeline.csv
+    summary.json           // cifras agregadas usadas en el texto
+  scripts/gen_data.py      // genera todo lo anterior (semilla 20261013)
+\end{lstlisting}
+
+\begin{lstlisting}[language=pseudo]
+python3 scripts/gen_data.py        // ~1 minuto; requiere numpy y scipy
+xelatex main.tex                   // dos pasadas
+\end{lstlisting}
+
+El script (a) verifica el hash del génesis con \texttt{hashlib}; (b) mide el efecto avalancha con SHA-256 real; (c) mina bloques reales con doble SHA-256; (d) simula el ajuste de dificultad con tiempos gamma; (e) evalúa las fórmulas de Poisson y binomial negativa con \texttt{scipy.stats}; y (f) corre el Monte Carlo bloque a bloque con intervalos de Wilson.
+
+\section{Derivaciones breves}\label{app:deriv}
+\webhint{section; id=app-deriv; slug=derivaciones; kicker=apéndice; role=math}
+
+\begin{resultado}{El voto es proporcional al cómputo}\label{der:proporcional}
+Sean $m$ mineros con tasas de hashes $h_1,\dots,h_m$ y probabilidad de éxito $p$ por hash. El tiempo hasta el primer éxito del minero $i$ es, con muy buena aproximación, exponencial de tasa $\lambda_i=h_ip$. Para exponenciales independientes,
+\[
+  \Prob{T_i<\min_{j\ne i}T_j}=\int_0^{\infty}\lambda_ie^{-\lambda_it}\,e^{-(\Lambda-\lambda_i)t}\,dt=\frac{\lambda_i}{\Lambda}=\frac{h_i}{\sum_jh_j},\qquad \Lambda=\sum_j\lambda_j .
+\]
+Dividir el cómputo entre más identidades no cambia $\sum h_j$ ni la probabilidad de ganar.
+\end{resultado}
+
+\begin{resultado}{Límite exponencial de la búsqueda}\label{der:exponencial}
+Con $p=2^{-d}$ y $n=x/p$ intentos, $(1-p)^{x/p}\to e^{-x}$ cuando $p\to 0$, con error relativo del orden de $p$ (para $d=14$, menor que $10^{-4}$). La geometría es exactamente sin memoria: $\Prob{N>n+m\mid N>n}=(1-p)^m$. La mediana satisface $(1-p)^n=\tfrac12$, es decir, $n\approx\ln2/p$. Si los éxitos llegan a una tasa de $hp$ por segundo (proceso de Poisson), el tiempo entre éxitos es exponencial de media $1/(hp)$: con la dificultad ajustada, 10 minutos.
+\end{resultado}
+
+\begin{resultado}{Ruina del jugador}\label{der:ruina}
+Sea $a_k$ la probabilidad de que el déficit llegue alguna vez a $0$ partiendo de $k\ge0$, con pasos $+1$ (prob. $p$) y $-1$ (prob. $q$). Por condicionamiento en el primer paso, $a_k=p\,a_{k+1}+q\,a_{k-1}$ con $a_0=1$. La ecuación característica $p x^2-x+q=0$ tiene raíces $1$ y $q/p$, de modo que $a_k=A+B(q/p)^k$. La solución buscada es la mínima no negativa: si $q<p$, $a_k=(q/p)^k$ (pues $a_k\to0$ cuando $k\to\infty$); si $q\ge p$, $a_k=1$.
+\end{resultado}
+
+\begin{resultado}{Fórmulas de la sección~\ref{sec:ataque}}\label{der:formulas}
+Condicionando en $K=k$, el atacante parte de un déficit $z-k$. Para el criterio de empate, el éxito es seguro si $k\ge z$ y ocurre con probabilidad $r^{z-k}$ si $k<z$; para el de superar, hace falta alcanzar el déficit $-1$, con probabilidad $r^{z-k+1}$ si $k\le z$ y $1$ si $k\ge z+1$. Sumando con los pesos de la binomial negativa se obtienen (\ref{eq:empate}) y (\ref{eq:superar}). Para (\ref{eq:poisson}) se sustituye $\Prob{K=k}$ por el peso de Poisson. Los momentos de la binomial negativa salen de que $K$ es la suma de $z$ variables geométricas independientes, cada una de media $q/p$ y varianza $q/p^{2}$.
+\end{resultado}
+
+\section*{Glosario}
+\addcontentsline{toc}{section}{Glosario}
+\webhint{section; id=glosario; slug=glosario; kicker=referencia; role=reference}
+
+\begin{description}[leftmargin=1.2em,labelindent=0pt,itemsep=2pt,font=\bfseries\sffamily\small]
+  \item[Bits (campo)] Notación compacta del objetivo de dificultad dentro del encabezado.
+  \item[Confirmación] Bloque que, a partir del que contiene un pago, se suma a la cadena pública. «$z$ confirmaciones» cuenta el bloque que incluye el pago.
+  \item[Dificultad] Medida de cuánto menor es el objetivo actual respecto al del génesis; dificultad 1 $\approx 2^{32}$ hashes.
+  \item[Doble gasto] Usar el mismo activo digital en dos pagos (definición~\ref{def:doble-gasto}).
+  \item[Extranonce] Campo adicional dentro de la transacción de recompensa que se varía al agotar el nonce.
+  \item[Hash criptográfico] Función que convierte cualquier entrada en una salida de longitud fija, determinista, con efecto avalancha y resistente a preimagen.
+  \item[Midstate] Estado intermedio de SHA-256 tras procesar los primeros 64 bytes del encabezado.
+  \item[Nonce] Número de 32 bits que el minero varía para cambiar el hash del encabezado.
+  \item[Objetivo (\emph{target})] Número de 256 bits; un hash válido debe ser menor o igual que él.
+  \item[Raíz de Merkle] Resumen de 32 bytes de todas las transacciones del bloque.
+  \item[Sybil, ataque] Fabricar identidades para ganar influencia.
+\end{description}
+
+\begin{thebibliography}{99}
+\addcontentsline{toc}{section}{Referencias}
+\webhint{section; id=referencias; slug=referencias; kicker=referencias; role=reference}
+\small
+\bibitem{nakamoto2008} S.~Nakamoto, «Bitcoin: A Peer-to-Peer Electronic Cash System», 2008.
+\bibitem{chaum1983} D.~Chaum, «Blind signatures for untraceable payments», \emph{Advances in Cryptology -- CRYPTO '82}, 1983.
+\bibitem{chaum1990} D.~Chaum, A.~Fiat y M.~Naor, «Untraceable electronic cash», \emph{CRYPTO '88}, 1990.
+\bibitem{haber1991} S.~Haber y W.~S.~Stornetta, «How to time-stamp a digital document», \emph{Journal of Cryptology}, 1991.
+\bibitem{dwork1993} C.~Dwork y M.~Naor, «Pricing via processing or combatting junk mail», \emph{CRYPTO '92}, 1993.
+\bibitem{back1997} A.~Back, «Hashcash», 1997; «Hashcash -- a denial of service counter-measure», 2002.
+\bibitem{jakobsson1999} M.~Jakobsson y A.~Juels, «Proofs of work and bread pudding protocols», 1999.
+\bibitem{dai1998} W.~Dai, «b-money», 1998.
+\bibitem{szabo2005} N.~Szabo, «Bit Gold», 2005.
+\bibitem{finney2004} H.~Finney, «RPOW», 2004.
+\bibitem{rosenfeld2012} M.~Rosenfeld, «Analysis of hashrate-based double spending», 2012 (arXiv:1402.2009).
+\bibitem{grunspan2017} C.~Grunspan y R.~Pérez-Marco, «Double spend races», 2017 (arXiv:1702.02867).
+\bibitem{eyal2014} I.~Eyal y E.~G.~Sirer, «Majority is not enough: Bitcoin mining is vulnerable», \emph{Financial Cryptography}, 2014.
+\bibitem{ccaf2025} Cambridge Centre for Alternative Finance, \emph{Cambridge Digital Mining Industry Report}, abril de 2025.
+\end{thebibliography}
+
+\end{document}
