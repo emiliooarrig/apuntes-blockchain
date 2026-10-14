@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
-<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<title>Encadenamiento de bloques — ChainNotes</title>
+<meta name="description" content="Apunte sobre el encadenamiento de bloques, hashes, referencias al bloque anterior e integridad de una blockchain.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="stylesheet" href="../assets/css/apuntes.css">
 </head>
 <body>
 
@@ -37,7 +38,7 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#intro">Saltar al contenido</a>
+<a class="skip-link" href="#encadenamiento">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
@@ -49,10 +50,10 @@
 
     <nav class="nav" id="nav" aria-label="Navegación principal">
       <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#encadenamiento">Encadenamiento</a></li>
+        <li><a class="nav__link" href="#integridad">Integridad</a></li>
+        <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
       </ul>
     </nav>
 
@@ -61,8 +62,8 @@
         <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
       </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      <a class="clay-btn clay-btn--primary header__cta" href="#encadenamiento">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
@@ -72,6 +73,67 @@
 </header>
 
 <main>
+
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true"><span class="blob blob--1" data-parallax="0.16"></span><span class="blob blob--2" data-parallax="-0.10"></span><span class="blob blob--3" data-parallax="0.07"></span><span class="blob blob--4" data-parallax="-0.05"></span></div>
+  <div class="container topic-hero__inner"><div>
+    <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación"><a href="../index.html">Apuntes</a><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg><a href="../index.html#temas">Temario</a><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg><span>04 · Estructura de bloques</span></nav>
+    <span class="badge anim" style="--d:60ms"><span class="badge__dot"></span>Módulo 04 · Estructura de blockchain</span>
+    <h1 class="topic-hero__title anim" style="--d:120ms">Cómo se encadenan<br><span class="grad">los bloques</span></h1>
+    <p class="topic-hero__lead anim" style="--d:200ms">Cada bloque guarda una referencia al bloque anterior mediante su hash. Esta relación convierte una secuencia de datos en una cadena verificable: si alguien modifica un bloque, las referencias posteriores dejan de coincidir.</p>
+    <ul class="topic-hero__meta anim" style="--d:280ms"><li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg>Bloques</li><li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg>Hash anterior</li><li><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg>Integridad</li><li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>4 ejercicios</li></ul>
+  </div></div>
+  <div class="container"><nav class="clay-card toc reveal" aria-label="Contenido del apunte"><h2>Contenido del apunte</h2><ul class="toc__list"><li><a href="#encadenamiento"><span class="toc__n">01</span>Qué significa encadenar bloques</a></li><li><a href="#estructura"><span class="toc__n">02</span>Estructura de un bloque</a></li><li><a href="#integridad"><span class="toc__n">03</span>Integridad y detección de cambios</a></li><li><a href="#verificacion"><span class="toc__n">04</span>Cómo se verifica la cadena</a></li><li><a href="#limites"><span class="toc__n">05</span>Qué aporta y qué no aporta</a></li><li><a href="#resumen"><span class="toc__n">06</span>Síntesis</a></li><li><a href="#ejercicios"><span class="toc__n">07</span>Ejercicios</a></li></ul></nav></div>
+</section>
+
+<section class="section note" id="encadenamiento">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+
+        </span>Encadenamiento</span><h2 class="section__title">Una cadena de referencias verificables</h2><div class="goal"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg><p style="margin:0"><strong>Objetivo:</strong> comprender cómo la referencia al bloque anterior protege la continuidad e integridad de una blockchain.</p></div></header><div class="note__grid"><div class="note__body reveal"><p>Una blockchain no es solamente una lista de bloques. Cada bloque contiene información propia y una referencia al bloque anterior, normalmente su <strong>hash</strong>.</p><p>El primer bloque se conoce como <strong>bloque génesis</strong>. A partir de él, cada nuevo bloque se enlaza con el anterior y forma una secuencia ordenada.</p><div class="callout callout--key"><span class="callout__title">Idea principal</span>El hash de un bloque funciona como una huella digital. Guardarlo en el siguiente bloque permite comprobar que la cadena no fue alterada.</div></div></div></div></section>
+
+<section class="section note" id="estructura">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+
+        </span>Estructura</span><h2 class="section__title">Qué contiene un bloque</h2></header><div class="note__grid"><div class="note__body reveal"><p>Un bloque puede incluir transacciones u otros datos, una marca de tiempo, un número usado por el consenso y la referencia criptográfica al bloque anterior.</p><ul class="plain-list"><li><strong>Datos:</strong> la información que se quiere registrar.</li><li><strong>Hash propio:</strong> huella calculada a partir del contenido del bloque.</li><li><strong>Hash anterior:</strong> referencia que conecta el bloque con su predecesor.</li><li><strong>Metadatos:</strong> información como el tiempo de creación o el nonce.</li></ul><div class="callout callout--key"><span class="callout__title">Esquema mínimo</span><strong>Bloque n = datos + hash del bloque n−1 + metadatos</strong></div></div></div></div></section>
+
+<section class="section note" id="integridad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+
+        </span>Integridad</span><h2 class="section__title">Por qué una modificación se vuelve visible</h2></header><div class="note__grid"><div class="note__body reveal"><p>Si se cambia un dato dentro del bloque 2, su hash también cambia. Sin embargo, el bloque 3 conserva la referencia al hash original del bloque 2.</p><p>La referencia deja de coincidir y la alteración puede detectarse al recalcular y comparar los hashes. Además, habría que actualizar todos los bloques posteriores y superar las reglas de consenso de la red.</p><div class="callout callout--warn"><span class="callout__title">Importante</span>El encadenamiento permite detectar cambios, pero la seguridad final también depende del hash utilizado, del consenso y de la distribución de la red.</div></div></div></div></section>
+
+<section class="section note" id="verificacion">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+
+        </span>Verificación</span><h2 class="section__title">Comprobar la continuidad de la cadena</h2></header><div class="note__grid"><div class="note__body reveal"><p>Para verificar una cadena, se recorre cada bloque y se comprueba que el campo <strong>hash anterior</strong> coincide con el hash calculado del bloque previo.</p><ol><li>Se calcula de nuevo el hash del bloque anterior.</li><li>Se compara con la referencia almacenada en el bloque actual.</li><li>Se repite el proceso hasta llegar al bloque más reciente.</li></ol><div class="callout callout--key"><span class="callout__title">Flujo de comprobación</span><strong>Hash del bloque anterior → comparación → siguiente bloque → cadena válida o alterada</strong></div></div></div></div></section>
+
+<section class="section note" id="limites">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+          
+        </span>Alcance</span><h2 class="section__title">Qué aporta el encadenamiento</h2></header><div class="note__grid"><div class="note__body reveal"><ul><li>Relaciona los bloques en un orden concreto.</li><li>Permite detectar modificaciones en un bloque o en sus referencias.</li><li>Hace visible la dependencia entre un bloque y todos los que vienen después.</li><li>No decide por sí solo qué bloque acepta la red: esa función corresponde al consenso.</li></ul><div class="callout callout--note"><span class="callout__title">Encadenamiento no es consenso</span>El hash enlaza los bloques y ayuda a comprobar su integridad. El consenso determina qué versión de la cadena reconoce la red.</div></div></div></div></section>
+
+<section class="section note" id="resumen">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow">
+        <span class="eyebrow__line">
+
+        </span>Resumen</span><h2 class="section__title">La fuerza de la referencia anterior</h2></header><div class="note__grid"><div class="note__body reveal"><ul><li>Cada bloque contiene una referencia al bloque anterior.</li><li>El hash resume el contenido del bloque y permite detectar cambios.</li><li>El bloque génesis inicia la cadena.</li><li>Una modificación rompe la coincidencia con los bloques posteriores.</li><li>La integridad de la cadena y la aceptación de la cadena requieren mecanismos complementarios.</li></ul></div></div></div></section>
+
 
 
 
@@ -95,20 +157,20 @@
       <nav class="footer__col" aria-label="Navegación del pie">
         <h3>Navegación</h3>
         <ul>
-          <li><a href="#inicio">Inicio</a></li>
-          <li><a href="#intro">Introducción</a></li>
-          <li><a href="#temas">Temario</a></li>
-          <li><a href="#equipo">Equipo</a></li>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
         </ul>
       </nav>
 
       <nav class="footer__col" aria-label="Módulos destacados">
         <h3>Módulos</h3>
         <ul>
-          <li><a href="#temas">Fundamentos</a></li>
-          <li><a href="#temas">Criptografía</a></li>
-          <li><a href="#temas">Smart Contracts</a></li>
-          <li><a href="#temas">DeFi</a></li>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="firma-digital.html">Red P2P</a></li>
+          <li><a href="encadenamiento.html">Encadenamiento</a></li>
         </ul>
       </nav>
 
@@ -118,7 +180,7 @@
           <li><a href="#">Glosario</a></li>
           <li><a href="#">Papers citados</a></li>
           <li><a href="#">Repositorio de código</a></li>
-          <li><a href="#contacto">Contacto</a></li>
+          <li><a href="mailto:contacto@chainnotes.example">Contacto</a></li>
         </ul>
       </div>
     </div>

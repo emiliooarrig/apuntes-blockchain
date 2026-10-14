@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChainNotes — Portafolio de Apuntes de Blockchain</title>
-<meta name="description" content="Portafolio de apuntes de Blockchain: fundamentos, criptografía, consenso, smart contracts, DeFi, capa 2 y seguridad. Material de estudio explicado con claridad.">
+<title>Modelo UTXO y minería — ChainNotes</title>
+
+<meta
+  name="description"
+  content="Apunte sobre el modelo UTXO, salidas no gastadas, minería, Proof of Work, nonce y dificultad en Bitcoin.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="stylesheet" href="../assets/css/apuntes.css">
 </head>
 <body>
 
@@ -37,7 +41,7 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#intro">Saltar al contenido</a>
+<a class="skip-link" href="#utxo">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
@@ -47,71 +51,404 @@
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="Navegación principal">
-      <ul class="nav__list">
-        <li><a class="nav__link is-active" href="#inicio">Inicio</a></li>
-        <li><a class="nav__link" href="#intro">Introducción</a></li>
-        <li><a class="nav__link" href="#temas">Temario</a></li>
-        <li><a class="nav__link" href="#equipo">Equipo</a></li>
-      </ul>
-    </nav>
-
-    <div class="header__actions">
-      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
-        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
-      </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#temas">
-        Ver apuntes <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+     <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
       </button>
     </div>
-  </div>
+  </div><<nav class="nav" id="nav" aria-label="Navegación principal">
+  <ul class="nav__list">
+
+    <li>
+      <a class="nav__link" href="../index.html">
+        Inicio
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link is-active" href="#utxo">
+        UTXO
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#mineria">
+        Minería
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#proceso-mineria">
+        Proof of Work
+      </a>
+    </li>
+
+    <li>
+      <a class="nav__link" href="#ejercicios">
+        Ejercicios
+      </a>
+    </li>
+
+  </ul>
+</nav>
 </header>
 
 <main>
 
   <!-- ============ HERO ============ -->
-  <section class="topic-hero" id="inicio">
-    <div class="container topic-hero__inner">
+  <!-- ============ CABECERA DEL TEMA ============ -->
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
 
-      <div>
-        <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
-          <a href="index.html">Apuntes</a>
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
 
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <use href="#i-arrow"/>
-          </svg>
 
-          <a href="index.html#temas">Temario</a>
+  <div class="container topic-hero__inner">
 
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <use href="#i-arrow"/>
-          </svg>
+    <div>
 
-          <span>05 · Bitcoin</span>
-        </nav>
+      <nav class="crumbs anim"
+           style="--d:0ms"
+           aria-label="Ruta de navegación">
 
-        <span class="badge anim" style="--d:60ms">
-          <span class="badge__dot"></span>
-          Módulo 05 · Bitcoin
+        <a href="../index.html">
+          Apuntes
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <a href="../index.html#temas">
+          Temario
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <span>
+          05 · Bitcoin
         </span>
 
-        <h1 class="topic-hero__title anim" style="--d:120ms">
-          Modelo UTXO y <span class="grad">minería</span>
-        </h1>
+      </nav>
 
-        <p class="topic-hero__lead anim" style="--d:180ms">
-          Dos elementos fundamentales para comprender cómo una blockchain
-          basada en Bitcoin representa las salidas disponibles y cómo utiliza
-          Proof of Work para incorporar nuevos bloques a la cadena.
-        </p>
-      </div>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span>
+        Módulo 05 · Bitcoin
+      </span>
+
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+
+        Modelo
+        <span class="grad">UTXO</span><br>
+
+        y
+        <span class="underlined">minería</span>
+
+      </h1>
+
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+
+        ¿Cómo sabe Bitcoin qué salidas siguen disponibles y cuáles
+        ya fueron gastadas? El modelo UTXO representa el estado
+        disponible de la red, mientras que la minería utiliza
+        Proof of Work para encontrar bloques que cumplan con las
+        reglas de dificultad del protocolo.
+
+      </p>
+
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-bitcoin"/>
+          </svg>
+          UTXO
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-code"/>
+          </svg>
+          SHA-256
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-shield"/>
+          </svg>
+          Proof of Work
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-check"/>
+          </svg>
+          4 ejercicios
+        </li>
+
+      </ul>
 
     </div>
-  </section>
+
+  </div>
+
+
+  <!-- ============ ÍNDICE ============ -->
+  <div class="container">
+
+    <nav class="clay-card toc reveal"
+         aria-label="Contenido del apunte">
+
+      <h2>
+        Contenido del apunte
+      </h2>
+
+
+      <ul class="toc__list">
+
+        <li>
+          <a href="#utxo">
+            <span class="toc__n">01</span>
+            ¿Qué es el modelo UTXO?
+          </a>
+        </li>
+
+        <li>
+          <a href="#estado-utxo">
+            <span class="toc__n">02</span>
+            Importancia del conjunto UTXO
+          </a>
+        </li>
+
+        <li>
+          <a href="#mineria">
+            <span class="toc__n">03</span>
+            Minería y Proof of Work
+          </a>
+        </li>
+
+        <li>
+          <a href="#proceso-mineria">
+            <span class="toc__n">04</span>
+            Búsqueda de un bloque válido
+          </a>
+        </li>
+
+        <li>
+          <a href="#blockchain-real">
+            <span class="toc__n">05</span>
+            De cadena artesanal a blockchain
+          </a>
+        </li>
+
+        <li>
+          <a href="#resumen">
+            <span class="toc__n">06</span>
+            Síntesis
+          </a>
+        </li>
+
+        <li>
+          <a href="#ejercicios">
+            <span class="toc__n">07</span>
+            Ejercicios
+          </a>
+        </li>
+
+      </ul>
+
+    </nav>
+
+  </div>
+
+</section><!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+
+  <div class="container topic-hero__inner">
+
+    <div>
+
+      <nav class="crumbs anim"
+           style="--d:0ms"
+           aria-label="Ruta de navegación">
+
+        <a href="../index.html">
+          Apuntes
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <a href="../index.html#temas">
+          Temario
+        </a>
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <use href="#i-arrow"/>
+        </svg>
+
+        <span>
+          05 · Bitcoin
+        </span>
+
+      </nav>
+
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span>
+        Módulo 05 · Bitcoin
+      </span>
+
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+
+        Modelo
+        <span class="grad">UTXO</span><br>
+
+        y
+        <span class="underlined">minería</span>
+
+      </h1>
+
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+
+        ¿Cómo sabe Bitcoin qué salidas siguen disponibles y cuáles
+        ya fueron gastadas? El modelo UTXO representa el estado
+        disponible de la red, mientras que la minería utiliza
+        Proof of Work para encontrar bloques que cumplan con las
+        reglas de dificultad del protocolo.
+
+      </p>
+
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-bitcoin"/>
+          </svg>
+          UTXO
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-code"/>
+          </svg>
+          SHA-256
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-shield"/>
+          </svg>
+          Proof of Work
+        </li>
+
+        <li>
+          <svg viewBox="0 0 24 24">
+            <use href="#i-check"/>
+          </svg>
+          4 ejercicios
+        </li>
+
+      </ul>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============ ÍNDICE ============ -->
+  <div class="container">
+
+    <nav class="clay-card toc reveal"
+         aria-label="Contenido del apunte">
+
+      <h2>
+        Contenido del apunte
+      </h2>
+
+
+      <ul class="toc__list">
+
+        <li>
+          <a href="#utxo">
+            <span class="toc__n">01</span>
+            ¿Qué es el modelo UTXO?
+          </a>
+        </li>
+
+        <li>
+          <a href="#estado-utxo">
+            <span class="toc__n">02</span>
+            Importancia del conjunto UTXO
+          </a>
+        </li>
+
+        <li>
+          <a href="#mineria">
+            <span class="toc__n">03</span>
+            Minería y Proof of Work
+          </a>
+        </li>
+
+        <li>
+          <a href="#proceso-mineria">
+            <span class="toc__n">04</span>
+            Búsqueda de un bloque válido
+          </a>
+        </li>
+
+        <li>
+          <a href="#blockchain-real">
+            <span class="toc__n">05</span>
+            De cadena artesanal a blockchain
+          </a>
+        </li>
+
+        <li>
+          <a href="#resumen">
+            <span class="toc__n">06</span>
+            Síntesis
+          </a>
+        </li>
+
+        <li>
+          <a href="#ejercicios">
+            <span class="toc__n">07</span>
+            Ejercicios
+          </a>
+        </li>
+
+      </ul>
+
+    </nav>
+
+  </div>
+
+</section>
 
 
   <!-- ============ MODELO UTXO ============ -->
@@ -555,6 +892,219 @@
 
     </div>
   </section>
+
+  <!-- ============ EJERCICIOS UTXO Y MINERÍA ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+
+    <header class="note__head reveal">
+
+      <span class="eyebrow">
+        <span class="eyebrow__line"></span>
+        Ejercicios
+      </span>
+
+      <h2 class="section__title">
+        Pon a prueba lo aprendido
+      </h2>
+
+      <p class="section__lead">
+        Resuelve los siguientes ejercicios sobre el modelo UTXO
+        y el proceso de minería mediante Proof of Work.
+      </p>
+
+    </header>
+
+
+    <div class="note__grid">
+
+      <div class="note__body reveal">
+
+        <!-- EJERCICIO 1 -->
+        <h3>Ejercicio 1 · Identificación de UTXO</h3>
+
+        <p>
+          Ana posee dos salidas no gastadas:
+          una de <strong>0.8 BTC</strong> y otra de
+          <strong>0.5 BTC</strong>.
+        </p>
+
+        <p>
+          Ana quiere realizar una transacción de
+          <strong>1 BTC</strong>.
+          Para simplificar, ignora las comisiones.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué ocurre con los dos UTXO originales y cuánto valor
+          debe regresar como una nueva salida?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Los dos UTXO suman <strong>1.3 BTC</strong>.
+            Ambos se utilizan como entradas y dejan de formar parte
+            del conjunto UTXO.
+          </p>
+
+          <p>
+            Se genera una salida de <strong>1 BTC</strong>
+            para el destinatario y otra salida de
+            <strong>0.3 BTC</strong> como cambio.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 2 -->
+        <h3>Ejercicio 2 · Salidas gastadas y no gastadas</h3>
+
+        <p>
+          Una transacción crea tres nuevas salidas:
+        </p>
+
+        <ul>
+          <li>Salida A: 0.4 BTC</li>
+          <li>Salida B: 0.3 BTC</li>
+          <li>Salida C: 0.2 BTC</li>
+        </ul>
+
+        <p>
+          Más tarde, las salidas A y C se utilizan en nuevas
+          transacciones.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿cuál de las tres salidas continúa formando parte
+          del conjunto UTXO?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Únicamente la <strong>Salida B de 0.3 BTC</strong>
+            continúa formando parte del conjunto UTXO,
+            porque todavía no ha sido gastada.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 3 -->
+        <h3>Ejercicio 3 · Proof of Work</h3>
+
+        <p>
+          Supón que, de manera simplificada, la red exige que
+          el hash encontrado sea menor que:
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">
+            Umbral
+          </span>
+
+          <strong>
+            0000FFFF...
+          </strong>
+        </div>
+
+        <p>
+          Un minero obtiene el siguiente hash:
+        </p>
+
+        <div class="callout callout--key">
+          <span class="callout__title">
+            Hash obtenido
+          </span>
+
+          <strong>
+            00001234...
+          </strong>
+        </div>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿cumple este hash con la condición del ejercicio?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            <strong>Sí.</strong>
+            En este ejemplo simplificado,
+            <code>00001234...</code> es numéricamente menor que
+            <code>0000FFFF...</code>.
+          </p>
+
+          <p>
+            Por lo tanto, el resultado cumple con el umbral
+            definido para el ejercicio.
+          </p>
+        </details>
+
+
+        <hr>
+
+
+        <!-- EJERCICIO 4 -->
+        <h3>Ejercicio 4 · Nonce y minería</h3>
+
+        <p>
+          Un minero calcula el hash del encabezado de un bloque,
+          pero el resultado no cumple con el objetivo de dificultad.
+        </p>
+
+        <p>
+          <strong>Pregunta:</strong>
+          ¿qué puede hacer para realizar un nuevo intento?
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+
+          <p>
+            Puede modificar valores utilizados para construir
+            el encabezado, entre ellos el <strong>nonce</strong>,
+            y volver a calcular el hash.
+          </p>
+
+          <p>
+            El proceso se repite hasta obtener una solución
+            que cumpla las reglas de Proof of Work.
+          </p>
+        </details>
+
+
+        <div class="callout callout--key">
+
+          <span class="callout__title">
+            Recuerda
+          </span>
+
+          <strong>
+            UTXO → identifica salidas disponibles.
+            Minería → busca una solución válida de Proof of Work.
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 
 </main>
 
