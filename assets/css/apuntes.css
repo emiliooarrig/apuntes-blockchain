@@ -631,3 +631,108 @@ pre.code{
   .bytebar span{flex:1 1 30%}
   .mix span:nth-child(2){font-size:0}
 }
+
+/* =========================================================
+   O. Apunte 08 — El problema de los generales bizantinos
+   ========================================================= */
+
+/* Diagramas de generales: los colores van por clase para respetar el tema */
+.bgnet{padding:10px;border-radius:var(--r-md);box-shadow:var(--clay-inset)}
+/* stroke:none anula el trazo global de los iconos (styles.css), que engrosaría el texto */
+.bgnet svg{display:block;width:100%;height:auto;max-height:360px;margin:0 auto;stroke:none}
+.bgnode{fill:var(--surface);stroke:var(--sky);stroke-width:2}
+.bgnode--traidor{stroke:var(--coral);stroke-dasharray:5 3}
+.bgnode--inter{fill:color-mix(in srgb,var(--sky) 30%,var(--surface));stroke-width:3}
+.bgnode--traidor.bgnode--inter{fill:color-mix(in srgb,var(--coral) 30%,var(--surface))}
+.bgname{font-family:"Space Grotesk",sans-serif;font-size:12px;font-weight:700;fill:var(--ink)}
+.bgname--traidor{fill:var(--coral)}
+.bgedge{stroke:var(--muted);stroke-width:1.3;fill:none}
+.bgedge--mesh{stroke:color-mix(in srgb,var(--ink) 11%,transparent);stroke-width:.7}
+.bgarrow{fill:var(--muted)}
+.bglab{font-family:"Space Grotesk",sans-serif;font-size:10.5px;fill:var(--muted)}
+.bgq{fill:none;stroke-width:5;stroke-linecap:round;opacity:.8}
+.bgq--a{stroke:var(--violet)}
+.bgq--b{stroke:var(--mint)}
+
+/* Bandejas de entrada de cada teniente */
+.inboxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:1rem}
+.inbox{padding:.8em 1em;border-radius:var(--r-sm);box-shadow:var(--clay-inset);font-size:.84rem}
+.inbox__title{
+  display:block;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.4em;
+}
+.inbox ul{margin:0;padding-left:1.1em;color:var(--ink-soft)}
+.inbox--match{background:color-mix(in srgb,var(--amber) 24%,transparent)}
+.inbox--match .inbox__title{color:var(--ink)}
+.scene{font-size:.92rem;color:var(--ink-soft);margin-top:1rem}
+.scene h3{font-size:1rem;margin:0 0 .45em;color:var(--ink)}
+.scene p{margin:0 0 .7em}
+.scene strong{color:var(--ink)}
+
+/* Subtítulo dentro de un laboratorio */
+.lab__sub{
+  display:block;margin:1.4rem 0 .6rem;
+  font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+}
+
+/* Tablas de mensajes de OM(1) */
+table.nb td.v-a{color:#0f7a63;font-weight:700}
+table.nb td.v-r{color:#a3202f;font-weight:700}
+html[data-theme="dark"] table.nb td.v-a{color:#7bf0d3}
+html[data-theme="dark"] table.nb td.v-r{color:#ffb0b8}
+table.nb tr.is-traitor{background:color-mix(in srgb,var(--coral) 11%,transparent)}
+table.nb tr.is-traitor th{color:var(--coral)}
+table.nb tbody th{font-weight:700;color:var(--ink);white-space:nowrap}
+
+/* Decisión por mayoría */
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.verdict__card{
+  padding:.85em 1em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-top:4px solid var(--mint);font-size:.88rem;color:var(--ink-soft);
+}
+.verdict__card strong{color:var(--ink)}
+.verdict__card--traidor{border-top-color:var(--coral);opacity:.72}
+
+/* Nota de estado de un laboratorio */
+.state{
+  margin:1.2rem 0 0;padding:.9em 1.1em;border-radius:var(--r-md);
+  box-shadow:var(--clay-inset);border-left:4px solid var(--muted);
+  font-size:.9rem;color:var(--ink-soft);
+}
+.state--ok{border-left-color:var(--mint)}
+.state--bad{border-left-color:var(--coral)}
+
+/* Barras de votos (reutilizan .mix) */
+.mix--live span{transition:flex-grow .45s var(--ease)}
+.mix--live span:first-child{--accent:var(--sky)}
+.mix--live span:last-child{--accent:var(--coral)}
+
+/* Ejercicios con respuesta desplegable */
+.exlist details{
+  margin:.9em 0 0;padding:.8em 1.1em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.exlist summary{cursor:pointer;color:var(--violet)}
+html[data-theme="dark"] .exlist summary{color:#a696ff}
+.exlist details[open] summary{margin-bottom:.7em}
+.exlist details p:last-child,.exlist details ul:last-child{margin-bottom:0}
+.exlist hr{border:0;height:1px;background:var(--line);margin:2em 0}
+
+/* Referencias */
+.refs{margin:0;padding-left:1.4em;display:grid;gap:.6em;font-size:.9rem;color:var(--ink-soft)}
+.refs em{color:var(--ink)}
+
+@media (max-width:640px){
+  .inboxes{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .mix--live span{transition:none !important}
+}
+
+/* Enlaces dentro del texto, sólo en este apunte (main.apunte-bg) */
+.apunte-bg .note__body a:not(.clay-btn),.apunte-bg .formal a,.apunte-bg .lab__note a,.apunte-bg .refs a{
+  color:var(--violet);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;
+}
+html[data-theme="dark"] .apunte-bg .note__body a:not(.clay-btn),
+html[data-theme="dark"] .apunte-bg .formal a,
+html[data-theme="dark"] .apunte-bg .lab__note a,
+html[data-theme="dark"] .apunte-bg .refs a{color:#a696ff}

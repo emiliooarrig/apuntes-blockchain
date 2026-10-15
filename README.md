@@ -15,7 +15,9 @@ apuntes-blockchain/
 │  ├─ compromisos.html          # 02 · Esquemas y aplicaciones de compromiso
 │  ├─ firma-digital.html        # 03 · Firma digital
 │  ├─ encadenamiento.html       # 04 · Encadenamiento
-│  └─ timestamping.html         # 05 · Time stamping
+│  ├─ timestamping.html         # 05 · Time stamping
+│  ├─ prueba-de-trabajo.html    # 07 · Prueba de trabajo y doble gasto
+│  └─ generales-bizantinos.html # 08 · El problema de los generales bizantinos
 ├─ assets/                      # Recursos estáticos compartidos por todas las páginas
 │  ├─ favicon.svg               # Icono de pestaña
 │  ├─ css/                      # Hojas de estilo
@@ -24,7 +26,9 @@ apuntes-blockchain/
 │  └─ js/                       # Scripts del sitio
 │     ├─ main.js                # Interacciones y animaciones globales
 │     ├─ hash.js                # Laboratorios interactivos del tema de hash
-│     └─ compromisos.js         # Laboratorios del tema de compromisos (Pedersen con BigInt)
+│     ├─ compromisos.js         # Laboratorios del tema de compromisos (Pedersen con BigInt)
+│     ├─ prueba-de-trabajo.js   # Laboratorios de prueba de trabajo (SHA-256d con midstate)
+│     └─ generales-bizantinos.js # Laboratorios de generales bizantinos (escenarios, quórums, OM(1), Sybil)
 ├─ latex/                       # Versión en LaTeX de los apuntes
 │  ├─ funciones-hash.tex        # 01 · Hash — documento completo, figuras en TikZ/pgfplots
 │  ├─ funciones-hash.pdf        # Salida compilada (17 páginas)

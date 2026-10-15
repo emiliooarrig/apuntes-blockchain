@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El problema de los generales bizantinos — ChainNotes</title>
+<meta name="description" content="Apunte: el problema de los generales bizantinos. Consistencia interactiva (IC1 e IC2), la imposibilidad con tres generales, la cota n > 3f, los algoritmos OM y SM, el ataque Sybil, la respuesta de Nakamoto y la imposibilidad de FLP, con cinco laboratorios interactivos.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=4 rompe la caché: apuntes.css creció con los componentes de este apunte -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=4">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#planteamiento">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#planteamiento">Planteamiento</a></li>
+        <li><a class="nav__link" href="#cota">Cota</a></li>
+        <li><a class="nav__link" href="#om">OM</a></li>
+        <li><a class="nav__link" href="#sybil">Sybil</a></li>
+        <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#planteamiento">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="apunte-bg">
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>08 · Generales bizantinos</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 08 · Consenso
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Tres generales <span class="underlined">no bastan</span>:<br>
+        los <span class="grad">generales bizantinos</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Lamport, Shostak y Pease demostraron en 1982 que con un traidor entre tres no existe
+        ningún algoritmo que funcione. La demostración cabe en tres escenarios, y vale la pena
+        recorrerla antes que cualquier otra cosa: de ahí sale la cota <var>n</var> &gt; 3<var>f</var>,
+        el papel de las firmas y la forma en que Bitcoin cambia las reglas del juego.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> IC1 · IC2</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> n &gt; 3f</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> OM · SM</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 5 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: la imposibilidad con tres generales -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> ¿Pueden tres ponerse de acuerdo?</h2>
+        <span class="lab__tag">n = 3 · f = 1</span>
+      </div>
+      <p class="lab__intro">
+        Recorre los tres escenarios en orden. Fíjate en las bandejas de entrada: lo único que
+        un teniente ve es lo que le llega.
+      </p>
+
+      <div class="seg" id="escSeg" role="group" aria-label="Escenario"></div>
+
+      <span class="lab__sub" id="escTitulo" style="margin-top:.6rem">Escenario A</span>
+      <div class="bgnet" id="escSvg"></div>
+      <div class="scene" id="escTexto" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#planteamiento"><span class="toc__n">01</span> El planteamiento</a></li>
+        <li><a href="#cota"><span class="toc__n">02</span> La cota n &gt; 3f</a></li>
+        <li><a href="#om"><span class="toc__n">03</span> Mensajes orales</a></li>
+        <li><a href="#firmas"><span class="toc__n">04</span> Lo que aportan las firmas</a></li>
+        <li><a href="#sybil"><span class="toc__n">05</span> El ataque Sybil</a></li>
+        <li><a href="#nakamoto"><span class="toc__n">06</span> La respuesta de Nakamoto</a></li>
+        <li><a href="#flp"><span class="toc__n">07</span> La imposibilidad de FLP</a></li>
+        <li><a href="#sintesis"><span class="toc__n">08</span> Síntesis</a></li>
+        <li><a href="#ejercicios"><span class="toc__n">09</span> Ejercicios</a></li>
+        <li><a href="#referencias"><span class="toc__n">10</span> Referencias</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · PLANTEAMIENTO ============ -->
+<section class="section note" id="planteamiento">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">El planteamiento: qué se pide exactamente</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> enunciar con precisión las dos condiciones
+        de consistencia interactiva y entender por qué la segunda es la que vuelve difícil el problema.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Varias divisiones del ejército bizantino rodean una ciudad enemiga. Cada una tiene su
+          general, y sólo pueden comunicarse mandando mensajeros. Deben acordar un plan común:
+          atacar todos o retirarse todos. Atacar la mitad es el peor resultado posible, peor que
+          cualquiera de las dos decisiones tomadas en conjunto.
+        </p>
+        <p>
+          El problema es que algunos generales son <strong>traidores</strong>. Un traidor puede
+          hacer lo que quiera: mentir, decirle una cosa a uno y lo contrario a otro, no responder
+          o fingir que obedece. No hay ninguna suposición sobre su comportamiento. Eso es lo que
+          distingue una falla bizantina de una simple caída: un servidor caído es predecible; uno
+          bizantino es arbitrario.
+        </p>
+        <p>
+          Lamport reformuló el problema en la forma que se usa hoy, más manejable: un
+          <strong>comandante</strong> envía una orden a sus <strong><var>n</var> − 1 tenientes</strong>,
+          y el algoritmo debe garantizar dos condiciones de consistencia interactiva.
+        </p>
+
+        <div class="quad" style="grid-template-columns:1fr 1fr">
+          <div class="quad__cell" style="--accent:var(--sky)">
+            <h4>IC1 · Acuerdo</h4>
+            <p>Todos los tenientes leales obedecen la misma orden. No exige que sea la correcta
+            ni la buena: sólo que sea la misma. El desastre que se quiere evitar es la división,
+            no el error.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>IC2 · Validez</h4>
+            <p>Si el comandante es leal, todo teniente leal obedece exactamente su orden. Sin
+            ella IC1 sería trivial: bastaría «retirarse» siempre. IC2 obliga al algoritmo a
+            escuchar de verdad.</p>
+          </div>
+        </div>
+
+        <div class="callout callout--key">
+          <span class="callout__title">El detalle que suele pasarse por alto</span>
+          Si el comandante es traidor, IC2 no dice nada, pero IC1 sigue vigente. Los tenientes
+          leales tienen que ponerse de acuerdo <em>aunque quien les da la orden esté mintiendo</em>.
+          Esa exigencia es la que fracasa en el escenario A del laboratorio de la portada.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Definiciones</span>
+        <p><strong>Falla por caída:</strong> el proceso deja de responder y no vuelve a enviar nada.
+          <strong>Falla bizantina:</strong> el proceso puede enviar cualquier cosa, incluso mensajes
+          distintos a destinatarios distintos.</p>
+        <p>Sea <var>v</var> la orden del comandante y <var>d</var><sub><var>i</var></sub> la decisión
+          del teniente leal <var>i</var>:</p>
+        <span class="eq">
+          IC1: &nbsp;<var>d</var><sub><var>i</var></sub> = <var>d</var><sub><var>j</var></sub> &nbsp;para todo par de leales <var>i</var>, <var>j</var>
+          <small>acuerdo · vale siempre</small>
+        </span>
+        <span class="eq">
+          IC2: &nbsp;comandante leal ⟹ <var>d</var><sub><var>i</var></sub> = <var>v</var>
+          <small>validez · sólo si el comandante es leal</small>
+        </span>
+        <p>Con un comandante leal, IC2 implica IC1. La dificultad está en el caso contrario.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · LA COTA ============ -->
+<section class="section note" id="cota">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">La cota: por qué hace falta que n &gt; 3f</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El resultado general: con <var>f</var> traidores no existe solución si el total de
+          generales es menor o igual que 3<var>f</var>. Se necesitan al menos
+          <strong>3<var>f</var> + 1</strong> participantes para tolerar <var>f</var> fallas
+          bizantinas. Con un traidor hacen falta cuatro generales; con dos, siete.
+        </p>
+        <p>
+          El argumento intuitivo se apoya en <strong>quórums que se traslapan</strong>. Si cada
+          decisión requiere el respaldo de <var>n</var> − <var>f</var> participantes, porque
+          hasta <var>f</var> pueden no responder nunca, dos decisiones cualesquiera comparten al
+          menos <var>n</var> − 2<var>f</var> participantes. Para que ese traslape contenga por
+          fuerza a un leal, y no sólo a traidores que digan una cosa a cada quórum, hace falta
+          que <var>n</var> − 2<var>f</var> &gt; <var>f</var>. Es decir, <var>n</var> &gt; 3<var>f</var>.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">Es una imposibilidad, no una limitación del algoritmo</span>
+          Por debajo de 3<var>f</var> + 1 existen dos mundos que un participante leal no puede
+          distinguir y en los que la respuesta correcta es distinta. Ningún algoritmo, por
+          ingenioso que sea, puede separar dos historias que se ven idénticas desde adentro.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Quórums que se traslapan</span>
+        <p>Sean <var>Q</var><sub>1</sub>, <var>Q</var><sub>2</sub> ⊆ {1, …, <var>n</var>} con
+          |<var>Q</var><sub>1</sub>| = |<var>Q</var><sub>2</sub>| = <var>n</var> − <var>f</var>.</p>
+        <span class="eq">
+          |<var>Q</var><sub>1</sub> ∩ <var>Q</var><sub>2</sub>| ≥ 2(<var>n</var> − <var>f</var>) − <var>n</var> = <var>n</var> − 2<var>f</var>
+          <small>porque |Q₁ ∪ Q₂| ≤ n</small>
+        </span>
+        <span class="eq">
+          <var>n</var> − 2<var>f</var> ≥ <var>f</var> + 1 &nbsp;⟺&nbsp; <var>n</var> ≥ 3<var>f</var> + 1
+          <small>la intersección contiene al menos un leal</small>
+        </span>
+        <ul class="plain-list" style="margin:0">
+          <li><var>f</var> = 1 → <var>n</var> ≥ <strong>4</strong></li>
+          <li style="--accent:var(--sky)"><var>f</var> = 2 → <var>n</var> ≥ <strong>7</strong></li>
+          <li style="--accent:var(--mint)"><var>f</var> = 33 → <var>n</var> ≥ <strong>100</strong>: «menos de un tercio de traidores»</li>
+        </ul>
+      </aside>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Laboratorio 1 — Explorador de umbrales</h2>
+        <span class="lab__tag">quórums de tamaño n − f</span>
+      </div>
+      <p class="lab__intro">
+        Los arcos exteriores marcan dos quórums de tamaño <var>n</var> − <var>f</var> y los nodos
+        rellenos, su intersección. Los traidores (trazo discontinuo) se colocan en el peor lugar
+        posible: dentro de la intersección. Mueve los controles y busca cuándo deja de quedar algún leal.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="uN">Generales</label>
+          <input type="range" id="uN" min="3" max="16" step="1" value="7">
+          <span class="field__label" id="uNOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field">
+          <label class="field__label" for="uF">Traidores</label>
+          <input type="range" id="uF" min="1" max="5" step="1" value="2">
+          <span class="field__label" id="uFOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+      </div>
+
+      <div class="two-col" style="align-items:start">
+        <div>
+          <div class="bgnet" id="uSvg"></div>
+          <div class="legend">
+            <span><i style="background:var(--violet)"></i> quórum 1</span>
+            <span><i style="background:var(--mint)"></i> quórum 2</span>
+            <span><i style="background:var(--coral)"></i> traidor</span>
+          </div>
+        </div>
+        <div>
+          <div class="readout" style="margin-top:0">
+            <div class="metric"><span class="metric__num" id="uCond">—</span><span class="metric__label">Condición 3f + 1</span></div>
+            <div class="metric"><span class="metric__num" id="uQuorum">—</span><span class="metric__label">Tamaño de quórum (n − f)</span></div>
+            <div class="metric"><span class="metric__num metric__num--violet" id="uInter">—</span><span class="metric__label">Intersección (n − 2f)</span></div>
+            <div class="metric"><span class="metric__num" id="uLeales">—</span><span class="metric__label">Leales garantizados en ella</span></div>
+          </div>
+          <p class="state" id="uNota" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · MENSAJES ORALES ============ -->
+<section class="section note" id="om">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">Mensajes orales: cómo cuatro sí lo logran</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El algoritmo original se llama <strong>OM(<var>m</var>)</strong>, por <em>oral messages</em>,
+          y tolera <var>m</var> traidores con al menos 3<var>m</var> + 1 generales. Es recursivo.
+          En su caso más simple, OM(1) con cuatro generales, se reduce a dos rondas y una votación:
+        </p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Ronda 1 · el comandante ordena</h4>
+            <p>El comandante envía su orden a cada uno de los tres tenientes.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Ronda 2 · los tenientes se cuentan todo</h4>
+            <p>Cada teniente le cuenta a los otros dos qué recibió del comandante.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Decisión · mayoría</h4>
+            <p>Cada teniente decide por mayoría entre sus tres valores: el que le llegó del
+            comandante y los dos que le reportaron sus pares.</p>
+          </div></div>
+        </div>
+        <div class="callout callout--note">
+          <span class="callout__title">Qué significa «oral»</span>
+          Un mensaje reenviado no conserva prueba de su origen: un traidor puede inventar lo que
+          quiera sobre lo que le dijeron. Es la suposición pesimista del algoritmo, y es la que
+          las firmas digitales levantan en el módulo siguiente.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> La recursión de OM(m)</span>
+        <p><strong>OM(0):</strong> el comandante envía su valor a todos; cada teniente usa lo que recibe.</p>
+        <p><strong>OM(<var>m</var>):</strong> el comandante envía su valor; cada teniente
+          <var>i</var> actúa como comandante en OM(<var>m</var> − 1) ante los otros <var>n</var> − 2;
+          al final cada teniente toma la mayoría de los valores reunidos.</p>
+        <span class="eq">
+          <var>M</var>(<var>n</var>, 0) = <var>n</var> − 1, &nbsp;
+          <var>M</var>(<var>n</var>, <var>m</var>) = (<var>n</var> − 1)(1 + <var>M</var>(<var>n</var> − 1, <var>m</var> − 1))
+          <small>mensajes enviados · crece como O(n<sup>m+1</sup>)</small>
+        </span>
+        <p>Con <var>n</var> = 3<var>m</var> + 1: 9 mensajes para <var>m</var> = 1, 156 para
+          <var>m</var> = 2 y 3 609 para <var>m</var> = 3.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Laboratorio 2 — OM(1) con cuatro generales</h2>
+        <span class="lab__tag">un traidor · mayoría de tres</span>
+      </div>
+      <p class="lab__intro">
+        Elige quién traiciona y mira la tabla de mensajes. El traidor aplica la peor estrategia
+        que se le ocurre: dividir a los leales enviando valores contradictorios. Si es el
+        comandante, le manda a L2 lo contrario que a los demás; si es un teniente, invierte todo
+        lo que reenvía.
+      </p>
+
+      <div class="controls">
+        <div class="field" style="flex-basis:200px">
+          <label class="field__label" for="omTraidor">¿Quién es traidor?</label>
+          <select id="omTraidor">
+            <option value="C" selected>El comandante</option>
+            <option value="L1">El teniente 1</option>
+            <option value="L2">El teniente 2</option>
+            <option value="L3">El teniente 3</option>
+          </select>
+        </div>
+        <div class="field" style="flex-basis:200px">
+          <label class="field__label" for="omOrden">Orden del comandante</label>
+          <select id="omOrden">
+            <option value="A" selected>Atacar</option>
+            <option value="R">Retirarse</option>
+          </select>
+        </div>
+      </div>
+
+      <span class="lab__sub">Ronda 1 · del comandante a cada teniente</span>
+      <div class="table-wrap" id="omR1" style="margin-top:0"></div>
+      <span class="lab__sub">Ronda 2 · lo que cada teniente le reporta a los otros</span>
+      <div class="table-wrap" id="omR2" style="margin-top:0"></div>
+      <span class="lab__sub">Decisión por mayoría</span>
+      <div class="verdict" id="omDec"></div>
+      <p class="state" id="omNota" aria-live="polite"></p>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Por qué funciona</h3>
+        <p>
+          El caso del <strong>comandante traidor</strong> es el más instructivo. Puede mandar tres
+          órdenes distintas si quiere, pero los tres tenientes leales terminan con el
+          <em>mismo multiconjunto</em> de tres valores, porque todos se lo cuentan todo entre
+          ellos. Aplicar la misma función de mayoría al mismo conjunto da el mismo resultado. IC1
+          se cumple, e IC2 no aplica porque el comandante no es leal.
+        </p>
+        <p>
+          Cuando el traidor es un <strong>teniente</strong>, los dos leales reciben del comandante
+          el valor correcto y sólo uno de sus tres valores está corrompido. La mayoría lo absorbe.
+        </p>
+      </div>
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> El costo es el problema real</span>
+        <p>La recursión de OM(<var>m</var>) repite esta idea <var>m</var> veces, y el número de
+          mensajes crece como O(<var>n</var><sup><var>m</var>+1</sup>). Con siete generales y dos
+          traidores ya son 156 mensajes; con diez y tres, más de 3 600.</p>
+        <p>Por eso OM es un resultado teórico: los protocolos prácticos (PBFT, HotStuff) bajan el
+          costo a O(<var>n</var>²) u O(<var>n</var>) por decisión usando mensajes autenticados.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · FIRMAS ============ -->
+<section class="section note" id="firmas">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Lo que aportan las firmas: aquí entra la criptografía</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El segundo algoritmo del artículo de 1982, <strong>SM(<var>m</var>)</strong>, supone que
+          los mensajes van firmados con firmas infalsificables y que cualquiera puede verificar la
+          firma de cualquiera. Es exactamente la primitiva del
+          <a href="firma-digital.html">módulo 03</a>, aplicada a un problema de coordinación y no
+          de confidencialidad.
+        </p>
+        <div class="quad" style="grid-template-columns:1fr 1fr">
+          <div class="quad__cell" style="--accent:var(--coral)">
+            <h4>Sin firmas · OM(m)</h4>
+            <p>Un traidor puede decir «el comandante me ordenó retirarse» sin que nadie pueda
+            comprobarlo. La mentira sobre terceros es gratuita.</p>
+            <small style="text-transform:none">n ≥ 3m + 1</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>Con firmas · SM(m)</h4>
+            <p>Reenviar una orden significa reenviar la firma del comandante. Inventar una orden
+            exigiría falsificarla: el traidor sólo puede callar o reenviar lo verdadero.</p>
+            <small style="text-transform:none">n ≥ m + 2</small>
+          </div>
+        </div>
+        <p style="margin-top:1.4em">
+          La caída del umbral es enorme. Lo que las firmas eliminan es la capacidad de mentir
+          <em>sobre lo que dijo otro</em>. Un traidor firmante conserva un poder: enviar mensajes
+          contradictorios a distintos destinatarios. Pero cada uno lleva su firma, así que dos
+          leales que comparen notas obtienen una <strong>prueba pública e irrefutable</strong> de
+          la traición. Mentir deja de ser barato y se vuelve autoincriminatorio.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> La cadena de firmas</span>
+        <p>En SM, un valor que pasa por varios tenientes acumula una firma por salto:</p>
+        <span class="eq">
+          <var>v</var> : 0 : <var>i</var> : <var>j</var>
+          <small>v firmado por el comandante (0), luego por i y luego por j</small>
+        </span>
+        <p>Cada teniente guarda el <em>conjunto</em> de valores distintos que recibió con firmas
+          válidas. Si al final el conjunto tiene un solo elemento, lo obedece; si tiene dos, el
+          comandante quedó expuesto como traidor y todos aplican la misma regla por defecto.</p>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">La misma idea, hoy: <em>slashing</em></span>
+          En las cadenas de prueba de participación, un validador que firma dos bloques en
+          conflicto genera él mismo la evidencia con la que se le confisca el depósito.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · SYBIL ============ -->
+<section class="section note" id="sybil">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Lo que Lamport supuso y Bitcoin no puede suponer</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver por qué en una red abierta contar
+        identidades no sirve, y qué recurso escaso lo sustituye.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Todo lo anterior descansa en una hipótesis que nunca se enuncia porque parece obvia:
+          <strong>se sabe quiénes son los generales y cuántos hay</strong>. Sin un <var>n</var>
+          conocido, la condición <var>n</var> &gt; 3<var>f</var> no significa nada. Sin una lista
+          de participantes, contar votos no significa nada.
+        </p>
+        <p>
+          En una red abierta esa hipótesis se cae. Cualquiera puede conectarse, y crear mil
+          identidades cuesta lo mismo que crear una: generar mil pares de llaves. Es el
+          <strong>ataque Sybil</strong>, nombrado así por Douceur en 2002. La votación por
+          identidad no se degrada poco a poco: se vuelve completamente inútil.
+        </p>
+      </div>
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Costo de la mayoría</span>
+        <p>Con <var>h</var> participantes honestos, el atacante necesita <var>s</var> &gt; <var>h</var> votos:</p>
+        <span class="eq">
+          identidades: costo(<var>s</var>) ≈ 0 &nbsp;·&nbsp; trabajo: costo(<var>q</var>) ∝ <var>q</var>/(1 − <var>q</var>)
+          <small>generar llaves es gratis; el cómputo se compra y se paga</small>
+        </span>
+        <p>Es la sustitución que hace Nakamoto, y es toda su aportación conceptual al problema de
+          los generales. El detalle de «una CPU, un voto» está en el
+          <a href="prueba-de-trabajo.html#voto">módulo 07</a>.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Laboratorio 3 — Votar por identidad frente a votar por trabajo</h2>
+        <span class="lab__tag">100 honestos en ambos casos</span>
+      </div>
+      <p class="lab__intro">Intenta comprar la mayoría de las dos formas.</p>
+
+      <div class="two-col">
+        <div>
+          <span class="lab__sub" style="margin-top:0">Voto por identidad</span>
+          <div class="mix mix--live" id="sBarId" role="img" aria-label="Votos honestos frente a votos del atacante"></div>
+          <p class="state" id="sNotaId" aria-live="polite"></p>
+          <div class="controls" style="margin:1rem 0 0">
+            <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="sMas" type="button">Crear 60 identidades</button></div>
+            <div class="field field--auto"><button class="clay-btn" id="sReset" type="button">Reiniciar</button></div>
+          </div>
+        </div>
+        <div>
+          <span class="lab__sub" style="margin-top:0">Voto por trabajo</span>
+          <div class="mix mix--live" id="sBarW" role="img" aria-label="Cómputo honesto frente a cómputo del atacante"></div>
+          <p class="state" id="sNotaW" aria-live="polite"></p>
+          <div class="controls" style="margin:1rem 0 0">
+            <div class="field">
+              <label class="field__label" for="sQ">Poder de cómputo del atacante</label>
+              <input type="range" id="sQ" min="1" max="70" step="1" value="10">
+              <span class="field__label" id="sQOut" style="text-transform:none;letter-spacing:0"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="lab__note">
+        El atacante puede fabricar identidades de balde, pero no puede fabricar cómputo: cada
+        unidad de poder de voto le cuesta hardware y electricidad medibles.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · NAKAMOTO ============ -->
+<section class="section note" id="nakamoto">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">La relación con blockchain: dos respuestas distintas, no una mejor</h2>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <p>
+        El artículo de Nakamoto nunca menciona a los generales bizantinos, pero resuelve una
+        variante del mismo problema bajo suposiciones distintas. Lo que comparten: el objetivo es
+        que participantes que no confían entre sí acuerden un <strong>orden total</strong> sobre
+        una secuencia de operaciones, con parte de ellos comportándose de forma arbitraria. En
+        ambos casos se trata de replicar una máquina de estados. Lo que cambia es todo lo demás.
+      </p>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <thead>
+          <tr><th scope="col">Dimensión</th><th scope="col">BFT clásico (PBFT, Tendermint)</th><th scope="col">Nakamoto (prueba de trabajo)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Participantes</strong></td><td>Conjunto conocido y fijo</td><td>Abierto; entran y salen sin avisar</td></tr>
+          <tr><td><strong>Peso del voto</strong></td><td>Una identidad, un voto</td><td>Proporcional al cómputo aportado</td></tr>
+          <tr><td><strong>Umbral</strong></td><td>Menos de un tercio de traidores</td><td>Menos de la mitad del poder de cómputo</td></tr>
+          <tr><td><strong>Finalidad</strong></td><td>Determinista e inmediata al comprometerse</td><td>Probabilística; mejora con cada confirmación</td></tr>
+          <tr><td><strong>Mensajes</strong></td><td>Cuadrático en el número de nodos</td><td>Difusión del bloque; escala a miles de nodos</td></tr>
+          <tr><td><strong>Sincronía</strong></td><td>Requiere sincronía parcial para progresar</td><td>Tolera asincronía a costa de reorganizaciones</td></tr>
+          <tr><td><strong>Costo del ataque</strong></td><td>Corromper a un tercio de entidades conocidas</td><td>Adquirir y operar la mitad del cómputo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Finalidad contra apertura</h3>
+        <p>
+          PBFT da una garantía lógica y definitiva, pero exige saber quiénes juegan. Nakamoto
+          admite a cualquiera, y a cambio la garantía se vuelve estadística: nunca se sabe con
+          certeza absoluta que una transacción es irreversible, sólo que revertirla es cada vez
+          más improbable.
+        </p>
+        <p>
+          Esa probabilidad es calculable. Si el atacante controla una fracción <var>q</var> del
+          cómputo y quiere revertir una transacción enterrada bajo <var>z</var> bloques, debe
+          alcanzar a la cadena honesta desde atrás: una caminata aleatoria con deriva en su contra
+          siempre que <var>q</var> &lt; 0.5, es decir, la ruina del jugador.
+        </p>
+      </div>
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> Nakamoto, sección 11</span>
+        <p>Con <var>p</var> = 1 − <var>q</var> y λ = <var>z</var><var>q</var>/<var>p</var> (bloques
+          que el atacante espera minar mientras la red mina <var>z</var>):</p>
+        <span class="eq">
+          <var>P</var> = 1 − Σ<sub><var>k</var>=0…<var>z</var></sub> <span style="white-space:nowrap">(λ<sup><var>k</var></sup><var>e</var><sup>−λ</sup>/<var>k</var>!)</span> · (1 − (<var>q</var>/<var>p</var>)<sup><var>z</var>−<var>k</var></sup>)
+          <small>Poisson para la ventaja inicial · ruina del jugador para alcanzar</small>
+        </span>
+        <p><strong>Ejemplo:</strong> <var>q</var> = 0.10 y <var>z</var> = 6 dan 0.0243 %. La
+          corrección exacta con binomial negativa está en el
+          <a href="prueba-de-trabajo.html#ataque">módulo 07 de prueba de trabajo</a>.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> Laboratorio 4 — Probabilidad de revertir z confirmaciones</h2>
+        <span class="lab__tag">Poisson · ruina del jugador</span>
+      </div>
+      <p class="lab__intro">
+        La fórmula de la sección 11 del artículo de Nakamoto, recalculada en tu navegador. Prueba
+        a poner <var>q</var> cerca de 0.5: ninguna cantidad razonable de confirmaciones salva la situación.
+      </p>
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="pQ">Fracción del atacante</label>
+          <input type="range" id="pQ" min="1" max="49" step="1" value="10">
+          <span class="field__label" id="pQOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="field">
+          <label class="field__label" for="pZ">Confirmaciones</label>
+          <input type="range" id="pZ" min="0" max="100" step="1" value="6">
+          <span class="field__label" id="pZOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--violet" id="pRes">—</span><span class="metric__label">Probabilidad de éxito del atacante</span></div>
+        <div class="metric"><span class="metric__num" id="pOdds">—</span><span class="metric__label">Una vez cada…</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="pMin">—</span><span class="metric__label">Confirmaciones para bajar de 0.1 %</span></div>
+      </div>
+      <p class="state" id="pNota" aria-live="polite"></p>
+    </div>
+
+    <div class="note__body reveal" style="max-width:80ch;margin-top:clamp(26px,3.4vw,40px)">
+      <p>
+        La seguridad de Bitcoin no proviene de la criptografía en ese punto, sino del supuesto de
+        que nadie reúne la mitad del cómputo, y de que a quien lo reúna le conviene más minar
+        honestamente que destruir el valor del activo que acaba de atacar. Esa última parte es
+        económica, no matemática, y es la más discutible de todo el diseño.
+      </p>
+      <div class="callout callout--warn">
+        <span class="callout__title">Dos matices que suelen omitirse</span>
+        Primero, el umbral efectivo puede ser menor que 50 %: Eyal y Sirer mostraron en 2014 que
+        con minería egoísta y buena conectividad basta menos. Segundo, Ethereum dejó de ser un
+        sistema puramente probabilístico: desde la transición a prueba de participación combina
+        la elección de cadena con un mecanismo de finalidad, Casper FFG, que declara bloques
+        finales de forma determinista tras dos épocas, y desde 2025 se trabaja en reducir esa
+        espera a un solo intervalo.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · FLP ============ -->
+<section class="section note" id="flp">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Un resultado hermano: la imposibilidad de FLP</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Conviene no confundir dos imposibilidades que aparecen juntas en la literatura. La cota
+          3<var>f</var> + 1 habla de <em>cuántos</em> traidores se toleran. El resultado de
+          Fischer, Lynch y Paterson, de 1985, habla de <em>cuándo</em>: en un sistema
+          completamente asíncrono, donde los mensajes pueden tardar arbitrariamente, ningún
+          algoritmo determinista garantiza acuerdo aunque falle un solo proceso, y sólo por
+          caída, sin malicia alguna.
+        </p>
+        <p>
+          La razón es que en asincronía total no se puede distinguir un proceso caído de uno
+          lento. Cualquier algoritmo que espere se puede bloquear para siempre; cualquiera que no
+          espere puede equivocarse.
+        </p>
+        <div class="quad" style="grid-template-columns:1fr 1fr">
+          <div class="quad__cell" style="--accent:var(--sky)">
+            <h4>PBFT · sincronía parcial</h4>
+            <p>Supone que los mensajes acaban llegando en algún plazo desconocido, y usa
+            temporizadores para cambiar de líder cuando el actual no avanza.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--amber)">
+            <h4>Bitcoin · aleatoriedad</h4>
+            <p>Nadie decide quién propone el siguiente bloque: lo decide el azar de la búsqueda
+            de un hash. El protocolo deja de ser determinista.</p>
+          </div>
+        </div>
+        <p class="lab__note">Las dos son escapatorias legítimas a una imposibilidad que sólo aplica al caso determinista y asíncrono puro.</p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> Dos imposibilidades</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Lamport, Shostak y Pease (1980–82)</dt><dd>Fallas bizantinas, sistema síncrono: imposible si n ≤ 3f.</dd></div>
+          <div><dt>Fischer, Lynch y Paterson (1985)</dt><dd>Una falla por caída, sistema asíncrono, algoritmo determinista: imposible siempre.</dd></div>
+        </dl>
+        <p style="margin-top:1em">La primera limita el número de fallas; la segunda, las
+          suposiciones sobre el tiempo. Un protocolo real tiene que rodear ambas.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Síntesis: del acuerdo entre generales al consenso abierto</h2>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead><tr><th scope="col">Resultado</th><th scope="col">La idea</th><th scope="col">Módulo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Imposibilidad con tres</strong></td><td>Dos mundos indistinguibles obligan a decisiones contradictorias.</td><td class="num"><a href="#inicio">portada</a></td></tr>
+          <tr><td><strong>Cota n &gt; 3f</strong></td><td>Dos quórums de n − f se cruzan en n − 2f; debe quedar un leal.</td><td class="num"><a href="#cota">02</a></td></tr>
+          <tr><td><strong>OM(m)</strong></td><td>Reenviar y votar por mayoría funciona, pero con O(n<sup>m+1</sup>) mensajes.</td><td class="num"><a href="#om">03</a></td></tr>
+          <tr><td><strong>SM(m)</strong></td><td>Las firmas impiden mentir sobre terceros; basta n ≥ m + 2.</td><td class="num"><a href="#firmas">04</a></td></tr>
+          <tr><td><strong>Ataque Sybil</strong></td><td>Sin un n conocido, contar identidades no significa nada.</td><td class="num"><a href="#sybil">05</a></td></tr>
+          <tr><td><strong>Nakamoto</strong></td><td>Votar con cómputo; finalidad probabilística que mejora con z.</td><td class="num"><a href="#nakamoto">06</a></td></tr>
+          <tr><td><span class="status status--warn">FLP</span></td><td>Asincronía más determinismo: no hay acuerdo garantizado.</td><td class="num"><a href="#flp">07</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>El problema exige <strong>acuerdo</strong> (IC1) aunque el comandante mienta, y <strong>validez</strong> (IC2) cuando no miente.</li>
+          <li style="--accent:var(--sky)">Con fallas bizantinas y mensajes orales hacen falta al menos 3<var>f</var> + 1 participantes, y no hay algoritmo que lo evite.</li>
+          <li style="--accent:var(--mint)">Las firmas no eliminan a los traidores, pero vuelven su mentira autoincriminatoria y bajan el umbral.</li>
+          <li style="--accent:var(--coral)">Todo lo anterior supone participantes conocidos. En una red abierta el ataque Sybil obliga a votar con un recurso escaso.</li>
+          <li style="--accent:var(--amber)">BFT y Nakamoto no compiten: intercambian finalidad determinista por apertura.</li>
+        </ul>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Falla bizantina</dt><dd>Comportamiento arbitrario, incluido mentir de forma distinta a cada quien.</dd></div>
+          <div><dt>Quórum</dt><dd>Conjunto de participantes cuyo respaldo basta para decidir; aquí, n − f.</dd></div>
+          <div><dt>IC1 · IC2</dt><dd>Acuerdo entre leales · obediencia al comandante leal.</dd></div>
+          <div><dt>OM · SM</dt><dd>Algoritmos de 1982 con mensajes orales · con mensajes firmados.</dd></div>
+          <div><dt>Ataque Sybil</dt><dd>Fabricar identidades para ganar influencia.</dd></div>
+          <div><dt>Finalidad</dt><dd>Garantía de que una decisión no se revierte: determinista o probabilística.</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · EJERCICIOS ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Ejercicios</h2>
+      <p class="section__lead">
+        Seis problemas para trabajar a mano. Intenta resolverlos antes de abrir la respuesta;
+        los laboratorios de arriba sirven para comprobar los resultados.
+      </p>
+    </header>
+
+    <div class="note__body exlist reveal" style="max-width:80ch">
+
+      <!-- EJERCICIO 1 -->
+      <h3>Ejercicio 1 · La demostración de la portada</h3>
+      <p>
+        Reconstruye por escrito el argumento de la portada. Enuncia con precisión los tres
+        escenarios y explica en qué momento se usa IC2 y en cuál IC1. Después generaliza: ¿por
+        qué el mismo razonamiento se traslada de 3 generales a 3<var>f</var>?
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <ul class="plain-list">
+          <li><strong>A:</strong> el comandante es traidor; manda «atacar» a L1 y «retirarse» a L2. Los tenientes, leales, se reenvían lo que recibieron.</li>
+          <li style="--accent:var(--sky)"><strong>B:</strong> el comandante es leal y ordena «atacar»; L2 es traidor y le dice a L1 «me dijo retirarse». Por <strong>IC2</strong>, L1 debe atacar. Su bandeja es idéntica a la de A, así que en A también ataca.</li>
+          <li style="--accent:var(--mint)"><strong>C:</strong> el comandante es leal y ordena «retirarse»; L1 es traidor y le dice a L2 «me dijo atacar». Por <strong>IC2</strong>, L2 debe retirarse, y como su bandeja es la de A, en A también se retira.</li>
+          <li style="--accent:var(--coral)">En A, dos leales deciden distinto: se viola <strong>IC1</strong>. IC2 se usó en B y C; IC1 falla en A.</li>
+        </ul>
+        <p>
+          <strong>Generalización:</strong> supón que existiera un algoritmo para <var>n</var> ≤ 3<var>f</var>
+          generales con <var>f</var> traidores. Reparte a los <var>n</var> generales en tres grupos
+          de a lo más <var>f</var> cada uno, con el comandante en el primero. Tres generales podrían
+          entonces simular el algoritmo, cada uno ejecutando a todo su grupo. Un traidor entre los
+          tres equivale a un grupo entero de traidores, es decir, a lo más <var>f</var>, que el
+          algoritmo supuestamente tolera. Se obtendría una solución para tres generales con un
+          traidor, lo que contradice lo que acabamos de demostrar.
+        </p>
+      </details>
+
+      <hr>
+
+      <!-- EJERCICIO 2 -->
+      <h3>Ejercicio 2 · OM(1) a mano</h3>
+      <p>
+        Ejecuta OM(1) con cuatro generales a mano, con el comandante traidor enviando «atacar»,
+        «retirarse» y «atacar». Escribe el vector de cada teniente leal y verifica que la mayoría
+        coincide. Repite cambiando la estrategia del traidor y explica por qué el resultado no
+        depende de ella.
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Ronda 1: L1 recibe A, L2 recibe R y L3 recibe A. En la ronda 2 los tres son leales y reportan la verdad.</p>
+        <ul class="plain-list">
+          <li>L1: (del comandante A, de L2 R, de L3 A) = {A, R, A} → <strong>atacar</strong></li>
+          <li style="--accent:var(--sky)">L2: (del comandante R, de L1 A, de L3 A) = {R, A, A} → <strong>atacar</strong></li>
+          <li style="--accent:var(--mint)">L3: (del comandante A, de L1 A, de L2 R) = {A, A, R} → <strong>atacar</strong></li>
+        </ul>
+        <p>
+          Sea cual sea la terna (<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>)
+          que envíe el comandante, cada teniente termina con exactamente esos tres valores: el suyo
+          lo recibió directo y los otros dos se los contaron honestamente sus pares. Los tres tienen
+          el <strong>mismo multiconjunto</strong>, y la misma regla de mayoría da el mismo
+          resultado. Con dos valores posibles y tres votos siempre hay mayoría; con más valores se
+          necesita una regla por defecto común (por ejemplo, «retirarse»).
+        </p>
+      </details>
+
+      <hr>
+
+      <!-- EJERCICIO 3 -->
+      <h3>Ejercicio 3 · El costo de OM(m)</h3>
+      <p>
+        Cuenta el número exacto de mensajes que envía OM(<var>m</var>) con <var>n</var> = 3<var>m</var> + 1,
+        para <var>m</var> = 1, 2 y 3. Justifica por qué el algoritmo es inaplicable en una red
+        grande y qué hacen PBFT o HotStuff para bajar ese costo.
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>
+          En OM(<var>m</var>) el comandante envía <var>n</var> − 1 mensajes y luego cada uno de los
+          <var>n</var> − 1 tenientes actúa como comandante de OM(<var>m</var> − 1) con
+          <var>n</var> − 1 generales:
+        </p>
+        <span class="eq">
+          <var>M</var>(<var>n</var>, 0) = <var>n</var> − 1, &nbsp; <var>M</var>(<var>n</var>, <var>m</var>) = (<var>n</var> − 1) + (<var>n</var> − 1)·<var>M</var>(<var>n</var> − 1, <var>m</var> − 1)
+        </span>
+        <ul class="plain-list">
+          <li><var>m</var> = 1, <var>n</var> = 4: 3 + 3·2 = <strong>9</strong></li>
+          <li style="--accent:var(--sky)"><var>m</var> = 2, <var>n</var> = 7: 6 + 6·<var>M</var>(6, 1) = 6 + 6·25 = <strong>156</strong></li>
+          <li style="--accent:var(--mint)"><var>m</var> = 3, <var>n</var> = 10: 9 + 9·<var>M</var>(9, 2) = 9 + 9·400 = <strong>3 609</strong></li>
+        </ul>
+        <p>
+          El conteo crece como <var>n</var><sup><var>m</var>+1</sup> y, como para tolerar una
+          fracción fija de traidores <var>m</var> crece con <var>n</var>, el costo es en la práctica
+          exponencial. Además exige <var>m</var> + 1 rondas síncronas. <strong>PBFT</strong> evita
+          la recursión: un líder propone y las réplicas pasan por tres fases (pre-prepare, prepare,
+          commit) con quórums de 2<var>f</var> + 1 mensajes autenticados, O(<var>n</var>²) mensajes
+          por decisión. <strong>HotStuff</strong> hace que el líder agregue los votos en un
+          certificado de quórum (firmas umbral o agregadas) y lo reenvíe, con lo que cada fase
+          cuesta O(<var>n</var>) y cambiar de líder es igual de barato.
+        </p>
+      </details>
+
+      <hr>
+
+      <!-- EJERCICIO 4 -->
+      <h3>Ejercicio 4 · Quórums bizantinos frente a quórums de caída</h3>
+      <p>
+        Demuestra que dos quórums de tamaño <var>n</var> − <var>f</var> en un conjunto de
+        <var>n</var> participantes se intersecan en al menos <var>n</var> − 2<var>f</var>
+        elementos, y deduce la condición <var>n</var> &gt; 3<var>f</var>. Compara con el caso de
+        fallas por caída, donde basta <var>n</var> &gt; 2<var>f</var>, y explica de dónde sale la diferencia.
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>
+          Por inclusión–exclusión, |<var>Q</var><sub>1</sub> ∩ <var>Q</var><sub>2</sub>| =
+          |<var>Q</var><sub>1</sub>| + |<var>Q</var><sub>2</sub>| − |<var>Q</var><sub>1</sub> ∪ <var>Q</var><sub>2</sub>|
+          ≥ 2(<var>n</var> − <var>f</var>) − <var>n</var> = <var>n</var> − 2<var>f</var>, porque la
+          unión no puede tener más de <var>n</var> elementos.
+        </p>
+        <p>
+          <strong>Bizantino:</strong> hasta <var>f</var> traidores pueden estar en la intersección y
+          «votar» en los dos quórums de forma contradictoria. Para que quede al menos un leal, que
+          dice lo mismo a ambos: <var>n</var> − 2<var>f</var> ≥ <var>f</var> + 1, es decir,
+          <var>n</var> ≥ 3<var>f</var> + 1.
+        </p>
+        <p>
+          <strong>Caída:</strong> un proceso caído no miente; si respondió, respondió lo mismo a
+          todos. Basta que la intersección no sea vacía: <var>n</var> − 2<var>f</var> ≥ 1, es decir,
+          <var>n</var> ≥ 2<var>f</var> + 1. La diferencia de un <var>f</var> completo es el precio de
+          que los traidores puedan estar en ambos lados a la vez.
+        </p>
+      </details>
+
+      <hr>
+
+      <!-- EJERCICIO 5 -->
+      <h3>Ejercicio 5 · Diseña tu propio protocolo abierto</h3>
+      <p>
+        Diseña un protocolo de votación para una red abierta que no use prueba de trabajo ni
+        prueba de participación, y encuentra tú mismo el ataque Sybil que lo rompe. El objetivo
+        del ejercicio es convencerte de que el recurso escaso no es opcional.
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Algunos diseños típicos y su ataque:</p>
+        <ul class="plain-list">
+          <li><strong>Un voto por llave pública registrada:</strong> generar un millón de llaves cuesta segundos.</li>
+          <li style="--accent:var(--sky)"><strong>Un voto por dirección IP:</strong> las IP se alquilan por miles en la nube, en redes de bots o con bloques IPv6.</li>
+          <li style="--accent:var(--mint)"><strong>Un voto por quien resuelva un captcha:</strong> hay granjas que los resuelven por centavos, y modelos que lo hacen solos.</li>
+          <li style="--accent:var(--coral)"><strong>Reputación o invitaciones:</strong> el atacante cultiva muchas identidades con paciencia o se invita a sí mismo.</li>
+        </ul>
+        <p>
+          En todos los casos el costo de una identidad más es casi nulo o crece menos que el poder
+          de voto que da. Sin un recurso cuyo costo crezca con la influencia (cómputo, capital
+          bloqueado o una autoridad que certifique identidades, como en las redes permisionadas),
+          el atacante compra la mayoría por casi nada.
+        </p>
+      </details>
+
+      <hr>
+
+      <!-- EJERCICIO 6 -->
+      <h3>Ejercicio 6 · ¿Bastan seis confirmaciones?</h3>
+      <p>
+        Con la fórmula de la sección 11, calcula cuántas confirmaciones se necesitan para que la
+        probabilidad de reversión quede por debajo de 0.1 % con <var>q</var> = 0.25 y con
+        <var>q</var> = 0.40. Comenta si la convención de seis confirmaciones es prudente en ambos casos.
+      </p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <ul class="plain-list">
+          <li><var>q</var> = 0.25: hacen falta <strong><var>z</var> = 15</strong> (<var>P</var> ≈ 0.094 %). Con <var>z</var> = 6, <var>P</var> ≈ 5.0 %.</li>
+          <li style="--accent:var(--coral)"><var>q</var> = 0.40: hacen falta <strong><var>z</var> = 89</strong> (<var>P</var> ≈ 0.099 %). Con <var>z</var> = 6, <var>P</var> ≈ 50.4 %.</li>
+        </ul>
+        <p>
+          Ambos valores coinciden con la tabla del artículo de Nakamoto y se comprueban en el
+          laboratorio 4. Seis confirmaciones son prudentes contra un atacante pequeño
+          (<var>q</var> = 0.10 da 0.024 %), pero no contra uno con un cuarto del cómputo (1 de cada
+          20 ataques triunfa) y son casi inútiles contra uno con el 40 %: es tirar una moneda.
+          Además la fórmula de Poisson subestima el riesgo; con la binomial negativa del
+          <a href="prueba-de-trabajo.html#ataque">módulo 07</a> las cifras empeoran.
+        </p>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · REFERENCIAS ============ -->
+<section class="section note" id="referencias">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Referencias</h2>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <ol class="refs">
+        <li>Lamport, L., Shostak, R., Pease, M. <em>The Byzantine Generals Problem</em>, ACM TOPLAS 4(3), 1982. El artículo fundacional; los algoritmos OM y SM están en las secciones 4 y 5. <a href="https://lamport.azurewebsites.net/pubs/byz.pdf" rel="noopener">lamport.azurewebsites.net</a></li>
+        <li>Pease, M., Shostak, R., Lamport, L. <em>Reaching Agreement in the Presence of Faults</em>, JACM 27(2), 1980. Contiene la cota original.</li>
+        <li>Fischer, M., Lynch, N., Paterson, M. <em>Impossibility of Distributed Consensus with One Faulty Process</em>, JACM 32(2), 1985. <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf" rel="noopener">groups.csail.mit.edu</a></li>
+        <li>Castro, M., Liskov, B. <em>Practical Byzantine Fault Tolerance</em>, OSDI 1999. Primer BFT eficiente en redes asíncronas reales. <a href="https://pmg.csail.mit.edu/papers/osdi99.pdf" rel="noopener">pmg.csail.mit.edu</a></li>
+        <li>Douceur, J. <em>The Sybil Attack</em>, IPTPS 2002. <a href="https://www.microsoft.com/en-us/research/publication/the-sybil-attack/" rel="noopener">microsoft.com/research</a></li>
+        <li>Nakamoto, S. <em>Bitcoin: A Peer-to-Peer Electronic Cash System</em>, 2008. Secciones 4, 5 y 11. <a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">bitcoin.org/bitcoin.pdf</a></li>
+        <li>Eyal, I., Sirer, E. G. <em>Majority is not Enough: Bitcoin Mining is Vulnerable</em>, FC 2014. <a href="https://arxiv.org/abs/1311.0243" rel="noopener">arxiv.org/abs/1311.0243</a></li>
+        <li>Garay, J., Kiayias, A., Leonardos, N. <em>The Bitcoin Backbone Protocol</em>, EUROCRYPT 2015. Análisis formal de las garantías de Nakamoto. <a href="https://eprint.iacr.org/2014/765" rel="noopener">eprint.iacr.org/2014/765</a></li>
+        <li>Yin, M. et al. <em>HotStuff: BFT Consensus with Linearity and Responsiveness</em>, PODC 2019. Base de los BFT usados hoy en Aptos, Sui y derivados. <a href="https://arxiv.org/abs/1803.05069" rel="noopener">arxiv.org/abs/1803.05069</a></li>
+        <li>Buterin, V., Griffith, V. <em>Casper the Friendly Finality Gadget</em>, 2017. Finalidad determinista sobre una cadena de elección probabilística. <a href="https://arxiv.org/abs/1710.09437" rel="noopener">arxiv.org/abs/1710.09437</a></li>
+        <li>Buchman, E. <em>Tendermint: Byzantine Fault Tolerance in the Age of Blockchains</em>, tesis de maestría, 2016. <a href="https://atrium.lib.uoguelph.ca/items/5e9d3d2f-1cb5-4a21-b73f-e67b04b38ecc" rel="noopener">atrium.lib.uoguelph.ca</a></li>
+      </ol>
+      <p class="lab__note">
+        Los simuladores usan estrategias de traición fijas y modelos simplificados.
+        Fuente temática: <a href="http://www.math.com.mx/g_b.html" rel="noopener">math.com.mx/g_b.html</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>¿Sigues con el consenso?</h2>
+        <p>La prueba de trabajo desarrolla a fondo la respuesta de Nakamoto: minería, dificultad y la carrera del atacante.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="prueba-de-trabajo.html">
+          Repasar prueba de trabajo <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="firma-digital.html">Repasar firma digital</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="firma-digital.html">Firma digital</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="generales-bizantinos.html">Generales bizantinos</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="#referencias">Papers citados</a></li>
+          <li><a href="http://www.math.com.mx/g_b.html" rel="noopener">Fuente temática</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/generales-bizantinos.js" defer></script>
+</body>
+</html>
