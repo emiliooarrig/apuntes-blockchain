@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Propagación de bloques y Red P2P — ChainNotes</title>
+<title>Firma digital y red P2P — ChainNotes</title>
 <meta
   name="description"
-  content="Apunte sobre propagación de bloques, redes P2P, minería, sincronización y resolución de conflictos en una blockchain distribuida.">
+  content="Apunte: firma digital y red P2P. Autenticidad e integridad, esquemas de firma y EUF-CMA, hash-then-sign, curvas elípticas, ECDSA paso a paso, el ataque del nonce repetido, Schnorr y multifirma; y después el viaje del mensaje firmado por la red. Con tres laboratorios interactivos.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/styles.css">
-<link rel="stylesheet" href="../assets/css/apuntes.css">
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=4">
 </head>
 <body>
 
@@ -30,6 +30,7 @@
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
   <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.3 9.8h17.4M3.3 14.2h17.4"/><path d="M12 3c-2.6 2.6-3.9 5.6-3.9 9s1.3 6.4 3.9 9c2.6-2.6 3.9-5.6 3.9-9S14.6 5.6 12 3Z"/></symbol>
   <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
   <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
@@ -40,12 +41,12 @@
 </svg>
 
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
-<a class="skip-link" href="#p2p">Saltar al contenido</a>
+<a class="skip-link" href="#autorizacion">Saltar al contenido</a>
 
 <!-- ============ HEADER ============ -->
 <header class="header" id="header">
   <div class="container header__inner">
-    <a class="brand" href="#inicio" aria-label="ChainNotes, ir al inicio">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
       <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
       <span class="brand__text">Chain<em>Notes</em></span>
     </a>
@@ -53,9 +54,10 @@
 <nav class="nav" id="nav" aria-label="Navegación principal">
     <ul class="nav__list">
       <li><a class="nav__link" href="../index.html">Inicio</a></li>
-      <li><a class="nav__link is-active" href="#p2p">Red P2P</a></li>
-      <li><a class="nav__link" href="#propagacion">Propagación</a></li>
-      <li><a class="nav__link" href="#conflictos">Conflictos</a></li>
+      <li><a class="nav__link is-active" href="#autorizacion">Firma</a></li>
+      <li><a class="nav__link" href="#ecdsa">ECDSA</a></li>
+      <li><a class="nav__link" href="#schnorr">Schnorr</a></li>
+      <li><a class="nav__link" href="#p2p">Red P2P</a></li>
       <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
     </ul>
 </nav>
@@ -65,7 +67,7 @@
         <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
       </button>
-      <a class="clay-btn clay-btn--primary header__cta" href="#p2p">
+      <a class="clay-btn clay-btn--primary header__cta" href="#autorizacion">
         Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
       </a>
       <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
@@ -107,61 +109,38 @@
           <use href="#i-arrow"/>
         </svg>
 
-        <span>03 · Red P2P</span>
+        <span>03 · Firma digital y red P2P</span>
 
       </nav>
 
 
       <span class="badge anim" style="--d:60ms">
         <span class="badge__dot"></span>
-        Módulo 03 · Redes distribuidas
+        Módulo 03 · Criptografía y redes
       </span>
 
 
       <h1 class="topic-hero__title anim" style="--d:120ms">
-        Propagación de bloques<br>
-        <span class="grad">en la red</span>
+        La <span class="grad">firma digital</span><br>
+        y el viaje del mensaje <span class="underlined">firmado</span>
       </h1>
 
 
       <p class="topic-hero__lead anim" style="--d:200ms">
-        Encontrar un bloque no sirve de mucho si el resto de la red
-        nunca se entera. Una blockchain distribuida necesita transmitir
-        los nuevos bloques entre nodos, sincronizar distintas visiones
-        de la cadena y resolver qué ocurre cuando aparecen bloques
-        competidores al mismo tiempo.
+        Un nodo recibe una transacción de alguien a quien no conoce y tiene que decidir
+        solo, en milisegundos, si de verdad la autorizó quien dice. Eso lo resuelve la firma
+        digital. Pero una transacción que nadie recibe tampoco existe, así que la otra mitad
+        del problema es cómo ese mensaje firmado llega a toda la red. Las dos mitades se
+        encuentran en un punto: antes de reenviar nada, cada nodo verifica la firma.
       </p>
 
 
       <ul class="topic-hero__meta anim" style="--d:280ms">
 
-        <li>
-          <svg viewBox="0 0 24 24">
-            <use href="#i-nodes"/>
-          </svg>
-          Red P2P
-        </li>
-
-        <li>
-          <svg viewBox="0 0 24 24">
-            <use href="#i-globe"/>
-          </svg>
-          Propagación
-        </li>
-
-        <li>
-          <svg viewBox="0 0 24 24">
-            <use href="#i-layers"/>
-          </svg>
-          Consenso
-        </li>
-
-        <li>
-          <svg viewBox="0 0 24 24">
-            <use href="#i-check"/>
-          </svg>
-          4 ejercicios
-        </li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> ECDSA</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Schnorr</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Red P2P</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 3 laboratorios</li>
 
       </ul>
 
@@ -178,56 +157,22 @@
       <h2>Contenido del apunte</h2>
 
       <ul class="toc__list">
-
-        <li>
-          <a href="#p2p">
-            <span class="toc__n">01</span>
-            Por qué hace falta una red P2P
-          </a>
-        </li>
-
-        <li>
-          <a href="#propagacion">
-            <span class="toc__n">02</span>
-            Cómo se propaga un bloque
-          </a>
-        </li>
-
-        <li>
-          <a href="#mineria-red">
-            <span class="toc__n">03</span>
-            Relación entre minería y red
-          </a>
-        </li>
-
-        <li>
-          <a href="#conflictos">
-            <span class="toc__n">04</span>
-            Qué ocurre si aparecen dos bloques
-          </a>
-        </li>
-
-        <li>
-          <a href="#blockchain-real">
-            <span class="toc__n">05</span>
-            De cadena artesanal a red distribuida
-          </a>
-        </li>
-
-        <li>
-          <a href="#resumen">
-            <span class="toc__n">06</span>
-            Síntesis
-          </a>
-        </li>
-
-        <li>
-          <a href="#ejercicios">
-            <span class="toc__n">07</span>
-            Ejercicios
-          </a>
-        </li>
-
+        <li><a href="#autorizacion"><span class="toc__n">01</span> ¿Quién autorizó esto?</a></li>
+        <li><a href="#esquema"><span class="toc__n">02</span> Qué es un esquema de firma</a></li>
+        <li><a href="#hash-sign"><span class="toc__n">03</span> Se firma el hash, no el documento</a></li>
+        <li><a href="#curva"><span class="toc__n">04</span> Dónde vive la clave</a></li>
+        <li><a href="#ecdsa"><span class="toc__n">05</span> ECDSA paso a paso</a></li>
+        <li><a href="#nonce-k"><span class="toc__n">06</span> El nonce que entrega la clave</a></li>
+        <li><a href="#schnorr"><span class="toc__n">07</span> Schnorr y la multifirma</a></li>
+        <li><a href="#de-la-firma-a-la-red"><span class="toc__n">08</span> De la firma a la red</a></li>
+        <li><a href="#p2p"><span class="toc__n">09</span> Por qué hace falta una red P2P</a></li>
+        <li><a href="#propagacion"><span class="toc__n">10</span> Cómo se propaga un bloque</a></li>
+        <li><a href="#mineria-red"><span class="toc__n">11</span> Relación entre minería y red</a></li>
+        <li><a href="#conflictos"><span class="toc__n">12</span> Qué ocurre si aparecen dos bloques</a></li>
+        <li><a href="#blockchain-real"><span class="toc__n">13</span> De cadena artesanal a red distribuida</a></li>
+        <li><a href="#resumen"><span class="toc__n">14</span> Síntesis</a></li>
+        <li><a href="#ejercicios"><span class="toc__n">15</span> Ejercicios</a></li>
+        <li><a href="#fuentes"><span class="toc__n">16</span> Fuentes</a></li>
       </ul>
 
     </nav>
@@ -235,6 +180,623 @@
   </div>
 
 </section>
+
+
+  <!-- ============ 01 · QUIÉN AUTORIZA ============ -->
+  <section class="section note" id="autorizacion">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Firma digital</span>
+        <h2 class="section__title">¿Quién autorizó esto?</h2>
+        <div class="goal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+          <p style="margin:0"><strong>Objetivo:</strong> separar tres garantías que se suelen
+          confundir —autenticidad, integridad y no repudio— y ver por qué ninguna se consigue
+          con una contraseña.</p>
+        </div>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            Una transacción llega a un nodo que no conoce a nadie y no puede preguntarle a nadie.
+            Tiene que decidir, él solo y en milisegundos, si ese mensaje lo autorizó quien dice
+            haberlo autorizado. No hay servidor central al que consultar, ni sesión iniciada, ni
+            soporte técnico.
+          </p>
+          <p>
+            Una contraseña no sirve aquí. Para comprobar una contraseña hay que conocerla, y
+            entonces quien la comprueba también puede usarla. En una red abierta eso significa
+            darle tu secreto a miles de desconocidos.
+          </p>
+          <p>
+            La firma digital resuelve exactamente esa asimetría: <strong>firmar requiere un
+            secreto, verificar no requiere ninguno</strong>. Cualquiera puede comprobar la firma
+            y nadie, ni el que la comprueba, aprende nada que le permita falsificarla.
+          </p>
+          <div class="callout callout--key">
+            <span class="callout__title">Tres garantías distintas</span>
+            <strong>Autenticidad:</strong> el mensaje viene de quien dice.
+            <strong>Integridad:</strong> no fue alterado desde que se firmó.
+            <strong>No repudio:</strong> el firmante no puede negar después que fue él. Las tres
+            salen de la misma operación, pero conviene no mezclarlas: un hash solo da integridad,
+            y un MAC da autenticidad e integridad pero no repudio, porque quien verifica también
+            podría haberlo generado.
+          </div>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> La asimetría</span>
+          <p>Un secreto que no se comparte, y un dato público derivado de él:</p>
+          <span class="eq">
+            d ∈ {1, …, n−1} &nbsp;secreta &nbsp;·&nbsp; Q = d·G &nbsp;pública
+            <small>calcular Q desde d es barato; volver es el problema difícil</small>
+          </span>
+          <p>Y dos algoritmos con permisos opuestos:</p>
+          <span class="eq">
+            Firmar(d, m) → σ &nbsp;·&nbsp; Verificar(Q, m, σ) → sí / no
+            <small>solo el primero necesita el secreto</small>
+          </span>
+          <p class="lab__note" style="margin-top:1.1rem">
+            En Bitcoin la dirección a la que te pagan es, en esencia, un hash de Q. La condición
+            de gasto de un UTXO dice «quien pueda firmar para esta Q».
+          </p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 02 · EL ESQUEMA ============ -->
+  <section class="section note" id="esquema">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Definición</span>
+        <h2 class="section__title">Qué es exactamente un esquema de firma</h2>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            Un esquema de firma son tres algoritmos. <strong>Generar</strong> produce el par
+            (d, Q) a partir de azar. <strong>Firmar</strong> toma la clave privada y un mensaje y
+            devuelve una firma. <strong>Verificar</strong> toma la clave pública, el mensaje y la
+            firma, y responde sí o no.
+          </p>
+          <p>
+            Que funcione cuando todos son honestos es lo fácil, y se llama <em>correctitud</em>.
+            Lo interesante es qué significa que sea seguro, y la definición estándar es más dura
+            de lo que uno esperaría.
+          </p>
+          <h3>Infalsificable, y bajo las peores condiciones</h3>
+          <p>
+            El modelo se llama <strong>EUF-CMA</strong>, infalsificabilidad existencial bajo
+            ataque de mensaje elegido. Al adversario se le concede mucho: conoce Q, y puede pedir
+            la firma de todos los mensajes que quiera, elegidos por él, incluso adaptándolos
+            según lo que vaya viendo.
+          </p>
+          <p>
+            Gana si produce una firma válida de <strong>cualquier</strong> mensaje que no haya
+            pedido. No hace falta que el mensaje sea útil ni que signifique algo: basta con uno.
+            Esa exigencia tan estricta es deliberada, porque en un sistema real el adversario
+            elige qué le conviene falsificar.
+          </p>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Los tres algoritmos</span>
+          <span class="eq">
+            Gen(1<sup>λ</sup>) → (d, Q)
+            <small>λ es el parámetro de seguridad</small>
+          </span>
+          <span class="eq">
+            Firmar(d, m) → σ &nbsp;&nbsp; Verificar(Q, m, σ) → {0, 1}
+          </span>
+          <p><strong>Correctitud:</strong> una firma honesta siempre verifica.</p>
+          <span class="eq">
+            Verificar(Q, m, Firmar(d, m)) = 1 &nbsp; ∀m
+          </span>
+          <p><strong>Seguridad (EUF-CMA):</strong> con acceso a un oráculo de firma, ninguna
+            falsificación nueva es viable.</p>
+          <span class="eq">
+            Pr[ Verificar(Q, m*, σ*) = 1 ∧ m* ∉ Q<sub>firmadas</sub> ] ≤ negl(λ)
+          </span>
+          <div class="callout callout--note" style="margin-bottom:0">
+            <span class="callout__title">Lo que no cubre</span>
+            EUF-CMA no promete que la firma sea única, ni que no se pueda transformar en otra
+            firma válida del <em>mismo</em> mensaje. Esa propiedad extra se llama maleabilidad, y
+            en Bitcoin costó cara: por eso existe SegWit, que sacó la firma del cálculo del txid.
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 03 · HASH-THEN-SIGN ============ -->
+  <section class="section note" id="hash-sign">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Puente con el módulo 01</span>
+        <h2 class="section__title">Nadie firma un documento: firma su hash</h2>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            Las firmas sobre curvas operan con números menores que n, no con textos de longitud
+            arbitraria. Así que lo que se firma nunca es el mensaje: es <var>H</var>(m). A eso se
+            le llama <strong>hash-then-sign</strong>, y además de resolver el tamaño, hace la
+            firma más rápida y permite firmar sin ver el documento completo.
+          </p>
+          <p>
+            Pero amarra la seguridad de la firma a la del hash, y el amarre es exacto. Si alguien
+            encuentra una colisión —dos mensajes distintos con el mismo hash— puede pedirte que
+            firmes el inocuo y quedarse con una firma válida sobre el fraudulento.
+          </p>
+          <div class="callout callout--warn">
+            <span class="callout__title">La clave privada nunca se compromete</span>
+            Y aun así la firma es falsificable. Ese es el punto fino: no se rompió la curva, no se
+            filtró d, no hubo fuerza bruta. Se rompió la resistencia a colisión del hash, y la
+            firma cayó con ella. Es la consecuencia exacta de perder esa propiedad, y está
+            desarrollada en el apunte de funciones hash.
+          </div>
+          <p>
+            Por eso Bitcoin no firma sobre SHA-256 a secas sino sobre doble SHA-256, y por eso la
+            migración de SHA-1 fue urgente en cuanto las colisiones se volvieron prácticas en 2017.
+          </p>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Proposición · firma con hash</span>
+          <p>
+            Sea Σ un esquema seguro frente a falsificación existencial con mensaje elegido, y
+            Σ<sub><var>H</var></sub> el esquema <em>hash-then-sign</em> que firma
+            <var>H</var>(m) en lugar de m.
+          </p>
+          <span class="eq">
+            Σ<sub><var>H</var></sub> es EUF-CMA &nbsp;⟸&nbsp; Σ es EUF-CMA ∧ <var>H</var> resistente a colisión
+            <small>la seguridad del compuesto es la del eslabón más débil</small>
+          </span>
+          <p>El ataque, cuando falla el hash:</p>
+          <span class="eq">
+            <var>H</var>(m₁) = <var>H</var>(m₂), m₁ ≠ m₂ &nbsp;⟹&nbsp; σ sobre m₁ vale para m₂
+            <small>se firma el pagaré de 10; vale para el de 10 000</small>
+          </span>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 04 · LA CURVA ============ -->
+  <section class="section note" id="curva">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Curvas elípticas</span>
+        <h2 class="section__title">Dónde vive la clave</h2>
+        <p class="section__lead">
+          No hace falta la teoría completa para entender la firma. Hace falta un grupo donde
+          multiplicar sea fácil y dividir sea imposible.
+        </p>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            Una curva elíptica sobre un campo finito es el conjunto de puntos (x, y) que cumplen
+            <var>y</var>² = <var>x</var>³ + <var>ax</var> + <var>b</var> módulo un primo, más un
+            punto especial llamado infinito. Lo valioso es que esos puntos forman un
+            <strong>grupo</strong>: hay una forma de «sumar» dos puntos y obtener otro punto de la
+            curva.
+          </p>
+          <p>
+            Sumar un punto consigo mismo muchas veces es «multiplicar» por un escalar, y se hace
+            rápido duplicando: para calcular 1000·G no hacen falta mil sumas sino unas diez. La
+            operación inversa —dado G y Q = d·G, hallar d— es el <strong>problema del logaritmo
+            discreto en curva elíptica</strong>, y es lo único que impide que cualquiera deduzca
+            tu clave privada a partir de tu dirección.
+          </p>
+          <p>
+            Bitcoin y Ethereum usan <strong>secp256k1</strong>, con un primo de 256 bits. El mejor
+            ataque conocido cuesta del orden de 2<sup>128</sup> operaciones, que es la razón por la
+            que se dice que da 128 bits de seguridad.
+          </p>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> La curva de estos laboratorios</span>
+          <p>
+            Para que los números quepan en pantalla y los ataques corran al instante, aquí se usa
+            una curva de juguete. Misma aritmética que secp256k1, cuatro cifras en vez de setenta
+            y siete.
+          </p>
+          <dl class="params" style="margin:0">
+            <div><dt>Ecuación</dt><dd>y² = x³ + 3x + 6</dd></div>
+            <div><dt>Primo p</dt><dd>10 007</dd></div>
+            <div><dt>Orden n</dt><dd>10 039 (primo)</dd></div>
+            <div><dt>Generador G</dt><dd>(5, 4270)</dd></div>
+          </dl>
+          <p style="margin-top:1em">
+            Que n sea primo tiene una consecuencia cómoda: cualquier punto distinto del infinito
+            genera todo el grupo, así que no hay claves débiles que esquivar.
+          </p>
+          <div class="callout callout--warn" style="margin-bottom:0">
+            <span class="callout__title">La inseguridad es intencional</span>
+            Con n = 10 039 tu clave privada se encuentra probando diez mil valores, cosa de
+            milisegundos. Eso es justamente lo que hace visibles los ataques de más abajo. En
+            secp256k1 el mismo barrido tardaría más que la edad del universo.
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 05 · ECDSA ============ -->
+  <section class="section note" id="ecdsa">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> ECDSA</span>
+        <h2 class="section__title">La firma, paso a paso</h2>
+        <div class="goal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+          <p style="margin:0"><strong>Objetivo:</strong> poder reproducir las dos ecuaciones de
+          ECDSA y explicar por qué la verificación funciona sin conocer d ni k.</p>
+        </div>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <h3 style="margin-top:0">Firmar</h3>
+          <p>
+            Se elige un número secreto de un solo uso, <var>k</var>, llamado <strong>nonce</strong>.
+            Se calcula el punto k·G y se toma su coordenada x como <var>r</var>. Luego se resuelve
+            <var>s</var> con la ecuación que mezcla el hash del mensaje, <var>r</var> y la clave
+            privada. La firma es el par (r, s).
+          </p>
+          <h3>Verificar</h3>
+          <p>
+            El verificador despeja al revés: con <var>s</var>⁻¹ reconstruye el punto que debió
+            producirse y comprueba que su coordenada x vuelva a dar <var>r</var>. Solo usa datos
+            públicos. Si la cuenta cierra, la única explicación razonable es que quien firmó
+            conocía d.
+          </p>
+          <div class="callout callout--note">
+            <span class="callout__title">Dos secretos, no uno</span>
+            La clave privada es un secreto permanente. El nonce es un secreto de usar y tirar, y
+            es igual de crítico: en la sección siguiente se ve que filtrarlo, o repetirlo, entrega
+            la clave privada completa.
+          </div>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Las ecuaciones</span>
+          <p><strong>Firmar</strong> con clave d y nonce k:</p>
+          <span class="eq">
+            R = k·G, &nbsp; r = R<sub>x</sub> mod n<br>
+            e = <var>H</var>(m) mod n<br>
+            s = k⁻¹(e + r·d) mod n
+          </span>
+          <p><strong>Verificar</strong> con la clave pública Q:</p>
+          <span class="eq">
+            w = s⁻¹, &nbsp; P = (e·w)·G + (r·w)·Q<br>
+            válida ⟺ P<sub>x</sub> mod n = r
+          </span>
+          <p>Por qué cierra: sustituyendo s en P se obtiene</p>
+          <span class="eq">
+            P = s⁻¹(e + r·d)·G = k·G = R
+            <small>el verificador reconstruye R sin saber k</small>
+          </span>
+        </aside>
+      </div>
+
+      <!-- LAB 1 -->
+      <div class="clay-card lab reveal">
+        <div class="lab__head">
+          <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 1 — Firmar y verificar</h2>
+          <span class="lab__tag">y² = x³ + 3x + 6 mod 10 007</span>
+        </div>
+        <p class="lab__intro">
+          Firma un mensaje y mira la cuenta completa. Después presiona «alterar el mensaje»: la
+          firma no cambia, pero deja de verificar.
+        </p>
+
+        <div class="controls">
+          <div class="field field--wide">
+            <label class="field__label" for="sgMsg">Mensaje</label>
+            <input type="text" id="sgMsg" class="mono" value="pago 5 a Beto">
+          </div>
+          <div class="field">
+            <label class="field__label" for="sgD">Clave privada d</label>
+            <input type="number" id="sgD" class="mono" value="1234" min="1" max="10038">
+          </div>
+          <div class="field">
+            <label class="field__label" for="sgK">Nonce k</label>
+            <input type="number" id="sgK" class="mono" value="9871" min="1" max="10038">
+          </div>
+          <div class="field field--auto">
+            <button class="clay-btn clay-btn--primary" id="sgSign" type="button">
+              Firmar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+            </button>
+          </div>
+          <div class="field field--auto">
+            <button class="clay-btn" id="sgTamper" type="button">Alterar el mensaje</button>
+          </div>
+        </div>
+
+        <span class="field__label">Clave pública Q = d·G</span>
+        <code class="hashout hashout--sm" id="sgQ"></code>
+
+        <div class="readout">
+          <div class="metric"><span class="metric__num" id="sgE">—</span><span class="metric__label">e = H(m) mod n</span></div>
+          <div class="metric"><span class="metric__num" id="sgR">—</span><span class="metric__label">r</span></div>
+          <div class="metric"><span class="metric__num" id="sgS">—</span><span class="metric__label">s</span></div>
+          <div class="metric"><span class="metric__num" id="sgVerdict">—</span><span class="metric__label">Verificación</span></div>
+        </div>
+        <div class="log" id="sgLog" aria-live="polite"></div>
+        <p class="lab__note">
+          Cambia solo la clave privada y vuelve a firmar: r se queda igual, porque r solo depende
+          de k. Cambia el nonce: cambia todo. Esa dependencia es la que explota el laboratorio 2.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 06 · EL NONCE ============ -->
+  <section class="section note" id="nonce-k">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> El ataque clásico</span>
+        <h2 class="section__title">El nonce que entrega la clave</h2>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            La <var>k</var> de ECDSA tiene que ser secreta, impredecible y <strong>distinta en
+            cada firma</strong>. Las tres condiciones son obligatorias, y la tercera es la que más
+            se incumple, porque incumplirla no produce ningún error visible: las firmas siguen
+            siendo válidas.
+          </p>
+          <p>
+            Si firmas dos mensajes distintos con la misma k, cualquiera que vea las dos firmas
+            despeja tu clave privada con aritmética de secundaria. Y detectarlo es trivial: las
+            dos firmas comparten la misma <var>r</var>, que está a la vista de todos.
+          </p>
+          <h3>No es teórico</h3>
+          <p>
+            En 2010 Sony firmaba el software de la PlayStation 3 con una k constante, y el grupo
+            fail0verflow extrajo la clave maestra de la consola. En 2013 un generador de azar
+            defectuoso en Android repitió nonces en carteras de Bitcoin y se vaciaron monederos
+            reales. En los dos casos la curva era sólida y la implementación de la firma correcta;
+            lo que falló fue el número aleatorio.
+          </p>
+          <div class="callout callout--key">
+            <span class="callout__title">La solución: no usar azar</span>
+            El <strong>RFC 6979</strong> deriva k de forma determinista a partir del mensaje y de
+            la clave privada, con un HMAC. Así k sigue siendo impredecible para quien no tenga la
+            clave, pero deja de depender del generador aleatorio del dispositivo. Es lo que usan
+            hoy las carteras serias, y la razón por la que dos firmas del mismo mensaje con la
+            misma clave salen idénticas.
+          </div>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> El despeje</span>
+          <p>Dos firmas con la misma k sobre mensajes distintos:</p>
+          <span class="eq">
+            s₁ = k⁻¹(e₁ + r·d) &nbsp;&nbsp; s₂ = k⁻¹(e₂ + r·d)
+            <small>la misma k da la misma r</small>
+          </span>
+          <p>Restando desaparece d y queda k:</p>
+          <span class="eq">
+            s₁ − s₂ = k⁻¹(e₁ − e₂) &nbsp;⟹&nbsp; k = (e₁ − e₂)/(s₁ − s₂)
+          </span>
+          <p>Y con k en la mano sale la clave privada:</p>
+          <span class="eq">
+            d = (s₁·k − e₁) / r &nbsp; mod n
+            <small>dos ecuaciones lineales, dos incógnitas</small>
+          </span>
+          <p class="lab__note" style="margin-top:1.1rem">
+            Nota que no interviene el tamaño de la curva. Con secp256k1 el ataque es igual de
+            instantáneo: 256 bits no protegen de un error de implementación.
+          </p>
+        </aside>
+      </div>
+
+      <!-- LAB 2 -->
+      <div class="clay-card lab reveal">
+        <div class="lab__head">
+          <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> Laboratorio 2 — Robar la clave con dos firmas</h2>
+          <span class="lab__tag">sin fuerza bruta</span>
+        </div>
+        <p class="lab__intro">
+          Dos mensajes firmados con la misma clave. Con el interruptor decides si comparten nonce.
+          Tú solo ves lo que vería cualquiera en la red: los mensajes y las firmas.
+        </p>
+
+        <div class="controls">
+          <div class="field">
+            <label class="field__label" for="nkMsg1">Mensaje 1</label>
+            <input type="text" id="nkMsg1" class="mono" value="pago 5 a Beto">
+          </div>
+          <div class="field">
+            <label class="field__label" for="nkMsg2">Mensaje 2</label>
+            <input type="text" id="nkMsg2" class="mono" value="pago 7 a Caro">
+          </div>
+          <div class="field">
+            <label class="field__label" for="nkD">Clave privada d</label>
+            <input type="number" id="nkD" class="mono" value="1234" min="1" max="10038">
+          </div>
+          <div class="field">
+            <label class="field__label" for="nkK">Nonce k</label>
+            <input type="number" id="nkK" class="mono" value="4242" min="1" max="10038">
+          </div>
+          <div class="field field--auto">
+            <label class="switch">
+              <input type="checkbox" id="nkReuse" checked>
+              <span class="switch__track"></span>
+              <span>Reutilizar el nonce</span>
+            </label>
+          </div>
+          <div class="field field--auto">
+            <button class="clay-btn clay-btn--primary" id="nkRun" type="button">
+              Firmar las dos <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="readout">
+          <div class="metric"><span class="metric__num" id="nkRecD">—</span><span class="metric__label">Clave privada deducida</span></div>
+          <div class="metric"><span class="metric__num" id="nkVerdict">—</span><span class="metric__label">Resultado</span></div>
+        </div>
+        <div class="log" id="nkLog" aria-live="polite"></div>
+        <p class="lab__note">
+          Apaga el interruptor y vuelve a correrlo: con nonces distintos las dos r difieren y no
+          hay nada que despejar. Esa única diferencia separa una cartera segura de una vacía.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 07 · SCHNORR ============ -->
+  <section class="section note" id="schnorr">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Schnorr</span>
+        <h2 class="section__title">La firma que sí se puede sumar</h2>
+        <p class="section__lead">
+          Bitcoin añadió Schnorr en 2021 con Taproot. El motivo no fue la seguridad sino una
+          propiedad algebraica que ECDSA no tiene.
+        </p>
+      </header>
+
+      <div class="note__grid">
+        <div class="note__body reveal">
+          <p>
+            La ecuación de Schnorr es <var>s</var> = <var>k</var> + <var>e</var>·<var>d</var>.
+            Comparada con la de ECDSA llama la atención lo que le falta: no hay ningún
+            <var>k</var>⁻¹. Es <strong>lineal</strong> en la clave y en el nonce, y de ahí sale
+            todo lo demás.
+          </p>
+          <p>
+            Si dos personas firman el mismo mensaje, sus firmas se suman y el resultado verifica
+            contra la suma de sus claves públicas. Para la red eso es indistinguible de una firma
+            de un solo firmante: mismo tamaño, mismo costo de verificación, misma pinta. Un
+            monedero de tres de tres deja de anunciarse como tal.
+          </p>
+          <p>
+            Eso tiene dos consecuencias que importan: ocupa menos espacio en bloque, y mejora la
+            privacidad, porque las políticas de gasto complejas dejan de ser visibles en la cadena.
+          </p>
+          <div class="callout callout--warn">
+            <span class="callout__title">La suma ingenua está rota</span>
+            Sumar claves públicas tal cual es vulnerable al <strong>ataque de clave deshonesta</strong>:
+            quien publica su clave al último puede elegirla en función de las ajenas y quedarse
+            con el control de la clave agregada. El laboratorio lo monta en vivo. Por eso lo que
+            se usa de verdad es <strong>MuSig2</strong>, que obliga a comprometerse con el nonce
+            antes de verlo y pondera cada clave con un coeficiente derivado del conjunto completo.
+          </div>
+        </div>
+
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Schnorr frente a ECDSA</span>
+          <p><strong>Firmar:</strong></p>
+          <span class="eq">
+            R = k·G, &nbsp; e = <var>H</var>(R ‖ Q ‖ m)<br>
+            s = k + e·d &nbsp; mod n
+            <small>sin inverso: lineal en d y en k</small>
+          </span>
+          <p><strong>Verificar:</strong></p>
+          <span class="eq">
+            s·G = R + e·Q
+          </span>
+          <p><strong>Agregar</strong> dos firmantes:</p>
+          <span class="eq">
+            Q = Q₁ + Q₂, &nbsp; R = R₁ + R₂, &nbsp; s = s₁ + s₂
+            <small>una sola firma para los dos</small>
+          </span>
+          <p class="lab__note" style="margin-top:1.1rem">
+            Con ECDSA no funciona: el k⁻¹ hace que s no sea lineal, y dos firmas no se pueden
+            combinar. Es la diferencia completa entre los dos esquemas.
+          </p>
+        </aside>
+      </div>
+
+      <!-- LAB 3 -->
+      <div class="clay-card lab reveal">
+        <div class="lab__head">
+          <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 3 — Sumar firmas, y romperlo</h2>
+          <span class="lab__tag" id="scSize">—</span>
+        </div>
+        <p class="lab__intro">
+          Alicia y Beto firman juntos y publican una sola firma. Luego cambia a la pestaña de la
+          clave deshonesta y mira lo que puede hacer Beto si publica su clave al último.
+        </p>
+
+        <div class="controls">
+          <div class="field field--wide">
+            <label class="field__label" for="scMsg">Mensaje</label>
+            <input type="text" id="scMsg" class="mono" value="pago 5 a Beto">
+          </div>
+          <div class="field field--auto">
+            <div class="seg" id="scSeg" role="group" aria-label="Escenario">
+              <button type="button" data-mode="honesto" aria-pressed="true">Los dos honestos</button>
+              <button type="button" data-mode="deshonesto" aria-pressed="false">Clave deshonesta</button>
+            </div>
+          </div>
+        </div>
+
+        <span class="field__label">Clave pública agregada</span>
+        <code class="hashout hashout--sm" id="scQ"></code>
+
+        <div class="readout">
+          <div class="metric"><span class="metric__num" id="scVerdict">—</span><span class="metric__label">Resultado</span></div>
+        </div>
+        <div class="log" id="scLog" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 08 · PUENTE: DE LA FIRMA A LA RED ============ -->
+  <section class="section note" id="de-la-firma-a-la-red">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Puente</span>
+        <h2 class="section__title">La firma sola no basta: hay que llegar</h2>
+      </header>
+
+      <div class="note__body reveal" style="max-width:80ch">
+        <p>
+          Hasta aquí el mensaje está firmado, pero sigue en tu computadora. Una transacción que
+          nadie recibe no existe. La otra mitad del problema es cómo ese mensaje firmado llega a
+          miles de nodos que no se conocen entre sí, y esa es la red P2P.
+        </p>
+        <p>
+          Las dos mitades se encuentran en un punto exacto: <strong>antes de reenviar nada, cada
+          nodo verifica la firma</strong>. Si no cuadra, tira el mensaje y no lo propaga. Esa
+          verificación es lo que hace viable una red abierta, donde cualquiera puede conectarse y
+          mandar lo que quiera.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Por qué eso importa tanto</span>
+          Sin firmas, el gossip sería un canal de inundación: cualquiera podría generar
+          transacciones falsas a nombre ajeno y la red las repartiría obedientemente. La firma
+          convierte cada nodo en un filtro que cuesta cero confianza, porque verificar no requiere
+          conocer a nadie ni consultar a nadie. Es lo que permite que la red no tenga portero.
+        </div>
+        <p>
+          Lo que sigue es ese viaje: cómo se conectan los nodos, cómo se propaga un bloque, qué
+          pasa cuando dos aparecen a la vez y por qué la topología de la red acaba afectando a la
+          minería.
+        </p>
+      </div>
+    </div>
+  </section>
 
 
   <!-- ============ RED P2P ============ -->
@@ -577,56 +1139,50 @@
     <div class="container">
 
       <header class="note__head reveal">
-
-        <span class="eyebrow">
-          <span class="eyebrow__line"></span>
-          Resumen
-        </span>
-
-
-        <h2 class="section__title">
-          Propagación de bloques
-        </h2>
-
+        <span class="eyebrow"><span class="eyebrow__line"></span> Resumen</span>
+        <h2 class="section__title">Las dos mitades, juntas</h2>
       </header>
 
+      <div class="table-wrap reveal" style="margin-top:0">
+        <table class="nb">
+          <thead>
+            <tr><th scope="col">Pregunta</th><th scope="col">La responde</th><th scope="col">Cómo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>¿Quién autorizó esto?</td><td><strong>La firma</strong></td><td>Solo quien tiene d puede producir (r, s); cualquiera lo comprueba con Q.</td></tr>
+            <tr><td>¿Lo alteraron?</td><td><strong>La firma</strong></td><td>Se firma <var>H</var>(m): cambiar un carácter cambia e y la verificación falla.</td></tr>
+            <tr><td>¿Puede negarlo después?</td><td><strong>La firma</strong></td><td>No repudio: verificar no requiere el secreto, así que nadie más pudo firmarlo.</td></tr>
+            <tr><td>¿Cómo se entera la red?</td><td><strong>El gossip</strong></td><td>Cada nodo reenvía a sus pares; en pocos saltos el mensaje llega a todos.</td></tr>
+            <tr><td>¿Por qué no se inunda de basura?</td><td><strong>Las dos</strong></td><td>Cada nodo verifica la firma <em>antes</em> de reenviar; lo inválido muere en el primer salto.</td></tr>
+            <tr><td>¿Y si llegan dos bloques a la vez?</td><td><strong>El consenso</strong></td><td>Bifurcación temporal y regla de la cadena con más trabajo.</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div class="note__grid">
-
+      <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
         <div class="note__body reveal">
-
-          <ul>
-
-            <li>
-              Una blockchain real tiene múltiples participantes.
-            </li>
-
-            <li>
-              Los bloques deben compartirse entre los nodos.
-            </li>
-
-            <li>
-              La red P2P permite propagar esos bloques.
-            </li>
-
-            <li>
-              La propagación permite que los nodos conozcan
-              el nuevo estado de la cadena.
-            </li>
-
-            <li>
-              Pueden aparecer temporalmente bloques distintos.
-            </li>
-
-            <li>
-              Por ello también se necesitan reglas de resolución
-              de conflictos.
-            </li>
-
+          <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+          <ul class="plain-list">
+            <li>Firmar necesita un secreto; verificar no necesita ninguno. Esa asimetría es lo que permite una red abierta sin portero.</li>
+            <li style="--accent:var(--sky)">Nunca se firma el documento, sino su hash. La seguridad de la firma queda amarrada a la resistencia a colisión del hash.</li>
+            <li style="--accent:var(--mint)">ECDSA necesita un nonce secreto, impredecible y <strong>distinto cada vez</strong>. Repetirlo entrega la clave privada con álgebra de secundaria, sin tocar la curva.</li>
+            <li style="--accent:var(--coral)">Schnorr es lineal, así que las firmas se suman y una multifirma parece una firma normal. La agregación ingenua de claves es atacable; por eso existe MuSig2.</li>
+            <li style="--accent:var(--amber)">Una transacción firmada que nadie recibe no existe. La red P2P la reparte, y cada nodo la verifica antes de reenviarla.</li>
           </ul>
-
         </div>
 
+        <aside class="clay-card formal reveal" style="--d:80ms">
+          <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+          <dl class="params" style="margin:0;grid-template-columns:1fr">
+            <div><dt>Clave privada d</dt><dd>Escalar secreto; con él se firma.</dd></div>
+            <div><dt>Clave pública Q</dt><dd>El punto d·G; con él se verifica.</dd></div>
+            <div><dt>Nonce k</dt><dd>Secreto de un solo uso por firma. No confundir con el nonce de cuentas ni con el de minería.</dd></div>
+            <div><dt>ECDLP</dt><dd>Dado G y Q = d·G, hallar d. El problema que sostiene todo.</dd></div>
+            <div><dt>EUF-CMA</dt><dd>Infalsificable aunque el adversario pida firmas de mensajes que él elige.</dd></div>
+            <div><dt>Maleabilidad</dt><dd>Poder transformar una firma válida en otra firma válida del mismo mensaje.</dd></div>
+            <div><dt>Gossip</dt><dd>Cada nodo reenvía a sus pares lo que recibe y valida.</dd></div>
+          </dl>
+        </aside>
       </div>
 
     </div>
@@ -647,8 +1203,8 @@
       </h2>
 
       <p class="section__lead">
-        Analiza los siguientes escenarios relacionados con
-        nodos, redes P2P y propagación de bloques.
+        Los tres primeros son de la mitad criptográfica y se comprueban con los
+        laboratorios de esta página. Los cuatro últimos son de la red.
       </p>
 
     </header>
@@ -659,7 +1215,115 @@
       <div class="note__body reveal">
 
         <!-- EJERCICIO 1 -->
-        <h3>Ejercicio 1 · Propagación P2P</h3>
+        <h3 style="margin-top:0">Ejercicio 1 · Por qué cierra la verificación</h3>
+
+        <p>
+          Partiendo de <var>s</var> = <var>k</var>⁻¹(<var>e</var> + <var>r</var>·<var>d</var>),
+          demuestra que el punto que calcula el verificador,
+          <var>P</var> = (<var>e</var>·<var>w</var>)·<var>G</var> + (<var>r</var>·<var>w</var>)·<var>Q</var>
+          con <var>w</var> = <var>s</var>⁻¹, es exactamente <var>R</var> = <var>k</var>·<var>G</var>.
+          Explica en una línea por qué eso convence al verificador de que quien firmó conocía
+          <var>d</var>.
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>Sustituyendo <var>Q</var> = <var>d</var>·<var>G</var> y sacando <var>G</var> de factor:</p>
+          <span class="eq">
+            P = (e·w)·G + (r·w)·(d·G) = (w·(e + r·d))·G
+          </span>
+          <p>
+            Y como <var>w</var> = <var>s</var>⁻¹ = (<var>k</var>⁻¹(<var>e</var> + <var>r</var>·<var>d</var>))⁻¹
+            = <var>k</var>·(<var>e</var> + <var>r</var>·<var>d</var>)⁻¹, el paréntesis se cancela:
+          </p>
+          <span class="eq">
+            P = k·(e + r·d)⁻¹·(e + r·d)·G = k·G = R
+          </span>
+          <p>
+            Por eso <var>P<sub>x</sub></var> mod n vuelve a dar <var>r</var>. Lo que convence al
+            verificador es que la igualdad solo puede cumplirse si quien construyó <var>s</var>
+            conocía el <var>d</var> que satisface <var>Q</var> = <var>d</var>·<var>G</var>;
+            producir una <var>s</var> que cuadre sin saber <var>d</var> equivale a resolver el
+            logaritmo discreto.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 5 -->
+        <h3>Ejercicio 2 · El nonce repetido</h3>
+
+        <p>
+          Dos firmas con la misma clave y el mismo nonce dan
+          <var>s</var>₁ = 7316 y <var>s</var>₂ sobre otro mensaje, ambas con la misma
+          <var>r</var>. Deduce la fórmula que recupera <var>k</var> y luego la que recupera
+          <var>d</var>, y explica por qué el tamaño de la curva no influye en la dificultad del
+          ataque. Compruébalo en el laboratorio 2.
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>Las dos ecuaciones comparten <var>k</var> y <var>d</var>:</p>
+          <span class="eq">
+            s₁ = k⁻¹(e₁ + r·d) &nbsp;&nbsp; s₂ = k⁻¹(e₂ + r·d)
+          </span>
+          <p>Al restar, el término con <var>d</var> se cancela:</p>
+          <span class="eq">
+            s₁ − s₂ = k⁻¹(e₁ − e₂) &nbsp;⟹&nbsp; k = (e₁ − e₂)·(s₁ − s₂)⁻¹ mod n
+          </span>
+          <p>Y despejando <var>d</var> de la primera:</p>
+          <span class="eq">
+            d = (s₁·k − e₁)·r⁻¹ mod n
+          </span>
+          <p>
+            El tamaño de la curva no influye porque <strong>no se resuelve ningún logaritmo
+            discreto</strong>: son dos ecuaciones lineales en ℤ<sub>n</sub> con dos incógnitas, y
+            resolverlas cuesta un par de inversos modulares. Con secp256k1 es igual de
+            instantáneo. La seguridad de la curva protege contra el problema difícil, no contra
+            un error de implementación que regala la información.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 6 -->
+        <h3>Ejercicio 3 · Por qué ECDSA no se puede agregar</h3>
+
+        <p>
+          En Schnorr, dos firmas sobre el mismo mensaje se suman y el resultado verifica contra
+          la suma de las claves públicas. Intenta hacer lo mismo con ECDSA: escribe
+          <var>s</var>₁ + <var>s</var>₂ y explica qué término impide que el resultado tenga la
+          forma de una firma ECDSA válida.
+        </p>
+
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>En Schnorr la suma funciona porque <var>s</var> es lineal:</p>
+          <span class="eq">
+            s₁ + s₂ = (k₁ + k₂) + e·(d₁ + d₂)
+            <small>tiene exactamente la forma s = k + e·d con k y d agregados</small>
+          </span>
+          <p>En ECDSA, en cambio:</p>
+          <span class="eq">
+            s₁ + s₂ = k₁⁻¹(e + r₁·d₁) + k₂⁻¹(e + r₂·d₂)
+          </span>
+          <p>
+            El estorbo es el <strong>inverso del nonce</strong>. Cada sumando lleva su propio
+            <var>k</var>⁻¹, y no hay forma de factorizar un <var>k</var>⁻¹ común, porque
+            <var>k</var>₁⁻¹ + <var>k</var>₂⁻¹ ≠ (<var>k</var>₁ + <var>k</var>₂)⁻¹. Además cada
+            firma tiene su propia <var>r</var>, mientras que una firma agregada necesitaría una
+            sola. El resultado no es una firma ECDSA de nada.
+          </p>
+          <p>
+            Esa es la diferencia completa entre los dos esquemas, y la razón de que Taproot
+            adoptara Schnorr en 2021.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 4 -->
+        <h3>Ejercicio 4 · Propagación P2P</h3>
 
         <p>
           El nodo A conoce un nuevo bloque.
@@ -688,7 +1352,7 @@
 
 
         <!-- EJERCICIO 2 -->
-        <h3>Ejercicio 2 · Minería y propagación</h3>
+        <h3>Ejercicio 5 · Minería y propagación</h3>
 
         <p>
           Un minero encuentra una solución válida de Proof of Work
@@ -721,7 +1385,7 @@
 
 
         <!-- EJERCICIO 3 -->
-        <h3>Ejercicio 3 · Dos bloques al mismo tiempo</h3>
+        <h3>Ejercicio 6 · Dos bloques al mismo tiempo</h3>
 
         <p>
           El nodo A recibe primero el bloque X,
@@ -760,7 +1424,7 @@
 
 
         <!-- EJERCICIO 4 -->
-        <h3>Ejercicio 4 · Ordena el proceso</h3>
+        <h3>Ejercicio 7 · Ordena el proceso</h3>
 
         <p>
           Ordena los siguientes acontecimientos:
@@ -815,6 +1479,104 @@
 
   </div>
 </section>
+
+
+
+  <!-- ============ 16 · FUENTES ============ -->
+  <section class="section note" id="fuentes">
+    <div class="container">
+      <header class="note__head reveal">
+        <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 16</span>
+        <h2 class="section__title">Referencias</h2>
+        <p class="section__lead">
+          Estado del material en octubre de 2026. Las fuentes primarias van primero; los
+          estándares y BIP son los que rigen las implementaciones reales.
+        </p>
+      </header>
+
+      <div class="two-col reveal">
+        <div class="note__body">
+          <h3 style="margin-top:0">Fundamentos de la firma</h3>
+          <ul class="plain-list">
+            <li>Goldwasser, S., Micali, S. y Rivest, R. <em>A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks</em>, SIAM J. Comput., 1988. Es el artículo que define EUF-CMA, el modelo de seguridad del módulo 02.</li>
+            <li style="--accent:var(--sky)">Johnson, D., Menezes, A. y Vanstone, S. <em>The Elliptic Curve Digital Signature Algorithm (ECDSA)</em>, International Journal of Information Security, 2001. La referencia canónica del esquema del módulo 05.</li>
+            <li style="--accent:var(--mint)">Schnorr, C. P. <em>Efficient Signature Generation by Smart Cards</em>, Journal of Cryptology, 1991. El esquema original; su patente venció en 2008, que es parte de por qué Bitcoin nació con ECDSA.</li>
+            <li style="--accent:var(--coral)">Koblitz, N. y Miller, V. Propusieron de forma independiente la criptografía de curva elíptica en 1985.</li>
+          </ul>
+
+          <h3>Estándares y parámetros</h3>
+          <ul class="plain-list">
+            <li>NIST, <em>FIPS 186-5: Digital Signature Standard</em>, 2023. Incluye ECDSA y EdDSA. <a href="https://csrc.nist.gov/pubs/fips/186-5/final" rel="noopener">csrc.nist.gov</a></li>
+            <li style="--accent:var(--sky)">SECG, <em>SEC 2: Recommended Elliptic Curve Domain Parameters</em>. De aquí salen los parámetros de secp256k1. <a href="https://www.secg.org/sec2-v2.pdf" rel="noopener">secg.org</a></li>
+            <li style="--accent:var(--mint)">Pornin, T. <em>RFC 6979: Deterministic Usage of DSA and ECDSA</em>, 2013. La respuesta al problema del módulo 06. <a href="https://www.rfc-editor.org/rfc/rfc6979" rel="noopener">rfc-editor.org</a></li>
+          </ul>
+
+          <h3>Schnorr en Bitcoin</h3>
+          <ul class="plain-list">
+            <li>BIP-340, <em>Schnorr Signatures for secp256k1</em>. <a href="https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki" rel="noopener">github.com/bitcoin/bips</a></li>
+            <li style="--accent:var(--sky)">BIP-341, <em>Taproot: SegWit version 1 spending rules</em>, activado en noviembre de 2021. <a href="https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki" rel="noopener">github.com/bitcoin/bips</a></li>
+            <li style="--accent:var(--mint)">Nick, J., Ruffing, T. y Seurin, Y. <em>MuSig2: Simple Two-Round Schnorr Multi-Signatures</em>, CRYPTO 2021. Lo que arregla el ataque de clave deshonesta del laboratorio 3. <a href="https://eprint.iacr.org/2020/1261" rel="noopener">eprint.iacr.org/2020/1261</a></li>
+          </ul>
+        </div>
+
+        <div class="note__body">
+          <h3 style="margin-top:0">Cuando el nonce falla</h3>
+          <ul class="plain-list">
+            <li>fail0verflow, <em>Console Hacking 2010</em>, 27C3. La extracción de la clave de firma de la PlayStation 3 a partir de un nonce constante.</li>
+            <li style="--accent:var(--coral)">Bitcoin.org, aviso de seguridad de agosto de 2013 sobre el generador de números aleatorios de Android y los nonces repetidos en carteras. <a href="https://bitcoin.org/en/alert/2013-08-11-android" rel="noopener">bitcoin.org</a></li>
+          </ul>
+
+          <h3>La red</h3>
+          <ul class="plain-list">
+            <li>Nakamoto, S. <em>Bitcoin: A Peer-to-Peer Electronic Cash System</em>, 2008. Secciones 5 y 8 para la propagación y la verificación simplificada. <a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">bitcoin.org/bitcoin.pdf</a></li>
+            <li style="--accent:var(--sky)">Decker, C. y Wattenhofer, R. <em>Information Propagation in the Bitcoin Network</em>, IEEE P2P 2013. El estudio que midió los retrasos de propagación y su relación con las bifurcaciones.</li>
+            <li style="--accent:var(--mint)">BIP-152, <em>Compact Block Relay</em>. Cómo se redujo el tamaño de lo que viaja al anunciar un bloque. <a href="https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki" rel="noopener">github.com/bitcoin/bips</a></li>
+            <li style="--accent:var(--coral)">Heilman, E. et al. <em>Eclipse Attacks on Bitcoin's Peer-to-Peer Network</em>, USENIX Security 2015. Qué pasa cuando a un nodo se le controlan todas sus conexiones. <a href="https://eprint.iacr.org/2015/263" rel="noopener">eprint.iacr.org/2015/263</a></li>
+          </ul>
+
+          <h3>Del curso</h3>
+          <ul class="plain-list">
+            <li>Temario del Curso de Blockchain, MathCon. La firma digital es la unidad 5 y las redes P2P la unidad 8. <a href="http://www.math.com.mx/curso_Blockchain.html" rel="noopener">math.com.mx/curso_Blockchain.html</a></li>
+            <li style="--accent:var(--amber)">Apunte de funciones hash del propio curso, para el amarre entre colisión y falsificación del módulo 03. <a href="http://math.com.mx/funciones_hash.html" rel="noopener">math.com.mx/funciones_hash.html</a></li>
+          </ul>
+
+          <div class="callout callout--note" style="margin-top:1.4rem">
+            <span class="callout__title">Sobre las fuentes de este apunte</span>
+            A diferencia de los de prueba de trabajo y UTXO, este no parte de una página del
+            profesor: no hay una de firma digital. El contenido se armó desde el temario del
+            curso y las fuentes primarias de arriba. Si aparece esa página, conviene cotejar
+            notación y alcance.
+          </div>
+
+          <p class="lab__note" style="margin-top:1.4rem">
+            Los tres laboratorios usan una curva de juguete (p = 10 007) implementada para esta
+            página. ECDSA, la recuperación de clave por nonce repetido y la agregación de Schnorr
+            se verificaron contra una implementación de referencia independiente.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ CIERRE ============ -->
+  <section class="cta-band">
+    <div class="container">
+      <div class="clay-card next-nav reveal">
+        <div>
+          <h2>Seguir por aquí</h2>
+          <p>La firma se apoya en el hash, y la red en la prueba de trabajo.</p>
+        </div>
+        <div class="cta__actions">
+          <a class="clay-btn clay-btn--primary clay-btn--lg" href="hash.html">
+            Funciones hash <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="clay-btn clay-btn--lg" href="prueba-de-trabajo.html">Prueba de trabajo</a>
+          <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
 
 </main>
@@ -909,10 +1671,10 @@
       <nav class="footer__col" aria-label="Módulos destacados">
         <h3>Módulos</h3>
         <ul>
-          <li><a href="#temas">Fundamentos</a></li>
-          <li><a href="#temas">Criptografía</a></li>
-          <li><a href="#temas">Smart Contracts</a></li>
-          <li><a href="#temas">DeFi</a></li>
+          <li><a href="../index.html#temas">Fundamentos</a></li>
+          <li><a href="../index.html#temas">Criptografía</a></li>
+          <li><a href="../index.html#temas">Smart Contracts</a></li>
+          <li><a href="../index.html#temas">DeFi</a></li>
         </ul>
       </nav>
 
@@ -922,7 +1684,7 @@
           <li><a href="#">Glosario</a></li>
           <li><a href="#">Papers citados</a></li>
           <li><a href="#">Repositorio de código</a></li>
-          <li><a href="#contacto">Contacto</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
         </ul>
       </div>
     </div>
@@ -935,5 +1697,6 @@
 </footer>
 
 <script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/firma-digital.js" defer></script>
 </body>
 </html>

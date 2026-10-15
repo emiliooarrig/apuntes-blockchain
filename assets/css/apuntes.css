@@ -633,7 +633,72 @@ pre.code{
 }
 
 /* =========================================================
-   O. Apunte 08 — El problema de los generales bizantinos
+   O. Apunte 08 — Modelo UTXO frente a modelo de cuentas
+   ========================================================= */
+
+/* Cartera: cada moneda es una ficha que puede quedar seleccionada */
+.coins{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:1.1rem;
+  padding:.9em 1em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.coin{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.78rem;font-weight:600;
+  padding:.5em .8em;border-radius:var(--r-pill);box-shadow:var(--clay-sm);
+  color:var(--muted);white-space:nowrap;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease);
+}
+.coin.is-sel{
+  background:linear-gradient(150deg,var(--violet),var(--violet-deep));color:#fff;
+}
+/* Una moneda por debajo del umbral de polvo cuesta más gastarla de lo que vale */
+.coin.is-dust{color:var(--coral)}
+.coin.is-dust.is-sel{color:#fff}
+
+/* Carriles de ejecución paralela: un carril es un núcleo */
+.lanes{display:grid;gap:12px;margin-top:1.2rem}
+.lane{
+  display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;
+  padding:.8em .9em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-left:4px solid var(--accent,var(--violet));
+}
+.lane__n{
+  font-family:"Space Grotesk",sans-serif;font-size:.74rem;font-weight:700;
+  color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
+}
+.lane__txs{display:flex;flex-wrap:wrap;gap:8px}
+.txchip{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.76rem;
+  padding:.45em .75em;border-radius:10px;color:var(--ink);white-space:nowrap;
+  background:color-mix(in srgb,var(--accent,var(--violet)) 24%,transparent);
+}
+.txchip small{display:block;font-size:.66rem;color:var(--muted);margin-top:.15em}
+
+/* Transacciones del laboratorio del nonce: el borde dice en qué estado quedó cada una */
+.txq{display:grid;gap:10px;margin-top:1.1rem}
+.txq__row{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding:.7em .9em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-left:4px solid var(--muted);
+  transition:border-color var(--t-fast) var(--ease);
+}
+.txq__row.is-done{border-left-color:var(--mint)}
+.txq__row.is-wait{border-left-color:var(--amber)}
+.txq__row.is-bad{border-left-color:var(--coral)}
+.txq__desc{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.82rem;color:var(--ink-soft);
+}
+.txq__desc b{color:var(--ink)}
+.txq__desc .dim{color:var(--muted)}
+
+/* El panel de estado en disco del lab 0 reutiliza .log tal cual.
+   Solo necesita que las claves largas puedan partirse. */
+.log p{overflow-wrap:anywhere}
+
+@media (max-width:640px){
+  .lane{grid-template-columns:1fr;gap:8px}
+}
+
+   P. Apunte 09 — El problema de los generales bizantinos
    ========================================================= */
 
 /* Diagramas de generales: los colores van por clase para respetar el tema */
