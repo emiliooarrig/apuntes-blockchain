@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelo UTXO frente a modelo de cuentas — ChainNotes</title>
+<meta name="description" content="Apunte: qué guarda un nodo cuando guarda dinero. Objetos inmutables frente a celdas mutables, anatomía de una transacción, selección de monedas y la métrica de desperdicio, el nonce como antirrepetición, paralelismo, el estado en disco y los diseños híbridos. Con tres laboratorios interactivos.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=4 rompe la caché: apuntes.css creció con .coins, .lanes y .txq -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=4">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-defi" viewBox="0 0 24 24"><path d="M3.5 19.5h17M6 19.5v-6M11 19.5V8M16 19.5v-9"/><path d="m5 10 5.6-5.2 4 2.6 4.6-4.1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#pregunta">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#pregunta">La pregunta</a></li>
+        <li><a class="nav__link" href="#seleccion">Selección</a></li>
+        <li><a class="nav__link" href="#nonce">Nonce</a></li>
+        <li><a class="nav__link" href="#paralelismo">Paralelismo</a></li>
+        <li><a class="nav__link" href="#sintesis">Síntesis</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#pregunta">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>08 · UTXO frente a cuentas</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 08 · Modelos de estado
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Modelo <span class="grad">UTXO</span><br>
+        frente a modelo de <span class="underlined">cuentas</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Las funciones hash dicen <em>quién</em> autoriza y el sellado de tiempo dice
+        <em>cuándo</em>. Falta una pregunta anterior y más básica: cuando un nodo afirma que
+        tienes 8 unidades, ¿qué hay escrito realmente en su disco? Hay dos respuestas
+        razonables, y cada gran familia de blockchains escogió una.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Selección de monedas</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-clock"/></svg> Nonce</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Paralelismo</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 3 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: qué guarda el nodo -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> ¿Qué guarda el nodo?</h2>
+        <span class="lab__tag">Alicia tiene 8</span>
+      </div>
+      <p class="lab__intro">
+        La misma frase —«Alicia tiene 8»— escrita en disco de las dos maneras posibles.
+        Cambia el modelo y mira qué hay guardado.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="stSeg" role="group" aria-label="Modelo de estado">
+            <button type="button" data-model="objetos" aria-pressed="true">Conjunto de objetos</button>
+            <button type="button" data-model="tabla" aria-pressed="false">Tabla de saldos</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="log" id="stDisk" aria-live="polite" style="min-height:116px"></div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num" id="stUnit">—</span>
+          <span class="metric__label">Unidad de estado</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="stOp">—</span>
+          <span class="metric__label">Operación</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="stAnti">—</span>
+          <span class="metric__label">Antirrepetición</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#pregunta"><span class="toc__n">01</span> La pregunta que los separa</a></li>
+        <li><a href="#definiciones"><span class="toc__n">02</span> Definiciones</a></li>
+        <li><a href="#anatomia"><span class="toc__n">03</span> Anatomía de una transacción</a></li>
+        <li><a href="#seleccion"><span class="toc__n">04</span> Elegir monedas</a></li>
+        <li><a href="#nonce"><span class="toc__n">05</span> El nonce</a></li>
+        <li><a href="#paralelismo"><span class="toc__n">06</span> Paralelismo</a></li>
+        <li><a href="#estado"><span class="toc__n">07</span> El estado en disco</a></li>
+        <li><a href="#privacidad"><span class="toc__n">08</span> Privacidad</a></li>
+        <li><a href="#sintesis"><span class="toc__n">09</span> Síntesis</a></li>
+        <li><a href="#hibridos"><span class="toc__n">10</span> Más allá de la dicotomía</a></li>
+        <li><a href="#ejercicios"><span class="toc__n">11</span> Ejercicios</a></li>
+        <li><a href="#fuentes"><span class="toc__n">12</span> Fuentes</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · LA PREGUNTA ============ -->
+<section class="section note" id="pregunta">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">La pregunta que separa a los dos modelos</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender que «tener dinero» admite
+        exactamente dos representaciones en disco, y que casi todo lo demás —comisiones,
+        privacidad, paralelismo— sale de esa única decisión.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un nodo no almacena una idea abstracta de riqueza: almacena bytes. Y para los bytes
+          que representan «Alicia tiene 8» hay dos formas sensatas de organizarlos.
+        </p>
+        <p>
+          <strong>Como un conjunto de objetos.</strong> El nodo guarda una colección de monedas
+          indivisibles, cada una con un valor y una condición que dice quién puede gastarla.
+          Que Alicia tenga 8 significa que existen por ahí un objeto de 5 y otro de 3 que solo
+          ella puede consumir. No hay ningún renglón con su nombre. Y los objetos jamás se
+          editan: se destruyen y nacen otros.
+        </p>
+        <p>
+          <strong>Como una tabla de saldos.</strong> El nodo guarda un diccionario que lleva de
+          dirección a saldo. Que Alicia tenga 8 significa que en la celda de su dirección está
+          escrito un 8. No hay monedas, hay una celda. Y las celdas jamás se destruyen: se
+          sobrescriben.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Efectivo y banca, con su letra chica</span>
+          UTXO se parece al efectivo: pagas 6 entregando un billete de 5 y uno de 3, y recibes 2
+          de cambio; no existe medio billete. Cuentas se parece al banco: el cajero tacha tu
+          saldo y escribe otro, sin que ningún objeto físico cambie de manos. La analogía tiene
+          fecha de caducidad y conviene decirlo ya: en el efectivo real las denominaciones son
+          fijas, mientras que un UTXO puede valer cualquier cantidad. El cambio que recibes no
+          es un billete estándar, es uno fabricado a la medida en ese mismo instante.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> La misma frase, dos disposiciones</span>
+        <p><strong>Objetos.</strong> El saldo no está escrito en ninguna parte: es una
+          consecuencia que la cartera calcula sumando lo que puede gastar.</p>
+        <span class="eq">
+          saldo(alicia) = Σ { v : (v, c) ∈ U, c la satisface alicia }
+          <small>una consulta, no un dato</small>
+        </span>
+        <p><strong>Celdas.</strong> El saldo es el dato, y leerlo cuesta una búsqueda en el
+          diccionario.</p>
+        <span class="eq">
+          saldo(alicia) = S[alicia].saldo
+          <small>un dato, no una consulta</small>
+        </span>
+        <p class="lab__note" style="margin-top:1.1rem">
+          Esa diferencia —derivar el saldo o leerlo— es la raíz de todo lo que sigue.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · DEFINICIONES ============ -->
+<section class="section note" id="definiciones">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Lo mismo, dicho con precisión</h2>
+      <p class="section__lead">
+        Estas dos definiciones son las que conviene poder reproducir de memoria. Todo lo demás
+        del apunte es consecuencia de ellas.
+      </p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-token"/></svg> UTXO</span>
+        <p>
+          <strong>Unspent Transaction Output</strong>, salida de transacción no gastada. Es una
+          pareja <em>(valor, condición de gasto)</em> identificada por el par
+          <em>(txid, índice)</em>, al que se llama <strong>outpoint</strong>.
+        </p>
+        <p>
+          El estado global es el conjunto <var>U</var> de todos los UTXO vigentes. Una
+          transacción es una función que toma un subconjunto finito de <var>U</var>, lo elimina
+          e inserta salidas nuevas:
+        </p>
+        <span class="eq">
+          <var>U</var>′ = (<var>U</var> ∖ entradas) ∪ salidas
+          <small>destruir y crear, nunca modificar</small>
+        </span>
+        <p>
+          <strong>Validez:</strong> cada entrada existe en <var>U</var>, su condición de gasto se
+          satisface, y Σ entradas ≥ Σ salidas. La diferencia es la comisión.
+        </p>
+      </div>
+
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Cuentas</span>
+        <p>
+          El estado global es una función parcial
+          <var>S</var>: dirección → (nonce, saldo, código, almacenamiento). Ethereum distingue
+          las cuentas controladas por una llave privada de las <strong>cuentas de contrato</strong>,
+          que además tienen código y almacenamiento propio.
+        </p>
+        <p>Una transacción es una función que modifica entradas de <var>S</var>:</p>
+        <span class="eq">
+          <var>S</var>′ = <var>S</var>[origen ↦ −monto−gas, destino ↦ +monto]
+          <small>sobrescribir, nunca destruir</small>
+        </span>
+        <p>
+          <strong>Validez:</strong> la firma corresponde al origen, el saldo alcanza, y el nonce
+          de la transacción coincide <em>exactamente</em> con el de la cuenta.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout--note reveal" style="margin-top:clamp(22px,2.8vw,32px)">
+      <span class="callout__title">La asimetría que hay que notar</span>
+      En UTXO la validez de una transacción se decide mirando <em>solo</em> las entradas que
+      consume: la verificación es local. En cuentas hay que mirar el renglón completo del
+      emisor, incluido un contador que no tiene nada que ver con el dinero. Ese contador —el
+      nonce— hace un trabajo que en UTXO nadie necesita hacer. Es el tema del módulo 05.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · ANATOMÍA ============ -->
+<section class="section note" id="anatomia">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">Anatomía de una transacción</h2>
+      <p class="section__lead">
+        Los campos que de verdad se firman. Lo interesante está en lo que cada formato
+        <em>no</em> incluye.
+      </p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="note__body">
+        <h3 style="margin:0 0 .6em">Bitcoin</h3>
+<pre class="code">version    2
+entradas
+  [0] 3f9c…a1:0   testigo: &lt;firma&gt; &lt;pubkey&gt;
+  [1] 77b2…e4:1   testigo: &lt;firma&gt; &lt;pubkey&gt;
+salidas
+  [0] 600 000 sat → OP_1 &lt;beto&gt;
+  [1] 190 000 sat → OP_1 &lt;alicia_cambio&gt;
+locktime   0</pre>
+        <p class="lab__note">
+          No aparece ningún remitente: el emisor se deduce de quién pudo firmar las entradas.
+          Tampoco aparece la comisión, que es el residuo aritmético entre lo que entra y lo que
+          sale.
+        </p>
+      </div>
+
+      <div class="note__body">
+        <h3 style="margin:0 0 .6em">Ethereum</h3>
+<pre class="code">chainId    1
+nonce      7
+to         0x5aE2…c19f
+value      6 000 000 000 000 000 000
+gasLimit   21 000
+maxFeePerGas          24 gwei
+maxPriorityFeePerGas   1 gwei
+data       0x
+firma      v, r, s</pre>
+        <p class="lab__note">
+          Aquí todo es explícito: destinatario, monto, límite de gas, cadena. Y un nonce, el
+          único campo cuya razón de ser no se adivina a primera vista.
+        </p>
+      </div>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,42px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">La consecuencia inmediata: cuánto cuesta pagar</h3>
+        <p>
+          En Bitcoin el tamaño de la transacción depende de cuántas monedas hayas tenido que
+          juntar, y la comisión depende del tamaño. Pagar exactamente la misma cantidad puede
+          costarte el doble si tu cartera está fragmentada. En Ethereum una transferencia simple
+          cuesta 21 000 de gas sin importar tu historial.
+        </p>
+        <p>
+          Eso convierte la elección de monedas en un problema de optimización de verdad, con
+          algoritmos publicados, implementados y discutidos. Es el siguiente laboratorio.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Modelo de tarifas del apunte</span>
+        <dl class="params" style="margin:0">
+          <div><dt>Entrada</dt><dd>68 vB</dd></div>
+          <div><dt>Salida</dt><dd>31 vB</dd></div>
+          <div><dt>Encabezado</dt><dd>11 vB</dd></div>
+          <div><dt>Tasa de largo plazo</dt><dd>10 sat/vB</dd></div>
+          <div><dt>Umbral de polvo</dt><dd>546 sat</dd></div>
+        </dl>
+        <p style="margin-top:1em">
+          Son los pesos de una entrada y una salida modernas, redondeados. Bastan para que la
+          comparación entre algoritmos sea honesta, que es de lo que se trata.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · SELECCIÓN DE MONEDAS ============ -->
+<section class="section note" id="seleccion">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Elegir monedas es un problema NP-difícil</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver que no existe un algoritmo «mejor» en
+        abstracto, sino uno mejor <em>para el mercado de comisiones de hoy</em>, y que esa es
+        exactamente la idea detrás de la métrica de desperdicio.</p>
+      </div>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <p>
+        Tu cartera tiene diez monedas y quieres pagar una cantidad concreta. ¿Cuáles entregas?
+        Cada moneda que incluyas agranda la transacción en unos 68 vB y encarece la comisión.
+        Pero si usas pocas monedas grandes, el cambio que recibes fragmenta tu cartera para el
+        futuro. Es un problema con dos horizontes temporales en conflicto.
+      </p>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> Laboratorio 1 — Selección de monedas</h2>
+        <span class="lab__tag">entrada 68 vB · salida 31 vB · LTR 10 sat/vB</span>
+      </div>
+      <p class="lab__intro">
+        Prueba los cinco algoritmos sobre la misma cartera y compara comisión, cambio y
+        desperdicio. Después usa el simulador de abajo para gastar durante varios pagos
+        seguidos: ahí aparece el efecto que ningún pago individual revela.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="csAmount">Monto a pagar (sat)</label>
+          <input type="number" id="csAmount" class="mono" value="118000" min="1000" step="1000">
+        </div>
+        <div class="field">
+          <label class="field__label" for="csRate">Tasa (sat/vB)</label>
+          <input type="number" id="csRate" class="mono" value="20" min="1" max="200" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="csAlgo">Algoritmo</label>
+          <select id="csAlgo">
+            <option value="bnb">Branch and Bound (sin cambio)</option>
+            <option value="grinder">CoinGrinder (mínimo peso)</option>
+            <option value="big">Mayor primero (voraz)</option>
+            <option value="small">Menor primero (consolidador)</option>
+            <option value="srd">Sorteo aleatorio (SRD)</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="csRun" type="button">
+            Calcular selección <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="csReset" type="button">Reiniciar cartera</button>
+        </div>
+      </div>
+
+      <p class="lab__note" style="margin-top:1.4rem">
+        Cartera: <span id="csCount">—</span> · <span id="csTotal">—</span>. Las monedas en
+        morado son las seleccionadas; las que aparecen en rojo tienen valor efectivo negativo a
+        la tasa actual, es decir, cuesta más incluirlas de lo que aportan. Sube la tasa a 40 y
+        mira cuáles se apagan.
+      </p>
+      <div class="coins" id="csWallet" aria-label="Monedas de la cartera"></div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="csInputs">—</span><span class="metric__label">Entradas usadas</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="csFee">—</span><span class="metric__label">Comisión</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="csChange">—</span><span class="metric__label">Cambio</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="csWaste">—</span><span class="metric__label">Desperdicio</span></div>
+      </div>
+      <div class="log" id="csLog" aria-live="polite"></div>
+
+      <div class="controls" style="margin-top:1.6rem;margin-bottom:0">
+        <div class="field field--auto">
+          <button class="clay-btn" id="csSim" type="button">Simular ocho pagos y dos depósitos</button>
+        </div>
+      </div>
+      <div class="log" id="csSimLog" aria-live="polite"></div>
+      <p class="lab__note">
+        El simulador usa siempre la misma secuencia de pagos, así que la única variable es el
+        algoritmo. «Menor primero» consolida y te deja pocas monedas grandes; «mayor primero»
+        tritura la cartera en cambios cada vez más pequeños.
+      </p>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Los algoritmos que realmente se usan hoy</h3>
+        <p>
+          Bitcoin Core no elige un algoritmo: los ejecuta todos y compara. Desde la versión 22.0
+          (2021) cada candidato se puntúa con una métrica llamada <em>waste</em>, desperdicio, y
+          gana el de menor puntaje.
+        </p>
+        <p>
+          El término que manda es el primero. Si la tasa actual está por debajo de la de largo
+          plazo, gastar monedas de más es barato ahora y caro después, así que la métrica empuja
+          a <strong>consolidar</strong>. Si la tasa está por arriba, empuja a usar el
+          <strong>mínimo de entradas</strong>. La cartera se comporta distinto según el mercado
+          de comisiones sin que el usuario toque nada.
+        </p>
+
+        <h3>Branch and Bound</h3>
+        <p>
+          Propuesto por Murch en 2016 e incorporado en Bitcoin Core 0.17. Recorre el árbol
+          binario del conjunto potencia buscando un subconjunto cuyo <em>valor efectivo</em>
+          caiga dentro de una ventana estrecha alrededor del objetivo, de modo que no haga falta
+          crear cambio. Una transacción sin cambio ahorra los 31 vB de la salida ahora y los 68
+          de gastarla después, corta el grafo de transacciones y mejora la privacidad. No
+          siempre existe solución, y ahí entran los demás.
+        </p>
+
+        <h3>CoinGrinder</h3>
+        <p>
+          Añadido en Bitcoin Core 27.0, en abril de 2024. También es una búsqueda en profundidad
+          sobre el conjunto potencia, pero busca el conjunto de entradas de <strong>peso
+          mínimo</strong> y sí produce cambio. Solo se activa cuando la tasa supera unas tres
+          veces la de largo plazo, aproximadamente 30 sat/vB. La restricción es deliberada: si
+          minimizaras entradas todo el tiempo, triturarías la cartera en monedas cada vez más
+          pequeñas. En simulaciones sobre los picos de comisiones de 2023 redujo el gasto total
+          entre 4 % y 9.5 %.
+        </p>
+
+        <h3>Mochila y sorteo aleatorio</h3>
+        <p>
+          El <em>knapsack solver</em> heredado hace mil intentos aleatorios buscando acercarse al
+          objetivo desde arriba. El sorteo aleatorio simple, SRD, toma monedas al azar hasta
+          cubrir el monto: es peor en comisión pero excelente en privacidad, porque no deja una
+          huella reconocible en la elección.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> La métrica de desperdicio</span>
+        <span class="eq">
+          desperdicio = peso<sub>entradas</sub> × (tasa − tasa<sub>LP</sub>)
+          + costo<sub>cambio</sub> + exceso
+          <small>Bitcoin Core, PR #22009, versión 22.0</small>
+        </span>
+        <p>
+          El <strong>costo del cambio</strong> es lo que cuesta crear la salida ahora más lo que
+          costará gastarla a la tasa de largo plazo. El <strong>exceso</strong> solo aparece en
+          transacciones sin cambio: es el sobrante que se regala a comisión.
+        </p>
+        <span class="eq">
+          valor efectivo = valor − 68 vB × tasa
+          <small>lo que la moneda aporta ya descontado gastarla</small>
+        </span>
+        <p>
+          Una moneda con valor efectivo negativo <em>cuesta dinero</em> incluirla. A 20 sat/vB
+          eso ocurre por debajo de 1 360 sat: el polvo deja de ser gastable sin que nadie lo
+          borre.
+        </p>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">Por qué NP-difícil</span>
+          Decidir si existe un subconjunto de monedas cuya suma sea exactamente el objetivo es el
+          problema de la <strong>suma de subconjuntos</strong>. Lo que salva a las carteras
+          reales es que el número de monedas es pequeño y que basta una solución suficientemente
+          buena, no la óptima.
+        </div>
+      </aside>
+    </div>
+
+    <p class="lab__note reveal">
+      Un detalle que el laboratorio deja ver y que conviene no pasar por alto: con la tasa en
+      5 sat/vB el ganador por desperdicio es «menor primero», el consolidador, porque el primer
+      término se vuelve negativo. Con la tasa en 60 gana el de una sola entrada. Ningún
+      algoritmo es el mejor; lo es la regla que decide entre ellos.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============ 05 · EL NONCE ============ -->
+<section class="section note" id="nonce">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">El nonce hace el trabajo que en UTXO hace el objeto</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver que la protección contra la repetición
+        no es un añadido criptográfico sino una consecuencia de cómo está representado el
+        estado.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Aquí está la simetría profunda entre los dos modelos, y conviene entenderla antes de
+          seguir.
+        </p>
+        <p>
+          En <strong>UTXO</strong>, una transacción firmada es imposible de repetir: consume
+          objetos concretos que después de la primera vez ya no existen. Reenviarla no hace
+          nada, porque sus entradas no están en <var>U</var>. La protección es automática y no
+          requiere ningún campo adicional.
+        </p>
+        <p>
+          En <strong>cuentas</strong>, en cambio, una transferencia firmada de 6 unidades es un
+          mensaje válido para siempre: los saldos son números, no objetos, y nada impide
+          aplicarla cien veces. Por eso cada cuenta lleva un contador que se incrementa con cada
+          transacción, y cada transacción declara el valor que espera encontrar. Un número usado
+          no vuelve a aceptarse.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Lo que cuesta el contador</span>
+          El nonce impone un <strong>orden total estricto</strong> a todo lo que hace una cuenta.
+          Si la transacción 5 se queda atorada por comisión baja, la 6 y la 7 no pueden
+          ejecutarse aunque paguen bien. Cualquiera que haya usado Ethereum en un momento de
+          congestión conoce esa sensación. En UTXO no existe tal cosa: dos pagos que gastan
+          monedas distintas son independientes aunque salgan de la misma cartera.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Un matiz histórico</span>
+        <p>
+          El nonce protege contra la repetición <em>dentro</em> de una cadena, pero no
+          <em>entre</em> cadenas. Cuando Ethereum se bifurcó en 2016, la misma transacción
+          firmada era válida en las dos redes: mismo origen, mismo nonce, mismo saldo.
+        </p>
+        <p>
+          La solución fue el <strong>EIP-155</strong>, que metió el identificador de cadena
+          dentro de lo que se firma. Por eso el campo <code>chainId</code> aparece en la anatomía
+          del módulo 03.
+        </p>
+        <span class="eq">
+          firma sobre (nonce, to, value, …, <strong>chainId</strong>)
+          <small>una firma de la cadena 1 ya no sirve en la cadena 61</small>
+        </span>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-clock"/></svg> Laboratorio 2 — Cuenta con nonce</h2>
+        <span class="lab__tag">Alicia · saldo 10.00 · nonce 4</span>
+      </div>
+      <p class="lab__intro">
+        Envía las transacciones en el orden que quieras. Fíjate en qué pasa con la que trae un
+        número adelantado, y en qué pasa al reenviar una copia de otra ya minada.
+      </p>
+
+      <div class="txq" id="nnTxs"></div>
+
+      <div class="controls" style="margin-top:1.3rem">
+        <div class="field field--auto">
+          <button class="clay-btn" id="nnReset" type="button">Reiniciar cuenta</button>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="nnBal">—</span><span class="metric__label">Saldo</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="nnNonce">—</span><span class="metric__label">Nonce esperado</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="nnQueue">—</span><span class="metric__label">En espera</span></div>
+      </div>
+      <div class="log" id="nnLog" aria-live="polite"></div>
+      <p class="lab__note">
+        Si envías T2 (nonce 6) primero, queda en espera. Al llegar T3 (nonce 5) entra T3 y
+        <em>arrastra</em> a T2 detrás, en la misma operación: así se desatasca una cola en la
+        práctica. T4 es una copia exacta de T1 y se rechaza por el nonce, no por la firma —la
+        firma de T4 es perfectamente válida.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · PARALELISMO ============ -->
+<section class="section note" id="paralelismo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Los mismos pagos, distinta capacidad de paralelizar</h2>
+      <p class="section__lead">
+        Esta es la consecuencia con más peso práctico, y la razón por la que el tema volvió a
+        estar de moda.
+      </p>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <p>
+        Dos transacciones se pueden validar en paralelo si no tocan el mismo estado. En UTXO,
+        «el mismo estado» significa la misma moneda: dos pagos al mismo destinatario son
+        independientes, porque cada uno crea su propia moneda nueva. En el modelo de cuentas,
+        los dos escriben el mismo renglón, y hay conflicto.
+      </p>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 3 — Conflictos de estado</h2>
+        <span class="lab__tag" id="plCores">—</span>
+      </div>
+      <p class="lab__intro">
+        Seis pagos idénticos, dos modelos. Cada carril es un núcleo: dos transacciones comparten
+        carril solo si pueden ejecutarse a la vez. Debajo de cada pago aparece el estado que
+        toca.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="plSeg" role="group" aria-label="Modelo de estado">
+            <button type="button" data-model="utxo" aria-pressed="true">Ver como UTXO</button>
+            <button type="button" data-model="cuentas" aria-pressed="false">Ver como cuentas</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lanes" id="plLanes" aria-live="polite"></div>
+      <p class="lab__note" id="plNote"></p>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">La letra chica del ejemplo</h3>
+        <p>
+          El ejemplo está construido para que el contraste sea nítido, y sería deshonesto no
+          decirlo: en la práctica muchas transacciones de Bitcoin gastan salidas creadas por
+          otras transacciones del mismo bloque, lo que sí crea dependencias. Pero la asimetría
+          estructural es real, y es la que llevó a varios diseños recientes a recuperar parte del
+          modelo de objetos.
+        </p>
+        <p>
+          Fíjate además en que el número de carriles no depende de cuánto trabajo hay, sino de
+          cómo está repartido el estado. Los seis pagos cuestan lo mismo en los dos modelos; lo
+          que cambia es cuántos caben a la vez.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> Tres respuestas al mismo problema</span>
+        <div class="phases" style="margin-top:0">
+          <div class="phase">
+            <div>
+              <h4>Sui · objetos con dueño</h4>
+              <p>Trata cada activo como un objeto con dueño explícito. Las transacciones que solo
+              tocan objetos propios evitan el consenso completo y se confirman en menos de un
+              segundo.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div>
+              <h4>Aptos y Monad · ejecución optimista</h4>
+              <p>Conservan el modelo de cuentas pero ejecutan suponiendo que no habrá conflictos
+              (Block-STM) y reejecutan las transacciones cuyas lecturas quedaron invalidadas.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div>
+              <h4>Solana · declarar por adelantado</h4>
+              <p>Exige que cada transacción diga de antemano qué estado va a tocar, de modo que
+              el planificador arma los carriles sin tener que adivinar.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · EL ESTADO EN DISCO ============ -->
+<section class="section note" id="estado">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Cómo se guarda y cómo se demuestra</h2>
+      <p class="section__lead">
+        Los dos modelos tienen el mismo par de problemas: almacenar el estado con eficiencia y
+        permitir que un cliente ligero verifique una parte sin descargarlo todo. Las soluciones
+        divergen.
+      </p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-token"/></svg> El conjunto UTXO</span>
+        <p>
+          Bitcoin Core lo mantiene en una base clave-valor local, el <strong>chainstate</strong>,
+          indexada por outpoint. Es el único estado que un nodo necesita para validar bloques
+          nuevos.
+        </p>
+        <p>
+          Su tamaño es una preocupación viva: pasó de unos 52 millones de salidas a finales de
+          2017 a alrededor de 173 millones a principios de 2025. Nadie puede borrar entradas
+          salvo gastándolas, así que el polvo acumulado es permanente.
+        </p>
+        <p>
+          La verificación ligera es fácil en un sentido y difícil en otro. Demostrar que una
+          transacción está en un bloque es una rama de Merkle corta. Demostrar que una salida
+          <em>sigue sin gastarse</em> requiere estructuras adicionales, y es un problema abierto
+          en el que se trabaja con acumuladores como <strong>Utreexo</strong>.
+        </p>
+      </div>
+
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> El árbol de estado</span>
+        <p>
+          Ethereum usa un <strong>árbol de Merkle Patricia hexario</strong>: cada nivel ramifica
+          según un nibble de la clave. La raíz va en cada encabezado de bloque, lo que permite
+          demostrar criptográficamente el saldo de cualquier cuenta.
+        </p>
+        <p>
+          El costo es el tamaño de las pruebas: una prueba de acceso a una cuenta ronda los 3 kB,
+          y con miles de accesos por bloque el testigo total se vuelve inviable de difundir en un
+          intervalo de doce segundos.
+        </p>
+        <p>
+          Durante años la solución candidata fueron los <strong>árboles Verkle</strong>. En 2025
+          el rumbo cambió. La propuesta vigente es el <strong>EIP-7864</strong>, un árbol binario
+          unificado basado solo en funciones hash, con ramas unas cuatro veces más cortas.
+        </p>
+      </div>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">El giro de 2025, y por qué conecta con el resto del curso</h3>
+        <p>
+          Vale la pena detenerse aquí. Verkle ganaba en tamaño de prueba, pero sus compromisos
+          polinomiales descansan en curvas elípticas, e introducirlos en el corazón del protocolo
+          significaba apoyarse en criptografía que no resiste a un adversario cuántico, justo
+          cuando NIST recomienda abandonarla hacia 2030.
+        </p>
+        <p>
+          Un árbol binario con BLAKE3 o Poseidon2 depende únicamente de hashes, que siguen siendo
+          seguros en el escenario postcuántico. Se sacrificó tamaño de prueba a cambio de una
+          estructura que probablemente no habrá que volver a cambiar. Es el mismo argumento que
+          vimos con las funciones hash: lo barato hoy no siempre es lo que sobrevive.
+        </p>
+
+        <h3>Crecimiento del conjunto UTXO</h3>
+        <div class="decay">
+          <div class="decay__row"><span class="decay__name">2017 <small>finales</small></span><div class="decay__track"><span class="decay__fill" data-w="30" data-label="≈ 52 M" style="--accent:var(--mint)"></span></div></div>
+          <div class="decay__row"><span class="decay__name">2025 <small>principios</small></span><div class="decay__track"><span class="decay__fill" data-w="100" data-label="≈ 173 M" style="--accent:var(--coral)"></span></div></div>
+        </div>
+        <p class="lab__note">
+          Salidas no gastadas, en millones. El conjunto solo encoge si alguien gasta, y gastar
+          polvo cuesta más de lo que el polvo vale: por eso crece de forma prácticamente
+          irreversible.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Quién paga el crecimiento</span>
+        <p>
+          <strong>UTXO.</strong> El costo lo paga quien corre un nodo: más RAM y más disco para el
+          chainstate, para siempre. Quien creó el polvo ya pagó su comisión y se fue.
+        </p>
+        <p>
+          <strong>Cuentas.</strong> El costo lo paga quien corre un nodo <em>y</em>, en parte,
+          quien usa la red: el gas de almacenamiento cobra por escribir estado nuevo, y existen
+          reembolsos por liberarlo.
+        </p>
+        <p class="lab__note" style="margin-top:1.1rem">
+          Esta diferencia de incentivos es material del ejercicio 6.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · PRIVACIDAD ============ -->
+<section class="section note" id="privacidad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Ninguno de los dos es anónimo, pero fallan distinto</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          En el modelo de cuentas tu dirección es un identificador permanente: toda tu historia
+          cuelga de un solo renglón público. En UTXO no hay renglón, y las carteras generan una
+          dirección nueva para cada cambio, así que a primera vista el rastro se disuelve.
+        </p>
+        <p>
+          A primera vista. La <strong>heurística de propiedad común de entradas</strong> dice que
+          si una transacción gasta varias monedas a la vez, lo más probable es que todas
+          pertenezcan al mismo dueño, porque solo él pudo firmarlas todas. Basta esa observación
+          para volver a unir buena parte de las monedas de una cartera.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">La selección de monedas vuelve a aparecer</span>
+          Elegir monedas deja de ser solo un problema de comisiones y se vuelve también uno de
+          privacidad. Por eso al Branch and Bound se le acredita <em>no crear cambio</em> —corta
+          el grafo— y al sorteo aleatorio <em>no dejar patrón</em> —no hay una regla que un
+          analista pueda invertir.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> El resumen</span>
+        <div class="quad" style="margin-top:0">
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>UTXO</h4>
+            <p>Mejor privacidad por omisión, erosionada por heurísticas de agrupamiento.</p>
+            <small>sin renglón persistente</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--coral)">
+            <h4>Cuentas</h4>
+            <p>Peor privacidad por omisión, pero mucha mejor auditabilidad.</p>
+            <small>dirección permanente</small>
+          </div>
+        </div>
+        <p style="margin-top:1.1em">
+          Y la auditabilidad es exactamente lo que un contrato inteligente necesita: un contrato
+          tiene que poder leer su propio estado sin reconstruirlo salida por salida.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Síntesis: tabla comparativa</h2>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead>
+          <tr><th scope="col">Dimensión</th><th scope="col">UTXO</th><th scope="col">Cuentas</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Unidad de estado</strong></td><td>Objeto inmutable con dueño</td><td>Celda mutable indexada por dirección</td></tr>
+          <tr><td><strong>Operación</strong></td><td>Destruir y crear</td><td>Sobrescribir</td></tr>
+          <tr><td><strong>Antirrepetición</strong></td><td>Implícita: el objeto desaparece</td><td>Explícita: contador nonce</td></tr>
+          <tr><td><strong>Orden entre pagos</strong></td><td>Libre si las monedas son distintas</td><td>Total y estricto por cuenta</td></tr>
+          <tr><td><strong>Paralelismo</strong></td><td>Alto por construcción</td><td>Requiere ejecución optimista o listas de acceso</td></tr>
+          <tr><td><strong>Costo de una transferencia</strong></td><td>Variable, depende de la fragmentación</td><td>Fijo, 21 000 de gas</td></tr>
+          <tr><td><strong>Privacidad por omisión</strong></td><td>Mejor, erosionada por heurísticas</td><td>Peor, dirección persistente</td></tr>
+          <tr><td><strong>Estado con contratos</strong></td><td>Incómodo: hay que pasar el estado de salida en salida</td><td>Natural: el contrato tiene almacenamiento propio</td></tr>
+          <tr><td><strong>Complejidad de cartera</strong></td><td>Alta: selección de monedas</td><td>Baja: leer un saldo</td></tr>
+          <tr><td><strong>Crecimiento del estado</strong></td><td>Salidas de polvo permanentes</td><td>Cuentas y almacenamiento de contratos</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>La pregunta de fondo es qué guarda el nodo: un conjunto de objetos inmutables o una tabla de celdas mutables. Lo demás son consecuencias.</li>
+          <li style="--accent:var(--sky)">En UTXO la validez es <strong>local</strong>: se decide mirando las entradas. En cuentas hay que mirar el renglón completo del emisor.</li>
+          <li style="--accent:var(--mint)">La antirrepetición es gratis en UTXO porque el objeto desaparece; en cuentas cuesta un nonce, y el nonce cuesta un orden total estricto.</li>
+          <li style="--accent:var(--coral)">Elegir monedas es suma de subconjuntos. Bitcoin Core no escoge un algoritmo: los corre todos y los puntúa con la métrica de desperdicio, que cambia de criterio con el mercado de comisiones.</li>
+          <li style="--accent:var(--amber)">El paralelismo no lo decide la carga de trabajo, lo decide la granularidad del estado y quién puede tocarlo.</li>
+        </ul>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Outpoint</dt><dd>Par (txid, índice) que identifica un UTXO.</dd></div>
+          <div><dt>Valor efectivo</dt><dd>Valor de una moneda menos lo que cuesta gastarla a la tasa actual.</dd></div>
+          <div><dt>Polvo (dust)</dt><dd>Salida tan pequeña que gastarla cuesta más de lo que vale.</dd></div>
+          <div><dt>Desperdicio (waste)</dt><dd>Métrica con la que Core puntúa cada selección candidata.</dd></div>
+          <div><dt>Nonce</dt><dd>Contador por cuenta; cada transacción declara el valor que espera.</dd></div>
+          <div><dt>Chainstate</dt><dd>Base clave-valor donde un nodo guarda el conjunto UTXO.</dd></div>
+          <div><dt>eUTXO</dt><dd>UTXO con un dato arbitrario adjunto a cada salida.</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · MÁS ALLÁ DE LA DICOTOMÍA ============ -->
+<section class="section note" id="hibridos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Los diseños que toman de los dos</h2>
+      <p class="section__lead">
+        Presentar esto como una elección binaria era razonable en 2018. Ya no lo es.
+      </p>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead>
+          <tr><th scope="col">Diseño</th><th scope="col">Qué conserva</th><th scope="col">Qué cambia</th><th scope="col">El precio</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cardano</strong><br>eUTXO</td>
+            <td>Los objetos y la validación local.</td>
+            <td>Cada salida puede llevar un dato arbitrario adjunto, lo que permite contratos.</td>
+            <td>El estado compartido se vuelve cuello de botella: dos usuarios que quieren tocar la misma salida compiten por ella.</td>
+          </tr>
+          <tr>
+            <td><strong>Sui</strong><br>objetos con versión</td>
+            <td>Los objetos propios se comportan como monedas y van por una vía rápida sin consenso completo.</td>
+            <td>Los objetos compartidos se comportan como cuentas y sí pasan por consenso.</td>
+            <td>La decisión queda en manos del diseñador de la aplicación, y determina la latencia.</td>
+          </tr>
+          <tr>
+            <td><strong>Aptos y Monad</strong><br>ejecución optimista</td>
+            <td>El modelo de cuentas tal cual.</td>
+            <td>Corren todo en paralelo suponiendo que no habrá conflictos, detectan los reales y reejecutan.</td>
+            <td>Trabajo desperdiciado cuando sí hay conflictos. Monad además conserva compatibilidad con la EVM.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--key reveal" style="margin-top:clamp(22px,2.8vw,32px)">
+      <span class="callout__title">La moraleja para el curso</span>
+      Lo que importa no es la etiqueta, sino qué tan fina es la <strong>granularidad del
+      estado</strong> y <strong>quién puede tocarlo</strong>. UTXO y cuentas son los dos extremos
+      de ese eje, y los diseños recientes se acomodan en los puntos intermedios según qué
+      latencia quieran y qué tipo de aplicación tengan en mente.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 11 · EJERCICIOS ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Ejercicios</span>
+      <h2 class="section__title">Para trabajar</h2>
+      <p class="section__lead">
+        Los tres primeros se verifican con los laboratorios de esta página. Los tres últimos son
+        de papel.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+
+        <!-- EJERCICIO 1 -->
+        <h3 style="margin-top:0">Ejercicio 1 · Enumerar a mano</h3>
+        <p>
+          Una cartera tiene monedas de 1, 3, 7, 12 y 20 mil satoshis. Se quiere pagar 15 mil a
+          una tasa de 20 sat/vB. Enumera todos los subconjuntos válidos, calcula el desperdicio
+          de cada uno y decide cuál elegiría Bitcoin Core. Verifica con el laboratorio 1.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            Hay 20 subconjuntos que alcanzan. El costo del cambio a 20 sat/vB es
+            31 × 20 + 68 × 10 = <strong>1 300 sat</strong>. Los tres mejores:
+          </p>
+          <div class="table-wrap" style="margin-top:.8rem">
+            <table class="nb" style="min-width:420px">
+              <thead><tr><th scope="col">Selección</th><th scope="col">Entradas</th><th scope="col">Comisión</th><th scope="col">Cambio</th><th scope="col">Desperdicio</th></tr></thead>
+              <tbody>
+                <tr><td>7 000 + 12 000</td><td class="num">2</td><td class="num">4 000</td><td>sin cambio</td><td class="num"><strong>1 800</strong></td></tr>
+                <tr><td>20 000</td><td class="num">1</td><td class="num">2 820</td><td class="num">2 180</td><td class="num">1 980</td></tr>
+                <tr><td>1 000 + 7 000 + 12 000</td><td class="num">3</td><td class="num">5 000</td><td>sin cambio</td><td class="num">2 120</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Gana <strong>{7 000, 12 000}</strong> sin cambio, con desperdicio 1 800. El cálculo:
+            2 × 68 × (20 − 10) = 1 360 del término temporal, más 440 de exceso que se va a
+            comisión. La opción de una sola entrada paga menos comisión <em>hoy</em> (2 820
+            frente a 4 000) y aun así pierde, porque arrastra el costo del cambio: 1 300 sat que
+            tendrás que pagar mañana. Es justo el punto de la métrica.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 2 -->
+        <h3>Ejercicio 2 · Independencia del orden</h3>
+        <p>
+          Demuestra que si dos transacciones UTXO tienen conjuntos de entradas disjuntos,
+          entonces el resultado de aplicarlas no depende del orden. Muestra con un contraejemplo
+          que la propiedad análoga es falsa en el modelo de cuentas.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            <strong>UTXO.</strong> Sean <var>t</var><sub>1</sub> y <var>t</var><sub>2</sub> con
+            entradas <var>E</var><sub>1</sub> ∩ <var>E</var><sub>2</sub> = ∅ y salidas
+            <var>O</var><sub>1</sub>, <var>O</var><sub>2</sub> (distintas entre sí, porque el
+            outpoint incluye el txid). Aplicar las dos en cualquier orden da
+          </p>
+          <span class="eq">(<var>U</var> ∖ (<var>E</var><sub>1</sub> ∪ <var>E</var><sub>2</sub>)) ∪ <var>O</var><sub>1</sub> ∪ <var>O</var><sub>2</sub></span>
+          <p>
+            porque la diferencia y la unión de conjuntos conmutan cuando los conjuntos retirados
+            son disjuntos y ninguna salida de una es entrada de la otra. La validez también se
+            conserva: <var>E</var><sub>2</sub> ⊆ <var>U</var> sigue cumpliéndose después de
+            quitar <var>E</var><sub>1</sub>, justo porque son disjuntos.
+          </p>
+          <p>
+            <strong>Cuentas.</strong> Alicia tiene saldo 5. <var>t</var><sub>1</sub> paga 4 a
+            Beto, <var>t</var><sub>2</sub> paga 3 a Caro. Por separado cada una es válida. En el
+            orden (<var>t</var><sub>1</sub>, <var>t</var><sub>2</sub>) la segunda falla por saldo
+            insuficiente; en el orden inverso falla la otra. El estado final difiere. Y eso
+            antes de considerar el nonce, que directamente <em>prohíbe</em> el orden inverso.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 3 -->
+        <h3>Ejercicio 3 · El grafo de transacciones</h3>
+        <p>
+          Modela el conjunto UTXO como un grafo dirigido donde cada transacción es un vértice.
+          ¿Qué tipo de grafo resulta? ¿Puede tener ciclos? Justifica usando el hecho de que el
+          identificador de una transacción es el hash de su contenido.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            Resulta un <strong>grafo acíclico dirigido</strong> (DAG). Hay una arista de
+            <var>t</var><sub>1</sub> a <var>t</var><sub>2</sub> cuando <var>t</var><sub>2</sub>
+            gasta una salida de <var>t</var><sub>1</sub>, y entonces <var>t</var><sub>2</sub>
+            contiene el txid de <var>t</var><sub>1</sub> entre sus entradas.
+          </p>
+          <p>
+            Un ciclo exigiría que el contenido de <var>t</var><sub>1</sub> incluyera el hash de
+            <var>t</var><sub>2</sub>, cuyo contenido a su vez incluye el hash de
+            <var>t</var><sub>1</sub>. Eso es una preimagen circular: construirlo equivale a
+            romper la resistencia a preimagen de la función hash, igual que en el argumento del
+            encadenamiento de bloques. Los UTXO vigentes son exactamente las <em>hojas</em> del
+            DAG: salidas a las que todavía no apunta ninguna arista.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 4 -->
+        <h3>Ejercicio 4 · Un mundo sin nonce</h3>
+        <p>
+          Si el nonce no existiera en Ethereum, diseña un ataque concreto de repetición. Después
+          explica por qué el mismo ataque es imposible en Bitcoin <em>sin</em> invocar ninguna
+          propiedad criptográfica adicional.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            <strong>El ataque.</strong> Alicia paga 2 ETH a una tienda. La transacción firmada es
+            pública: está en la mempool y luego en un bloque. Sin nonce, la tienda —o cualquiera
+            que lea la cadena— puede reenviar esa misma transacción, byte por byte, tantas veces
+            como quiera. Cada reenvío es válido: la firma verifica, el origen es correcto y el
+            saldo alcanza. Alicia pierde 2 ETH por repetición hasta quedarse en cero. No hace
+            falta falsificar nada; basta con copiar.
+          </p>
+          <p>
+            <strong>Por qué no aplica en Bitcoin.</strong> La transacción de Alicia consume
+            outpoints concretos. Tras el primer minado esos outpoints ya no están en
+            <var>U</var>, así que la copia falla en la primera regla de validez —«cada entrada
+            existe en <var>U</var>»— antes de que nadie mire la firma. Es un argumento puramente
+            estructural sobre conjuntos: no se usa ninguna propiedad de la función hash ni del
+            esquema de firma.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 5 -->
+        <h3>Ejercicio 5 · Tamaño de las pruebas</h3>
+        <p>
+          Una prueba de acceso en el árbol hexario actual ronda 3 kB. Estima el tamaño con un
+          árbol binario de la misma profundidad efectiva y explica de dónde sale el factor de
+          reducción que reporta el EIP-7864.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            La prueba es la lista de hermanos en cada nivel. En un árbol de aridad <var>k</var>
+            cada nodo del camino aporta <var>k</var> − 1 hermanos de 32 bytes; para cubrir el
+            mismo espacio de claves hacen falta log<sub><var>k</var></sub>(<var>N</var>) niveles.
+            El tamaño va entonces como
+          </p>
+          <span class="eq">
+            (<var>k</var> − 1) · log<sub><var>k</var></sub> <var>N</var> · 32 B
+            <small>el factor (k−1)/log₂k decide</small>
+          </span>
+          <p>
+            Para <var>k</var> = 16 el factor es 15/4 ≈ 3.75; para <var>k</var> = 2 es 1/1 = 1.
+            La razón entre ambos es ≈ 3.75, de donde sale el «unas cuatro veces más cortas». Con
+            3 kB de partida quedan unos 800 bytes. Lo que se paga a cambio es profundidad: más
+            niveles, más hashes que calcular al verificar. Es un intercambio de ancho de banda
+            por cómputo, y en este caso el ancho de banda era el recurso escaso.
+          </p>
+        </details>
+
+        <hr>
+
+        <!-- EJERCICIO 6 -->
+        <h3>Ejercicio 6 · Discusión</h3>
+        <p>
+          ¿El crecimiento irreversible del conjunto UTXO es un problema peor o mejor que el
+          crecimiento del estado de contratos en Ethereum? Considera quién paga el costo en cada
+          caso.
+        </p>
+        <details>
+          <summary><strong>Guía para la discusión</strong></summary>
+          <p>
+            No tiene respuesta única; lo que se evalúa es que el argumento distinga
+            <em>quién paga</em> de <em>cuánto crece</em>. Elementos que deberían aparecer:
+          </p>
+          <ul class="plain-list">
+            <li>En UTXO el costo recae por completo en quien opera un nodo, y es una
+            externalidad: el que creó el polvo ya pagó su comisión y no vuelve.</li>
+            <li style="--accent:var(--mint)">En Ethereum el gas de almacenamiento internaliza
+            parte del costo y los reembolsos premian liberar estado, aunque siguen siendo
+            insuficientes frente a un estado que solo crece.</li>
+            <li style="--accent:var(--coral)">El conjunto UTXO tiene un techo natural ligado al
+            número de salidas económicamente viables; el estado de contratos no lo tiene, porque
+            cualquier contrato puede escribir lo que quiera mientras pague.</li>
+            <li style="--accent:var(--amber)">Las soluciones van en direcciones distintas:
+            acumuladores (Utreexo) para no guardar el conjunto en UTXO, y caducidad o expiración
+            de estado en el lado de cuentas.</li>
+          </ul>
+        </details>
+
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-check"/></svg> Cómo usar los laboratorios</span>
+        <p>
+          <strong>Ejercicio 1:</strong> escribe el monto 15 000 y la tasa 20 en el laboratorio 1.
+          Como la cartera del lab es otra, compara el método, no los números.
+        </p>
+        <p>
+          <strong>Ejercicio 2:</strong> el laboratorio 3 en modo UTXO es el caso disjunto; en
+          modo cuentas, los carriles muestran dónde se rompe la independencia.
+        </p>
+        <p>
+          <strong>Ejercicio 4:</strong> el laboratorio 2 ya trae el ataque montado. T4 es la
+          copia exacta de T1; quita mentalmente el nonce y mira qué la detendría.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 12 · FUENTES ============ -->
+<section class="section note" id="fuentes">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 12</span>
+      <h2 class="section__title">Referencias</h2>
+      <p class="section__lead">
+        Las fechas indican el estado del material en septiembre de 2026. Las propuestas marcadas
+        como borrador siguen en discusión.
+      </p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="note__body">
+        <h3 style="margin-top:0">Los dos modelos</h3>
+        <ul class="plain-list">
+          <li>Nakamoto, S. <em>Bitcoin: A Peer-to-Peer Electronic Cash System</em>, 2008, secciones 9 y 11. <a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">bitcoin.org/bitcoin.pdf</a></li>
+          <li style="--accent:var(--sky)">Wood, G. <em>Ethereum: A Secure Decentralised Generalised Transaction Ledger</em> (Yellow Paper), edición vigente, secciones 4.1 y 6. <a href="https://ethereum.github.io/yellowpaper/paper.pdf" rel="noopener">ethereum.github.io/yellowpaper</a></li>
+          <li style="--accent:var(--mint)">Chakravarty, M. et al. <em>The Extended UTXO Model</em>, 2020. Base formal de eUTXO en Cardano. <a href="https://iohk.io/en/research/library/papers/the-extended-utxo-model/" rel="noopener">iohk.io</a></li>
+          <li style="--accent:var(--amber)">Documentación del modelo de objetos de Sui. <a href="https://docs.sui.io/concepts/object-model" rel="noopener">docs.sui.io</a></li>
+        </ul>
+
+        <h3>Selección de monedas</h3>
+        <ul class="plain-list">
+          <li>Erhardt, M. (Murch). <em>An Evaluation of Coin Selection Strategies</em>, tesis de maestría, 2016. Origen del Branch and Bound. <a href="https://murch.one/erhardt2016coinselection.pdf" rel="noopener">murch.one</a></li>
+          <li style="--accent:var(--sky)">Bitcoin Core, <code>src/wallet/coinselection.cpp</code>. Implementación vigente de BnB, Knapsack, SRD y CoinGrinder. <a href="https://github.com/bitcoin/bitcoin" rel="noopener">github.com/bitcoin/bitcoin</a></li>
+          <li style="--accent:var(--mint)">Bitcoin Core PR #22009 (selección por métrica de desperdicio, v22.0) y PR #27877 (CoinGrinder, v27.0, abril de 2024). <a href="https://github.com/bitcoin/bitcoin/pull/27877" rel="noopener">PR #27877</a></li>
+          <li style="--accent:var(--coral)">Bitcoin Optech, tema «Coin selection». Seguimiento continuo de cambios en carteras. <a href="https://bitcoinops.org/en/topics/coin-selection/" rel="noopener">bitcoinops.org</a></li>
+        </ul>
+      </div>
+
+      <div class="note__body">
+        <h3 style="margin-top:0">Nonce y repetición</h3>
+        <ul class="plain-list">
+          <li>EIP-155, protección contra repetición entre cadenas mediante identificador de cadena. <a href="https://eips.ethereum.org/EIPS/eip-155" rel="noopener">eips.ethereum.org</a></li>
+        </ul>
+
+        <h3>Estado y pruebas</h3>
+        <ul class="plain-list">
+          <li>EIP-7864, <em>Ethereum state using a unified binary tree</em>, borrador iniciado en enero de 2025. Propuesta vigente para sustituir el árbol de Merkle Patricia. <a href="https://eips.ethereum.org/EIPS/eip-7864" rel="noopener">eips.ethereum.org</a></li>
+          <li style="--accent:var(--sky)">EIP-6800, árbol Verkle unificado. Marcado como estancado; útil para entender por qué se abandonó la ruta de curvas elípticas. <a href="https://eips.ethereum.org/EIPS/eip-6800" rel="noopener">eips.ethereum.org</a></li>
+          <li style="--accent:var(--mint)">Dryja, T. <em>Utreexo: A dynamic hash-based accumulator optimized for the Bitcoin UTXO set</em>, 2019. <a href="https://eprint.iacr.org/2019/611" rel="noopener">eprint.iacr.org</a></li>
+        </ul>
+
+        <h3>Ejecución paralela y privacidad</h3>
+        <ul class="plain-list">
+          <li>Gelashvili, R. et al. <em>Block-STM: Scaling Blockchain Execution by Turning Ordering Curse to a Performance Blessing</em>, 2022. <a href="https://arxiv.org/abs/2203.06871" rel="noopener">arxiv.org/abs/2203.06871</a></li>
+          <li style="--accent:var(--coral)">Meiklejohn, S. et al. <em>A Fistful of Bitcoins</em>, IMC 2013. Heurística de propiedad común de entradas. <a href="https://cseweb.ucsd.edu/~smeiklejohn/files/imc13.pdf" rel="noopener">cseweb.ucsd.edu</a></li>
+        </ul>
+
+        <p class="lab__note" style="margin-top:1.6rem">
+          <strong>Fuente temática del apunte:</strong>
+          <a href="http://math.com.mx/u_vs_c.html" rel="noopener">math.com.mx/u_vs_c.html</a>.
+          Los tres laboratorios, el modelo de tarifas y las respuestas de los ejercicios se
+          implementaron y verificaron para esta página.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Seguir por aquí</h2>
+        <p>El nonce y el conjunto UTXO se apoyan en lo que ya viste de hashes y de consenso.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="prueba-de-trabajo.html">
+          Prueba de trabajo <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="hash.html">Repasar funciones hash</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="timestamping.html">Time stamping</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="utxo-vs-cuentas.html">UTXO frente a cuentas</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="../latex/problemas.pdf" download>Apunte en PDF</a></li>
+          <li><a href="http://math.com.mx/u_vs_c.html" rel="noopener">Fuente temática</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/utxo-vs-cuentas.js" defer></script>
+</body>
+</html>
