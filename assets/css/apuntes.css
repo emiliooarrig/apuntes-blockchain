@@ -633,7 +633,353 @@ pre.code{
 }
 
 /* =========================================================
-   O. Apunte 08 — El anillo de firmas
+   O. Apunte 08 — Modelo UTXO frente a modelo de cuentas
+   ========================================================= */
+
+/* Cartera: cada moneda es una ficha que puede quedar seleccionada */
+.coins{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:1.1rem;
+  padding:.9em 1em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.coin{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.78rem;font-weight:600;
+  padding:.5em .8em;border-radius:var(--r-pill);box-shadow:var(--clay-sm);
+  color:var(--muted);white-space:nowrap;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease);
+}
+.coin.is-sel{
+  background:linear-gradient(150deg,var(--violet),var(--violet-deep));color:#fff;
+}
+/* Una moneda por debajo del umbral de polvo cuesta más gastarla de lo que vale */
+.coin.is-dust{color:var(--coral)}
+.coin.is-dust.is-sel{color:#fff}
+
+/* Carriles de ejecución paralela: un carril es un núcleo */
+.lanes{display:grid;gap:12px;margin-top:1.2rem}
+.lane{
+  display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;
+  padding:.8em .9em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-left:4px solid var(--accent,var(--violet));
+}
+.lane__n{
+  font-family:"Space Grotesk",sans-serif;font-size:.74rem;font-weight:700;
+  color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
+}
+.lane__txs{display:flex;flex-wrap:wrap;gap:8px}
+.txchip{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.76rem;
+  padding:.45em .75em;border-radius:10px;color:var(--ink);white-space:nowrap;
+  background:color-mix(in srgb,var(--accent,var(--violet)) 24%,transparent);
+}
+.txchip small{display:block;font-size:.66rem;color:var(--muted);margin-top:.15em}
+
+/* Transacciones del laboratorio del nonce: el borde dice en qué estado quedó cada una */
+.txq{display:grid;gap:10px;margin-top:1.1rem}
+.txq__row{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding:.7em .9em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-left:4px solid var(--muted);
+  transition:border-color var(--t-fast) var(--ease);
+}
+.txq__row.is-done{border-left-color:var(--mint)}
+.txq__row.is-wait{border-left-color:var(--amber)}
+.txq__row.is-bad{border-left-color:var(--coral)}
+.txq__desc{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.82rem;color:var(--ink-soft);
+}
+.txq__desc b{color:var(--ink)}
+.txq__desc .dim{color:var(--muted)}
+
+/* El panel de estado en disco del lab 0 reutiliza .log tal cual.
+   Solo necesita que las claves largas puedan partirse. */
+.log p{overflow-wrap:anywhere}
+
+@media (max-width:640px){
+  .lane{grid-template-columns:1fr;gap:8px}
+}
+
+/* =========================================================
+   P. Apunte 09 — El problema de los generales bizantinos
+   ========================================================= */
+
+/* Diagramas de generales: los colores van por clase para respetar el tema */
+.bgnet{padding:10px;border-radius:var(--r-md);box-shadow:var(--clay-inset)}
+/* stroke:none anula el trazo global de los iconos (styles.css), que engrosaría el texto */
+.bgnet svg{display:block;width:100%;height:auto;max-height:360px;margin:0 auto;stroke:none}
+.bgnode{fill:var(--surface);stroke:var(--sky);stroke-width:2}
+.bgnode--traidor{stroke:var(--coral);stroke-dasharray:5 3}
+.bgnode--inter{fill:color-mix(in srgb,var(--sky) 30%,var(--surface));stroke-width:3}
+.bgnode--traidor.bgnode--inter{fill:color-mix(in srgb,var(--coral) 30%,var(--surface))}
+.bgname{font-family:"Space Grotesk",sans-serif;font-size:12px;font-weight:700;fill:var(--ink)}
+.bgname--traidor{fill:var(--coral)}
+.bgedge{stroke:var(--muted);stroke-width:1.3;fill:none}
+.bgedge--mesh{stroke:color-mix(in srgb,var(--ink) 11%,transparent);stroke-width:.7}
+.bgarrow{fill:var(--muted)}
+.bglab{font-family:"Space Grotesk",sans-serif;font-size:10.5px;fill:var(--muted)}
+.bgq{fill:none;stroke-width:5;stroke-linecap:round;opacity:.8}
+.bgq--a{stroke:var(--violet)}
+.bgq--b{stroke:var(--mint)}
+
+/* Bandejas de entrada de cada teniente */
+.inboxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:1rem}
+.inbox{padding:.8em 1em;border-radius:var(--r-sm);box-shadow:var(--clay-inset);font-size:.84rem}
+.inbox__title{
+  display:block;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.4em;
+}
+.inbox ul{margin:0;padding-left:1.1em;color:var(--ink-soft)}
+.inbox--match{background:color-mix(in srgb,var(--amber) 24%,transparent)}
+.inbox--match .inbox__title{color:var(--ink)}
+.scene{font-size:.92rem;color:var(--ink-soft);margin-top:1rem}
+.scene h3{font-size:1rem;margin:0 0 .45em;color:var(--ink)}
+.scene p{margin:0 0 .7em}
+.scene strong{color:var(--ink)}
+
+/* Subtítulo dentro de un laboratorio */
+.lab__sub{
+  display:block;margin:1.4rem 0 .6rem;
+  font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+}
+
+/* Tablas de mensajes de OM(1) */
+table.nb td.v-a{color:#0f7a63;font-weight:700}
+table.nb td.v-r{color:#a3202f;font-weight:700}
+html[data-theme="dark"] table.nb td.v-a{color:#7bf0d3}
+html[data-theme="dark"] table.nb td.v-r{color:#ffb0b8}
+table.nb tr.is-traitor{background:color-mix(in srgb,var(--coral) 11%,transparent)}
+table.nb tr.is-traitor th{color:var(--coral)}
+table.nb tbody th{font-weight:700;color:var(--ink);white-space:nowrap}
+
+/* Decisión por mayoría */
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.verdict__card{
+  padding:.85em 1em;border-radius:var(--r-md);box-shadow:var(--clay-sm);
+  border-top:4px solid var(--mint);font-size:.88rem;color:var(--ink-soft);
+}
+.verdict__card strong{color:var(--ink)}
+.verdict__card--traidor{border-top-color:var(--coral);opacity:.72}
+
+/* Nota de estado de un laboratorio */
+.state{
+  margin:1.2rem 0 0;padding:.9em 1.1em;border-radius:var(--r-md);
+  box-shadow:var(--clay-inset);border-left:4px solid var(--muted);
+  font-size:.9rem;color:var(--ink-soft);
+}
+.state--ok{border-left-color:var(--mint)}
+.state--bad{border-left-color:var(--coral)}
+
+/* Barras de votos (reutilizan .mix) */
+.mix--live span{transition:flex-grow .45s var(--ease)}
+.mix--live span:first-child{--accent:var(--sky)}
+.mix--live span:last-child{--accent:var(--coral)}
+
+/* Ejercicios con respuesta desplegable */
+.exlist details{
+  margin:.9em 0 0;padding:.8em 1.1em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.exlist summary{cursor:pointer;color:var(--violet)}
+html[data-theme="dark"] .exlist summary{color:#a696ff}
+.exlist details[open] summary{margin-bottom:.7em}
+.exlist details p:last-child,.exlist details ul:last-child{margin-bottom:0}
+.exlist hr{border:0;height:1px;background:var(--line);margin:2em 0}
+
+/* Referencias */
+.refs{margin:0;padding-left:1.4em;display:grid;gap:.6em;font-size:.9rem;color:var(--ink-soft)}
+.refs em{color:var(--ink)}
+
+@media (max-width:640px){
+  .inboxes{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .mix--live span{transition:none !important}
+}
+
+/* Enlaces dentro del texto, sólo en este apunte (main.apunte-bg) */
+.apunte-bg .note__body a:not(.clay-btn),.apunte-bg .formal a,.apunte-bg .lab__note a,.apunte-bg .refs a{
+  color:var(--violet);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;
+}
+html[data-theme="dark"] .apunte-bg .note__body a:not(.clay-btn),
+html[data-theme="dark"] .apunte-bg .formal a,
+html[data-theme="dark"] .apunte-bg .lab__note a,
+html[data-theme="dark"] .apunte-bg .refs a{color:#a696ff}
+
+/* =========================================================
+   Q. Apunte 10 — Pruebas de conocimiento cero
+   ========================================================= */
+
+/* Los dos personajes: Peggy prueba, Víctor verifica */
+.zk-peggy{color:var(--violet-deep);font-weight:700}
+.zk-victor{color:#1b84c4;font-weight:700}
+html[data-theme="dark"] .zk-peggy{color:#a696ff}
+html[data-theme="dark"] .zk-victor{color:var(--sky)}
+
+/* Botones de los laboratorios cuando todavía no toca usarlos */
+.apunte-bg .lab .clay-btn:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:var(--clay-sm)}
+.apunte-bg .lab .clay-btn:disabled svg{transform:none}
+
+/* Escenarios SVG: stroke:none anula el trazo global de los iconos (styles.css) */
+.zkstage{padding:10px;border-radius:var(--r-md);box-shadow:var(--clay-inset)}
+.zkstage svg{display:block;width:100%;height:auto;max-height:430px;margin:0 auto;stroke:none;fill:none}
+.zktxt{font-family:"Space Grotesk",sans-serif;font-size:12px;fill:var(--muted)}
+.zktxt--big{font-size:21px;font-weight:700}
+.zktxt--ink{fill:var(--ink)}
+
+/* Cueva */
+.zkrock{fill:color-mix(in srgb,var(--ink) 16%,var(--surface))}
+.zktunnel{fill:none;stroke:var(--bg);stroke-width:34;stroke-linecap:round}
+.zkdoor{fill:var(--amber);transition:opacity .25s var(--ease);transform-box:fill-box;transform-origin:center}
+.zkdoor.is-open{opacity:.18}
+.zkdoor.is-shake{animation:zkshake .18s 4 alternate}
+@keyframes zkshake{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
+.zkveil{fill:var(--surface-2);transition:opacity .3s var(--ease)}
+.zkactor text{fill:#fff;font-family:"Space Grotesk",sans-serif;font-size:12px;font-weight:700}
+.zkactor--p circle{fill:var(--violet)}
+.zkactor--v circle{fill:var(--sky)}
+.zkshout{fill:#1b84c4;font-family:"Space Grotesk",sans-serif;font-size:16px;font-weight:700}
+html[data-theme="dark"] .zkshout{fill:var(--sky)}
+
+/* Historial de rondas */
+.zkchips{
+  display:flex;flex-wrap:wrap;gap:5px;margin-top:1rem;min-height:32px;max-height:104px;overflow-y:auto;
+  padding:.6em .7em;border-radius:var(--r-sm);box-shadow:var(--clay-inset);
+}
+.zkchip{
+  font-family:"Space Grotesk",monospace;font-size:.7rem;font-weight:600;
+  padding:.22em .6em;border-radius:var(--r-pill);color:var(--ink);
+  background:color-mix(in srgb,var(--mint) 30%,transparent);
+}
+.zkchip--bad{background:color-mix(in srgb,var(--coral) 38%,transparent)}
+
+/* Medidor de confianza */
+.zkmeter{height:14px;border-radius:var(--r-pill);box-shadow:var(--clay-inset);overflow:hidden;margin-top:.5em}
+.zkmeter i{
+  display:block;height:100%;width:0;border-radius:var(--r-pill);
+  background:linear-gradient(90deg,var(--sky),var(--mint));transition:width .45s var(--ease);
+}
+
+/* Fila de rondas de la portada: cada círculo es un volado que hay que acertar */
+.zkcoins{display:flex;flex-wrap:wrap;gap:5px;margin-top:.9rem;align-items:center}
+.zkcoins i{
+  width:14px;height:14px;border-radius:50%;
+  background:linear-gradient(150deg,var(--violet),var(--violet-deep));box-shadow:var(--clay-sm);
+}
+.zkcoins span{font-size:.78rem;color:var(--muted);margin-left:.3em}
+.zkhitos{list-style:none;margin:1rem 0 0;padding:0;display:grid;gap:8px}
+.zkhitos li{
+  display:flex;gap:.7em;align-items:center;font-size:.86rem;color:var(--muted);
+  padding:.5em .8em;border-radius:var(--r-sm);box-shadow:var(--clay-inset);
+  transition:color var(--t-fast) var(--ease),background var(--t-fast) var(--ease);
+}
+.zkhitos li::before{
+  content:"";width:.8em;height:.8em;border-radius:50%;flex:0 0 auto;
+  background:color-mix(in srgb,var(--ink) 16%,transparent);
+}
+.zkhitos li.is-on{color:var(--ink);background:color-mix(in srgb,var(--mint) 16%,transparent)}
+.zkhitos li.is-on::before{background:var(--mint)}
+
+/* Bolas de color */
+.zkballs{
+  position:relative;height:210px;border-radius:var(--r-md);box-shadow:var(--clay-inset);overflow:hidden;
+}
+.zkballs__tag{
+  position:absolute;left:14px;top:12px;font-size:.7rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);
+}
+.zkballs__back{
+  position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:.76rem;color:var(--muted);
+  opacity:0;transition:opacity .3s var(--ease);
+}
+.zkballs.is-hidden .zkballs__back{opacity:1}
+.zkball{
+  position:absolute;top:58px;width:86px;height:86px;border-radius:50%;
+  box-shadow:6px 8px 16px var(--sh-dark);
+  transition:left .7s var(--ease),top .45s var(--ease),opacity .45s var(--ease),background .3s;
+}
+.zkball--r{background:radial-gradient(circle at 34% 30%,#ffc2c8,var(--coral) 55%,#c4404f)}
+.zkball--g{background:radial-gradient(circle at 34% 30%,#aef7e4,var(--mint) 55%,#14977a)}
+/* Víctor no distingue rojo de verde: para él las dos tienen el mismo gris */
+.zkballs.is-victor .zkball{background:radial-gradient(circle at 34% 30%,#e4e2ee,#a29fb4 55%,#6f6c84)}
+.zkballs.is-hidden .zkball{top:150px;opacity:.14}
+
+/* 3-coloración */
+.zkedge{stroke:var(--muted);stroke-width:2}
+.zkedge--ok{stroke:var(--violet);stroke-width:5}
+.zkedge--bad{stroke:var(--coral);stroke-width:5;stroke-dasharray:8 4}
+.zkhit{stroke:transparent;stroke-width:16;cursor:pointer}
+.zkedgeg:focus{outline:none}
+.zkedgeg:focus-visible .zkedge{stroke:var(--violet);stroke-width:4}
+.zkvert{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.zkvert--sealed{fill:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+.zkvert--c0{fill:var(--amber)}
+.zkvert--c1{fill:var(--mint)}
+.zkvert--c2{fill:var(--sky)}
+.zkvert--peek{opacity:.5}
+.zkvnum{font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;fill:var(--ink)}
+.zklock{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linejoin:round}
+
+/* Cuaderno de Víctor: los colores que vio en cada sobre */
+.zkbook{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:.4rem}
+.zkbook__v{
+  text-align:center;padding:.5em .2em;border-radius:var(--r-sm);box-shadow:var(--clay-inset);
+  font-family:"Space Grotesk",sans-serif;font-size:.74rem;font-weight:700;color:var(--ink);
+}
+.zkbook__v.is-known{background:color-mix(in srgb,var(--coral) 22%,transparent)}
+.zkbook__dots{display:flex;justify-content:center;gap:3px;min-height:10px;margin-top:.35em}
+.zkdot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.zkdot--c0{background:var(--amber)}
+.zkdot--c1{background:var(--mint)}
+.zkdot--c2{background:var(--sky)}
+
+/* Schnorr: pasos que se encienden */
+.phases--live .phase{opacity:.5;transition:opacity var(--t-fast) var(--ease)}
+.phases--live .phase.is-on{opacity:1}
+.zkcalc{
+  display:block;margin-top:.4em;font-family:"Space Grotesk",ui-monospace,monospace;
+  font-size:.84rem;color:var(--ink);overflow-wrap:anywhere;
+}
+.zktbl{margin-top:1rem}
+.zktbl table.nb{min-width:0}
+.zktbl table.nb td,.zktbl table.nb th{padding:.55em .8em}
+.zkok{color:#0f7a63;font-weight:700}
+.zkbad{color:#a3202f;font-weight:700}
+html[data-theme="dark"] .zkok{color:#7bf0d3}
+html[data-theme="dark"] .zkbad{color:#ffb0b8}
+
+/* Shamir */
+.zkgrid{stroke:var(--line);stroke-width:1}
+.zkaxis{stroke:var(--ink);stroke-width:1.2;opacity:.6}
+.zkcurve{fill:none;stroke:var(--violet);stroke-width:3;stroke-linecap:round}
+.zkcurve--fam{stroke:var(--sky);stroke-width:1.3;opacity:.55}
+.zkcurve--dealer{stroke:var(--amber);stroke-width:1.8;stroke-dasharray:6 4}
+.zkpt{fill:color-mix(in srgb,var(--ink) 26%,transparent)}
+.zkpt--on{fill:var(--violet)}
+.zkpt--fam{fill:var(--sky);opacity:.7}
+.zkpt--secret{fill:var(--mint);stroke:var(--surface);stroke-width:2}
+.zkshares{display:flex;flex-wrap:wrap;gap:8px}
+.zkshare{
+  font-family:"Space Grotesk",monospace;font-size:.8rem;font-weight:600;color:var(--muted);
+  padding:.5em .9em;border-radius:var(--r-pill);box-shadow:var(--clay-sm);
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease);
+}
+.zkshare[aria-pressed="true"]{background:linear-gradient(150deg,var(--violet),var(--violet-deep));color:#fff}
+
+/* Las tres reglas, en tres columnas que se apilan en pantallas angostas */
+.quad--3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:820px){
+  .quad--3{grid-template-columns:1fr}
+}
+
+@media (max-width:640px){
+  .zkbook{grid-template-columns:repeat(4,1fr)}
+  .zkball{width:70px;height:70px}
+}
+@media (prefers-reduced-motion:reduce){
+  .zkball,.zkmeter i,.zkdoor,.zkveil,.zkhitos li{transition:none !important}
+  .zkdoor.is-shake{animation:none}
+}
+
+/* =========================================================
+   R. Apunte 11 — El anillo de firmas
    ========================================================= */
 
 /* Personas del anillo (laboratorio de la cabecera) */
