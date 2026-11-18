@@ -117,7 +117,7 @@
 
   /* ---------- 5. Contadores animados ---------- */
   (function counters() {
-    var nums = document.querySelectorAll('.stat__num');
+    var nums = document.querySelectorAll('[data-count]');
     if (!nums.length) return;
 
     function run(el) {
