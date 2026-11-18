@@ -54,6 +54,7 @@
         <li><a class="nav__link is-active" href="#encadenamiento">Encadenamiento</a></li>
         <li><a class="nav__link" href="#integridad">Integridad</a></li>
         <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
       </ul>
     </nav>
 
@@ -83,7 +84,7 @@
     <p class="topic-hero__lead anim" style="--d:200ms">Cada bloque guarda una referencia al bloque anterior mediante su hash. Esta relación convierte una secuencia de datos en una cadena verificable: si alguien modifica un bloque, las referencias posteriores dejan de coincidir.</p>
     <ul class="topic-hero__meta anim" style="--d:280ms"><li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg>Bloques</li><li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg>Hash anterior</li><li><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg>Integridad</li><li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>4 ejercicios</li></ul>
   </div></div>
-  <div class="container"><nav class="clay-card toc reveal" aria-label="Contenido del apunte"><h2>Contenido del apunte</h2><ul class="toc__list"><li><a href="#encadenamiento"><span class="toc__n">01</span>Qué significa encadenar bloques</a></li><li><a href="#estructura"><span class="toc__n">02</span>Estructura de un bloque</a></li><li><a href="#integridad"><span class="toc__n">03</span>Integridad y detección de cambios</a></li><li><a href="#verificacion"><span class="toc__n">04</span>Cómo se verifica la cadena</a></li><li><a href="#limites"><span class="toc__n">05</span>Qué aporta y qué no aporta</a></li><li><a href="#resumen"><span class="toc__n">06</span>Síntesis</a></li><li><a href="#ejercicios"><span class="toc__n">07</span>Ejercicios</a></li></ul></nav></div>
+  <div class="container"><nav class="clay-card toc reveal" aria-label="Contenido del apunte"><h2>Contenido del apunte</h2><ul class="toc__list"><li><a href="#encadenamiento"><span class="toc__n">01</span>Qué significa encadenar bloques</a></li><li><a href="#estructura"><span class="toc__n">02</span>Estructura de un bloque</a></li><li><a href="#integridad"><span class="toc__n">03</span>Integridad y detección de cambios</a></li><li><a href="#verificacion"><span class="toc__n">04</span>Cómo se verifica la cadena</a></li><li><a href="#limites"><span class="toc__n">05</span>Qué aporta y qué no aporta</a></li><li><a href="#resumen"><span class="toc__n">06</span>Síntesis</a></li><li><a href="#ejercicios"><span class="toc__n">07</span>Ejercicios</a></li><li><a href="#quiz"><span class="toc__n">08</span> Quiz</a></li></ul></nav></div>
 </section>
 
 <section class="section note" id="encadenamiento">
@@ -134,8 +135,41 @@
 
         </span>Resumen</span><h2 class="section__title">La fuerza de la referencia anterior</h2></header><div class="note__grid"><div class="note__body reveal"><ul><li>Cada bloque contiene una referencia al bloque anterior.</li><li>El hash resume el contenido del bloque y permite detectar cambios.</li><li>El bloque génesis inicia la cadena.</li><li>Una modificación rompe la coincidencia con los bloques posteriores.</li><li>La integridad de la cadena y la aceptación de la cadena requieren mecanismos complementarios.</li></ul></div></div></div></section>
 
+<!-- ============ 08 · QUIZ ============ -->
+<section class="section note" id="quiz">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>9 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
+    </header>
 
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
 
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 9</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
@@ -193,5 +227,7 @@
 </footer>
 
 <script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/quiz-encadenamiento.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
 </body>
 </html>

@@ -631,3 +631,168 @@ pre.code{
   .bytebar span{flex:1 1 30%}
   .mix span:nth-child(2){font-size:0}
 }
+
+/* =========================================================
+   O. Apunte 08 — El anillo de firmas
+   ========================================================= */
+
+/* Personas del anillo (laboratorio de la cabecera) */
+.who{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:12px;
+  padding:14px;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+}
+.who__chip{
+  display:flex;flex-direction:column;align-items:center;gap:5px;min-width:50px;
+  font-size:.74rem;font-weight:600;color:var(--muted);
+  transition:opacity var(--t-fast) var(--ease);
+}
+.who__face{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1rem;
+  background:linear-gradient(150deg,var(--surface),var(--surface-2));
+  box-shadow:var(--clay-sm);color:var(--ink-soft);
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.who__chip.is-signer{color:var(--ink)}
+.who__chip.is-signer .who__face{background:linear-gradient(150deg,var(--violet),var(--violet-deep));color:#fff}
+.who__chip.is-ring .who__face{background:color-mix(in srgb,var(--sky) 38%,var(--surface));color:var(--ink)}
+.who__chip.is-out{opacity:.35}
+
+/* Paneles del laboratorio 1 */
+.pz{display:flex;flex-direction:column;gap:14px;padding:clamp(16px,2vw,22px);border-radius:var(--r-md);box-shadow:var(--clay-sm);min-width:0}
+.pz .field{flex:0 0 auto}
+.pz__title{margin:0;font-size:.98rem;color:var(--ink);display:flex;align-items:center;gap:.6em;flex-wrap:wrap}
+
+/* Cuentas paso a paso */
+.calc{
+  font-family:"Space Grotesk",ui-monospace,monospace;font-size:.83rem;line-height:1.85;
+  padding:1em 1.15em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+  color:var(--ink-soft);overflow-x:auto;
+}
+.calc p{margin:0}
+.calc b{color:var(--ink)}
+.calc .ok,.calc b.ok{color:var(--mint);font-weight:700}
+.calc .bad,.calc b.bad{color:var(--coral);font-weight:700}
+.calc .dim{color:var(--muted);margin-top:.35em}
+
+/* Bitácora del anillo */
+.log--tall{max-height:420px;min-height:200px}
+.log p + p{margin-top:.55em}
+.log p.is-now{
+  padding:.35em .7em;margin-left:-.7em;margin-right:-.7em;border-radius:12px;
+  background:color-mix(in srgb,var(--amber) 20%,transparent);color:var(--ink);
+}
+.log b{color:var(--ink)}
+.xsecret{opacity:.42}
+
+/* Diagrama del anillo */
+.ringlab{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:1.3rem;align-items:start}
+.ringlab > *{min-width:0}
+.ringwrap{padding:8px;border-radius:var(--r-md);box-shadow:var(--clay-inset)}
+.ringwrap svg{display:block;width:100%;height:auto;max-width:560px;margin:0 auto}
+/* text-anchor solo en las clases centradas: en CSS anularía el atributo de .rg-out */
+.ringwrap text{stroke:none;font-family:"Space Grotesk",sans-serif}
+.rg-lab,.rg-name,.rg-small{text-anchor:middle}
+.rg-arc{fill:none;stroke:color-mix(in srgb,var(--ink) 24%,transparent);stroke-width:2.4;stroke-dasharray:6 6}
+.rg-arc.is-done{stroke:var(--violet);stroke-dasharray:none}
+.rg-head{fill:color-mix(in srgb,var(--ink) 24%,transparent);stroke:none}
+.rg-head.is-done{fill:var(--violet)}
+.rg-lab{font-size:14px;font-weight:600;fill:var(--muted)}
+.rg-lab.is-done{fill:var(--violet);font-weight:700}
+.rg-node{stroke-width:2.5;transition:fill var(--t-fast) var(--ease)}
+.rg-node--pending{fill:var(--surface-2);stroke:color-mix(in srgb,var(--ink) 26%,transparent);stroke-dasharray:4 4}
+.rg-node--signer{fill:var(--violet);stroke:var(--violet-deep)}
+.rg-node--sim{fill:var(--mint);stroke:#1fae90}
+.rg-now{fill:none;stroke:var(--amber);stroke-width:3.5}
+.rg-name{font-size:15px;font-weight:700;fill:var(--ink)}
+.rg-small{font-size:12px;font-weight:500;fill:var(--ink-soft)}
+.rg-node--sim + .rg-name,.rg-node--sim + .rg-name + .rg-small{fill:#0c3b31}
+.rg-name.is-light,.rg-small.is-light{fill:#fff}
+.rg-out{font-size:14px;font-weight:600;fill:var(--ink-soft)}
+html[data-theme="dark"] .rg-lab.is-done{fill:#a696ff}
+
+/* Aviso de la versión en PDF, al pie del índice */
+.toc__pdf{
+  display:flex;gap:.7em;align-items:flex-start;
+  margin:1.2rem 0 0;padding:.85em 1.05em;border-radius:var(--r-sm);
+  box-shadow:var(--clay-inset);font-size:.9rem;color:var(--ink-soft);
+}
+.toc__pdf svg{width:1.2em;height:1.2em;flex:0 0 auto;margin-top:.15em;color:var(--violet)}
+.toc__pdf a{font-weight:700}
+
+/* Respuestas editables del laboratorio 3 */
+.rinputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px}
+.rinputs .field{flex:none}
+
+/* Tabla de sospechosos */
+table.nb tr.is-real td{background:color-mix(in srgb,var(--violet) 13%,transparent)}
+
+/* Quiz */
+.quiz{display:grid;gap:clamp(14px,2vw,20px)}
+.quiz__q{
+  border:0;margin:0;min-width:0;
+  padding:clamp(18px,2.4vw,28px);border-radius:var(--r-lg);
+  border-left:5px solid transparent;
+  transition:border-color var(--t-fast) var(--ease);
+}
+.quiz__q.is-right{border-left-color:var(--mint)}
+.quiz__q.is-wrong{border-left-color:var(--coral)}
+.quiz__q legend{
+  float:left;width:100%;padding:0;margin:0 0 1rem;
+  display:flex;gap:.8em;align-items:flex-start;
+  font-weight:700;font-size:1.02rem;color:var(--ink);line-height:1.5;
+}
+.quiz__n{
+  font-family:"Space Grotesk",monospace;font-size:.8rem;
+  width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border-radius:10px;
+  background:linear-gradient(150deg,var(--violet),var(--violet-deep));color:#fff;
+}
+.quiz__opts{clear:both;display:grid;gap:10px}
+.quiz__opt{
+  display:flex;gap:.8em;align-items:flex-start;width:100%;text-align:left;
+  font:inherit;font-size:.93rem;line-height:1.55;color:var(--ink-soft);
+  padding:.8em 1.05em;border:0;border-radius:var(--r-sm);cursor:pointer;
+  background:linear-gradient(150deg,var(--surface),var(--surface-2));
+  box-shadow:var(--clay-sm);
+  transition:transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+.quiz__opt:hover:not(:disabled){transform:translateY(-2px);color:var(--ink)}
+.quiz__opt:focus-visible{outline:3px solid color-mix(in srgb,var(--violet) 55%,transparent);outline-offset:2px}
+.quiz__opt:disabled{cursor:default}
+.quiz__opt:disabled:not(.is-right):not(.is-wrong){opacity:.55}
+.quiz__letter{
+  width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;
+  font-family:"Space Grotesk",sans-serif;font-size:.78rem;font-weight:700;color:var(--violet);
+  box-shadow:var(--clay-inset);
+}
+html[data-theme="dark"] .quiz__letter{color:#a696ff}
+.quiz__opt.is-right{background:color-mix(in srgb,var(--mint) 26%,var(--surface));color:var(--ink)}
+.quiz__opt.is-wrong{background:color-mix(in srgb,var(--coral) 24%,var(--surface));color:var(--ink)}
+.quiz__opt.is-right .quiz__letter{background:var(--mint);color:#0c3b31;box-shadow:none}
+.quiz__opt.is-wrong .quiz__letter{background:var(--coral);color:#fff;box-shadow:none}
+.quiz__fb{
+  margin:1rem 0 0;padding:.95em 1.15em;border-radius:var(--r-md);box-shadow:var(--clay-inset);
+  font-size:.9rem;color:var(--ink-soft);line-height:1.65;
+}
+.quiz__fb .ok{color:#0f7a63}
+.quiz__fb .bad{color:#c4313f}
+html[data-theme="dark"] .quiz__fb .ok{color:#7bf0d3}
+html[data-theme="dark"] .quiz__fb .bad{color:#ffb0b8}
+.quiz__bar{height:12px;padding:3px;border-radius:var(--r-pill);box-shadow:var(--clay-inset);margin-top:.4rem}
+.quiz__bar span{
+  display:block;height:100%;width:0;border-radius:var(--r-pill);
+  background:linear-gradient(90deg,var(--violet),var(--mint));
+  transition:width .4s var(--ease);
+}
+
+@media (max-width:1000px){
+  .ringlab{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .who{gap:8px;padding:10px}
+  .who__face{width:36px;height:36px;font-size:.9rem}
+  .quiz__q legend{font-size:.96rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .quiz__bar span,.quiz__opt,.rg-node,.who__chip,.who__face{transition:none !important}
+}

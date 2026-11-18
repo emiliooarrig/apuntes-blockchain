@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El anillo de firmas — ChainNotes</title>
+<meta name="description" content="Apunte: firmas de anillo explicadas desde cero. Firmar en nombre de un grupo sin revelar quién firma, el truco de la simulación, cómo se cierra el anillo, por qué el anonimato es perfecto y cómo lo usa Monero. Con cuatro laboratorios interactivos y un quiz final.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=5 rompe la caché: apuntes.css creció con el anillo, el quiz y el enlace al PDF -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=5">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 24 24"><path d="M15.13 5.07A7.6 7.6 0 0 1 17.62 6.88M19.55 12.83A7.6 7.6 0 0 1 18.60 15.76M13.54 19.44A7.6 7.6 0 0 1 10.46 19.44M5.40 15.76A7.6 7.6 0 0 1 4.45 12.83M6.38 6.88A7.6 7.6 0 0 1 8.87 5.07"/><circle cx="12.0" cy="4.4" r="2.3"/><circle cx="19.2" cy="9.7" r="2.3"/><circle cx="16.5" cy="18.1" r="2.3"/><circle cx="7.5" cy="18.1" r="2.3"/><circle cx="4.8" cy="9.7" r="2.3"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#idea">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#idea">Idea</a></li>
+        <li><a class="nav__link" href="#simular">Simular</a></li>
+        <li><a class="nav__link" href="#anillo">Anillo</a></li>
+        <li><a class="nav__link" href="#blockchain">Blockchain</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#idea">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>08 · Anillo de firmas</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 08 · Privacidad
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        El <span class="grad">anillo de firmas</span>:<br>
+        firmar sin <span class="underlined">decir quién</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Una firma normal dice «esto lo escribió Ana». Una firma de anillo dice «esto lo
+        escribió <em>alguien de este grupo</em>», y nadie, ni siquiera con la computadora más
+        potente del mundo, puede averiguar quién. Aquí lo vas a construir paso a paso, con
+        números pequeños y sin necesidad de saber criptografía.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-ring"/></svg> Firmas de anillo</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Anonimato</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Monero</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 4 laboratorios + quiz</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: qué aprende quien verifica -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-ring"/></svg> ¿Qué sabe quien verifica?</h2>
+        <span class="lab__tag">en vivo · mensaje anónimo</span>
+      </div>
+      <p class="lab__intro">
+        Llega el mensaje «La auditoría encontró un fallo en el contrato». Compara lo que
+        aprende quien lo revisa según el tipo de firma.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="wsSeg" role="group" aria-label="Tipo de firma">
+            <button type="button" data-mode="normal" aria-pressed="false">Firma normal</button>
+            <button type="button" data-mode="anillo" aria-pressed="true">Firma de anillo</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="wsN">Personas en el anillo</label>
+          <input type="range" id="wsN" min="2" max="10" step="1" value="5">
+          <span class="field__label" id="wsNOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+      </div>
+
+      <div class="who" id="wsPeople" aria-hidden="true"></div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--mint" id="wsAuth">—</span><span class="metric__label">¿La firma es auténtica?</span></div>
+        <div class="metric"><span class="metric__num" id="wsWho">—</span><span class="metric__label">¿Quién firmó?</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="wsOdds">—</span><span class="metric__label">Acierto si adivina al azar</span></div>
+      </div>
+      <div class="log" id="wsLog" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#idea"><span class="toc__n">01</span> La idea</a></li>
+        <li><a href="#claves"><span class="toc__n">02</span> Las herramientas</a></li>
+        <li><a href="#simular"><span class="toc__n">03</span> Firmar o simular</a></li>
+        <li><a href="#anillo"><span class="toc__n">04</span> Construye un anillo</a></li>
+        <li><a href="#verificar"><span class="toc__n">05</span> Verifica y rompe</a></li>
+        <li><a href="#quien"><span class="toc__n">06</span> ¿Quién firmó?</a></li>
+        <li><a href="#blockchain"><span class="toc__n">07</span> En blockchain</a></li>
+        <li><a href="#formulas"><span class="toc__n">08</span> Rincón técnico</a></li>
+        <li><a href="#sintesis"><span class="toc__n">09</span> Síntesis</a></li>
+        <li><a href="#quiz"><span class="toc__n">10</span> Quiz</a></li>
+      </ul>
+      <p class="toc__pdf">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-download"/></svg>
+        <span>¿Prefieres leerlo en papel? Este apunte también está en
+        <a href="../latex/anillo-de-firmas.pdf" target="_blank" rel="noopener">versión LaTeX (PDF)</a>,
+        con los ejemplos resueltos a mano y las soluciones del quiz.</span>
+      </p>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · LA IDEA ============ -->
+<section class="section note" id="idea">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">La idea: firmar en nombre de un grupo</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender qué promete una firma de anillo
+        (y qué no) antes de ver una sola fórmula.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Imagina el tablero de avisos de una facultad. Aparece una carta: «El examen final
+          tiene un error en la pregunta 4», firmada <strong>«uno de los cinco profesores de
+          criptografía»</strong>, con un sello que solo esos cinco pueden poner. Sabes que la
+          carta es auténtica, porque nadie más tiene ese sello. Pero no sabes cuál de los cinco
+          la escribió. Eso es, en esencia, una <strong>firma de anillo</strong>.
+        </p>
+        <p>
+          Una <a href="firma-digital.html">firma digital</a> ordinaria responde a la pregunta
+          «¿quién escribió esto?» con un nombre. Una firma de anillo responde «alguien de esta
+          lista». Lo sorprendente son tres detalles:
+        </p>
+        <ul class="plain-list">
+          <li><strong>El firmante elige el grupo por su cuenta.</strong> Toma las claves
+            públicas de otras personas, que cualquiera puede ver, y las mete en su anillo.</li>
+          <li style="--accent:var(--sky)"><strong>Los demás ni se enteran.</strong> No firman,
+            no dan permiso y no hacen nada. Basta con que su clave pública exista.</li>
+          <li style="--accent:var(--mint)"><strong>No hay jefe.</strong> No existe un
+            administrador que pueda «destapar» al firmante después. El secreto es para
+            siempre.</li>
+        </ul>
+        <div class="callout callout--key">
+          <span class="callout__title">¿Por qué «anillo»?</span>
+          No es porque los miembros formen un círculo social. Es por la forma del cálculo:
+          la firma es una cadena de pasos donde cada uno alimenta al siguiente y el último se
+          conecta con el primero. Como un círculo no tiene principio, mirar la firma no te dice
+          dónde empezó, y por lo tanto, quién la hizo.
+        </div>
+        <div class="callout callout--warn">
+          <span class="callout__title">Lo que una firma no prueba</span>
+          Que la carta esté firmada no significa que lo que dice sea verdad. Solo garantiza
+          que la escribió alguien del grupo y que nadie la modificó después.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-ring"/></svg> Comparación rápida</span>
+        <div class="quad" style="grid-template-columns:1fr;margin-top:0">
+          <div class="quad__cell" style="--accent:var(--muted)">
+            <h4>Firma normal</h4>
+            <p>Quien verifica concluye: <strong>«la firmó Ana»</strong>.</p>
+            <small>identidad: revelada</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--violet)">
+            <h4>Firma de anillo</h4>
+            <p>Quien verifica concluye: <strong>«la firmó alguno de Ana, Beto, Carla, Diego
+            o Elena»</strong>.</p>
+            <small>identidad: oculta entre 5</small>
+          </div>
+        </div>
+        <p style="margin-top:1.2em">El origen del nombre está en un artículo de 2001 de
+          Rivest, Shamir y Tauman titulado <em>How to Leak a Secret</em> («Cómo filtrar un
+          secreto»): un alto funcionario quiere denunciar algo y demostrar que es alguien de
+          dentro, sin delatarse.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · LAS HERRAMIENTAS ============ -->
+<section class="section note" id="claves">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Las herramientas: claves, reloj y licuadora</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> conocer las tres piezas que usan todos
+        los laboratorios. No hace falta memorizar nada.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">1. Aritmética del reloj (mod)</h3>
+        <p>
+          En un reloj de 12 horas, 3 horas después de las 11 son las 2, no las 14: al pasar
+          de 12 vuelves a empezar. Los matemáticos escriben <var>14 mod 12 = 2</var> («el
+          residuo de dividir entre 12»). Aquí usaremos relojes de otros tamaños, como 23 u 11
+          posiciones. Así los números nunca crecen demasiado.
+        </p>
+
+        <h3>2. Clave secreta y clave pública</h3>
+        <p>
+          Cada persona elige un número secreto <var>x</var>: su <strong>clave secreta</strong>.
+          Luego calcula <var>y</var> = <var>g</var><sup><var>x</var></sup> mod <var>p</var>
+          (multiplica <var>g</var> por sí mismo <var>x</var> veces en el reloj de <var>p</var>
+          posiciones) y publica el resultado: su <strong>clave pública</strong>.
+        </p>
+        <p>
+          Hacia adelante la cuenta es fácil. Hacia atrás, dado <var>y</var>, encontrar
+          <var>x</var> es muy difícil: con números de 77 dígitos no hay computadora que lo
+          logre. Es como mezclar pintura: juntar azul y amarillo es fácil, separarlos después
+          no.
+        </p>
+
+        <h3>3. La licuadora: una función hash</h3>
+        <p>
+          Una <a href="hash.html">función hash</a> mezcla datos y entrega un número que parece
+          aleatorio: lo mismo entra, lo mismo sale, pero no puedes predecir ni elegir el
+          resultado. En las firmas, el hash fabrica los <strong>desafíos</strong>: números que
+          nadie puede escoger a su conveniencia.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">Nuestra versión de juguete</span>
+          Para que puedas seguir las cuentas a mano, primero el mensaje se resume en un número
+          pequeño <var>m̂</var>, su «huella»: las letras se convierten en un número grande y
+          nos quedamos con su residuo mod <var>q</var>. Luego usamos
+          <var>H</var>(<var>m</var>, <var>R</var>) = (3·<var>m̂</var> + <var>R</var>) mod
+          <var>q</var>. Es una licuadora pésima, pero sirve para ver el mecanismo.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Ejemplo con números</span>
+        <p>Usamos un reloj de <var>p</var> = 23 posiciones y <var>g</var> = 4. Ana elige su
+          clave secreta <var>x</var> = 7.</p>
+        <span class="eq">
+          <var>y</var> = 4<sup>7</sup> mod 23 = 16 384 mod 23 = <strong>8</strong>
+          <small>Ana publica y = 8 y guarda x = 7</small>
+        </span>
+        <p>Las potencias de 4 en este reloj se repiten cada <var>q</var> = 11 pasos (4<sup>11</sup>
+          mod 23 = 1). Por eso todo lo que sean exponentes vive en un segundo reloj, de 11
+          posiciones.</p>
+        <dl class="params" style="grid-template-columns:1fr">
+          <div><dt>p · el reloj grande</dt><dd>donde viven las claves públicas y los R</dd></div>
+          <div><dt>q · el reloj pequeño</dt><dd>donde viven claves secretas, desafíos c y respuestas r</dd></div>
+          <div><dt>g · el punto de partida</dt><dd>un número fijo que todos comparten</dd></div>
+        </dl>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">Solo para aprender</span>
+          Con <var>q</var> = 11 cualquiera encuentra <var>x</var> probando 11 opciones. En la
+          vida real <var>q</var> tiene unos 256 bits (unos 77 dígitos).
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · FIRMAR O SIMULAR ============ -->
+<section class="section note" id="simular">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">La pieza clave: firmar con la clave o simular sin ella</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> descubrir el truco que hace posible el
+        anillo: se puede «fingir» la firma de alguien si te dejan escoger las cosas en otro
+        orden.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cada eslabón del anillo es un trío de números (<var>R</var>, <var>c</var>,
+          <var>r</var>) que debe cumplir <strong>dos condiciones</strong>:
+        </p>
+        <span class="eq">
+          ① <var>R</var> = <var>g</var><sup><var>r</var></sup> · <var>y</var><sup><var>c</var></sup> mod <var>p</var>
+          &nbsp;&nbsp;&nbsp; ② <var>c</var> = <var>H</var>(<var>m</var>, <var>R</var>)
+          <small>① amarra el eslabón a la clave pública y · ② amarra el eslabón al mensaje</small>
+        </span>
+        <p>Hay dos formas de conseguir un trío que cumpla la condición ①:</p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Con la clave secreta (orden natural)</h4>
+            <p>Eliges un número al azar <var>a</var>, calculas <var>R</var> = <var>g</var><sup><var>a</var></sup>,
+            dejas que el hash te dé <var>c</var> y al final respondes
+            <var>r</var> = <var>a</var> − <var>x</var>·<var>c</var>. Necesitas conocer <var>x</var>.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Sin la clave (simulación, orden invertido)</h4>
+            <p>Escoges primero <var>c</var> y <var>r</var> a tu gusto y <em>despejas</em>
+            <var>R</var> = <var>g</var><sup><var>r</var></sup>·<var>y</var><sup><var>c</var></sup>.
+            La condición ① se cumple siempre, sin saber <var>x</var>.</p>
+          </div></div>
+        </div>
+        <p style="margin-top:1.2em">
+          ¿Entonces cualquiera puede falsificar? No, porque la simulación casi nunca cumple la
+          condición ②: tú escogiste <var>c</var> antes de conocer <var>R</var>, y el hash de
+          ese <var>R</var> sale otro número. Es como contestar un examen inventando tú las
+          preguntas: todas tus respuestas encajan, pero no con las preguntas oficiales.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">La idea que hay que llevarse</span>
+          La simulación funciona si el desafío <var>c</var> te llega <strong>de fuera</strong>,
+          ya fijado, y tú solo pones la respuesta. En el anillo pasa justo eso: cada desafío lo
+          produce el eslabón anterior. Así el firmante puede rellenar los eslabones de los demás
+          sin conocer sus claves.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Por qué funciona con la clave</span>
+        <p>Como <var>y</var> = <var>g</var><sup><var>x</var></sup>, al sustituir la respuesta
+          <var>r</var> = <var>a</var> − <var>x</var><var>c</var>:</p>
+        <span class="eq">
+          <var>g</var><sup><var>a</var> − <var>x</var><var>c</var></sup> · (<var>g</var><sup><var>x</var></sup>)<sup><var>c</var></sup>
+          = <var>g</var><sup><var>a</var></sup> = <var>R</var>
+          <small>el término x·c aparece restando y sumando: se cancela</small>
+        </span>
+        <p>Esta es la firma de <strong>Schnorr</strong> (1989), una de las más usadas hoy:
+          Bitcoin la adoptó en 2021 con la actualización Taproot.</p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">¿Y la simulación?</span>
+          Escoger <var>c</var> y <var>r</var> y despejar <var>R</var> es aritmética pura: no
+          hay nada secreto involucrado. Lo difícil para un falsificador es que, además, el
+          hash coincida: con <var>q</var> números posibles, acierta 1 vez de cada <var>q</var>.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 1 — Firma real contra simulación</h2>
+        <span class="lab__tag">p = 23 · q = 11 · g = 4 · x = 7 · y = 8</span>
+      </div>
+      <p class="lab__intro">
+        La clave de Ana es <var>x</var> = 7 y su clave pública <var>y</var> = 8. A la
+        izquierda firmas con la clave; a la derecha simulas sin ella. Mueve los controles y
+        mira qué condición se cumple en cada lado.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="pzMsg">Mensaje</label>
+          <input type="text" id="pzMsg" value="hola" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field field--auto">
+          <span class="field__label">Huella del mensaje</span>
+          <code class="hashout" id="pzMh" style="padding:.62em 1em">—</code>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="pz">
+          <h4 class="pz__title"><span class="status status--ok">con clave</span> Orden natural</h4>
+          <div class="field">
+            <label class="field__label" for="pzA">Número al azar a</label>
+            <input type="range" id="pzA" min="1" max="10" step="1" value="6">
+            <span class="field__label" id="pzAOut" style="text-transform:none;letter-spacing:0"></span>
+          </div>
+          <div class="calc" id="pzSign" aria-live="polite"></div>
+        </div>
+        <div class="pz">
+          <h4 class="pz__title"><span class="status status--warn">sin clave</span> Simulación</h4>
+          <div class="field">
+            <label class="field__label" for="pzC">Desafío c (lo eliges tú)</label>
+            <input type="range" id="pzC" min="0" max="10" step="1" value="6">
+            <span class="field__label" id="pzCOut" style="text-transform:none;letter-spacing:0"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="pzR">Respuesta r (la eliges tú)</label>
+            <input type="range" id="pzR" min="0" max="10" step="1" value="5">
+            <span class="field__label" id="pzROut" style="text-transform:none;letter-spacing:0"></span>
+          </div>
+          <div class="calc" id="pzSim" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="lab__note">
+        Prueba esto: en la simulación, mueve <var>c</var> buscando que el hash coincida. Para
+        cada <var>r</var> suele haber uno o dos valores que funcionan (a veces ninguno), y solo
+        los encuentras <em>probando</em> uno por uno; con un <var>q</var> de 77 dígitos eso es
+        imposible. En el anillo nadie necesita adivinar: el desafío llega ya hecho.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · CONSTRUYE UN ANILLO ============ -->
+<section class="section note" id="anillo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Construye un anillo: una cadena que se muerde la cola</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver cómo el firmante rellena los
+        eslabones de los demás y cierra el último con su propia clave.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Piensa en una carrera de relevos en una pista circular. Cada corredor recibe el
+          testigo (el desafío <var>c</var>) del anterior, hace su parte y produce el testigo
+          del siguiente. El firmante organiza toda la carrera él solo:
+        </p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Arranca en su propio lugar</h4>
+            <p>Elige un número al azar <var>a</var>, calcula su <var>R</var> = <var>g</var><sup><var>a</var></sup>
+            y el hash le da el desafío para la persona siguiente.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Simula a todos los demás</h4>
+            <p>A cada miembro le llega su desafío ya hecho. El firmante escoge una respuesta
+            <var>r</var> al azar, despeja su <var>R</var> y obtiene el desafío del siguiente.
+            No necesita sus claves secretas.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Cierra el hueco con su clave</h4>
+            <p>La vuelta regresa a él con un desafío que no escogió. Para que encaje con el
+            <var>R</var> que fijó al principio, calcula <var>r</var> = <var>a</var> − <var>x</var>·<var>c</var>.
+            Es el único paso que exige una clave secreta.</p>
+          </div></div>
+        </div>
+        <p style="margin-top:1.2em">
+          La firma que se publica es muy compacta: el primer desafío <var>c</var><sub>1</sub>
+          y una respuesta <var>r</var> por cada miembro. Los <var>R</var> no se publican,
+          porque cualquiera puede recalcularlos.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Lo que se publica</span>
+        <span class="eq">
+          σ = (<var>c</var><sub>1</sub>; <var>r</var><sub>1</sub>, <var>r</var><sub>2</sub>, …, <var>r</var><sub><var>n</var></sub>)
+          <small>n + 1 números para un anillo de n personas</small>
+        </span>
+        <p>Junto con el mensaje y la lista de claves públicas del anillo, eso es todo lo que
+          necesita quien verifica.</p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">El precio del anonimato</span>
+          La firma crece con el tamaño del anillo: esconderte entre 1000 personas cuesta una
+          firma 1000 veces más larga. Existen variantes más compactas, pero esta es la idea
+          básica.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-ring"/></svg> Laboratorio 2 — Arma el anillo paso a paso</h2>
+        <span class="lab__tag">firmante · simulados · cierre</span>
+      </div>
+      <p class="lab__intro">
+        Elige el grupo, cuántas personas hay en el anillo, quién firma y el mensaje. Luego
+        avanza un paso a la vez y lee la bitácora: cada número se explica.
+      </p>
+
+      <div class="controls">
+        <div class="field" style="flex-basis:190px">
+          <label class="field__label" for="rgGroup">Grupo</label>
+          <select id="rgGroup">
+            <option value="0" selected>p = 23 · q = 11 · g = 4</option>
+            <option value="1">p = 47 · q = 23 · g = 2</option>
+            <option value="2">p = 59 · q = 29 · g = 4</option>
+          </select>
+        </div>
+        <div class="field field--auto">
+          <span class="field__label">Miembros</span>
+          <div class="seg" id="rgSize" role="group" aria-label="Número de miembros">
+            <button type="button" data-n="3" aria-pressed="false">3</button>
+            <button type="button" data-n="4" aria-pressed="false">4</button>
+            <button type="button" data-n="5" aria-pressed="true">5</button>
+            <button type="button" data-n="6" aria-pressed="false">6</button>
+          </div>
+        </div>
+        <div class="field" style="flex-basis:150px">
+          <label class="field__label" for="rgSigner">Quién firma</label>
+          <select id="rgSigner"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="rgMsg">Mensaje</label>
+          <input type="text" id="rgMsg" value="Reunión el viernes" spellcheck="false" autocomplete="off">
+        </div>
+      </div>
+
+      <dl class="params" id="rgKeys" style="margin-top:0"></dl>
+      <p class="lab__note" style="margin-top:.6rem">
+        Solo la persona firmante conoce su clave secreta <var>x</var>. Las de los demás se
+        muestran en gris porque en la vida real nadie las ve; aquí solo las usamos en la
+        sección 06.
+      </p>
+
+      <div class="ringlab">
+        <div>
+          <div class="ringwrap" id="rgSvg" role="img" aria-label="Diagrama del anillo de firmas"></div>
+          <div class="legend">
+            <span><i style="background:var(--violet)"></i> firmante</span>
+            <span><i style="background:var(--mint)"></i> simulado</span>
+            <span><i style="background:var(--surface-2);box-shadow:var(--clay-inset)"></i> pendiente</span>
+            <span><i style="background:var(--amber)"></i> paso actual</span>
+          </div>
+        </div>
+        <div>
+          <span class="field__label">Bitácora · <span id="rgStep">Paso 0</span></span>
+          <div class="log log--tall" id="rgLog" aria-live="polite" style="margin-top:.5rem"></div>
+        </div>
+      </div>
+
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="rgPrev" type="button">← Anterior</button></div>
+        <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="rgNext" type="button">Siguiente paso <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button></div>
+        <div class="field field--auto"><button class="clay-btn" id="rgAll" type="button">Construir todo</button></div>
+        <div class="field field--auto"><button class="clay-btn" id="rgReset" type="button">Reiniciar</button></div>
+        <div class="field field--auto"><button class="clay-btn" id="rgNew" type="button">Nuevas claves y azar</button></div>
+      </div>
+
+      <span class="field__label" style="margin-top:1.2rem;display:block">La firma publicada</span>
+      <code class="hashout" id="rgSig" style="margin-top:.5rem"></code>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="rgMetSize">—</span><span class="metric__label">Tamaño de la firma</span></div>
+        <div class="metric"><span class="metric__num" id="rgMetKeys">—</span><span class="metric__label">Claves públicas que necesita el verificador</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="rgMetOdds">—</span><span class="metric__label">Probabilidad de adivinar al firmante</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · VERIFICA Y ROMPE ============ -->
+<section class="section note" id="verificar">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Verificar: dar la vuelta completa</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> comprobar una firma tú mismo y ver que
+        cualquier cambio, por pequeño que sea, rompe el anillo.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Quien verifica no conoce ninguna clave secreta ni sabe quién firmó. Tiene el mensaje,
+          las claves públicas del anillo y la firma σ. Su trabajo es sencillo:
+        </p>
+        <ul class="plain-list">
+          <li>Empieza con el desafío <var>c</var><sub>1</sub> que viene en la firma.</li>
+          <li style="--accent:var(--sky)">Para cada miembro, recalcula su <var>R</var> con la
+            condición ① y, con el hash, el desafío del siguiente.</li>
+          <li style="--accent:var(--mint)">Al terminar la vuelta, compara: si vuelve a obtener
+            exactamente <var>c</var><sub>1</sub>, la firma es <strong>válida</strong>.</li>
+        </ul>
+        <p>
+          Es como seguir instrucciones del tipo «da 3 pasos, gira, da 5 pasos…» en un círculo:
+          si al final llegas al punto de partida, las instrucciones son correctas. Si alguien
+          cambió una sola, terminas en otro lugar.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Todo está amarrado</span>
+          Cambiar una letra del mensaje cambia la huella, que cambia todos los desafíos.
+          Cambiar una respuesta <var>r</var> cambia un <var>R</var>, que cambia el desafío
+          siguiente, y el error se arrastra por el resto de la vuelta.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> La regla del verificador</span>
+        <span class="eq">
+          para <var>i</var> = 1, …, <var>n</var>: &nbsp;
+          <var>R</var><sub><var>i</var></sub> = <var>g</var><sup><var>r</var><sub><var>i</var></sub></sup><var>y</var><sub><var>i</var></sub><sup><var>c</var><sub><var>i</var></sub></sup>,
+          &nbsp; <var>c</var><sub><var>i</var>+1</sub> = <var>H</var>(<var>m</var>, <var>R</var><sub><var>i</var></sub>)
+        </span>
+        <span class="eq">
+          válida &nbsp;⟺&nbsp; <var>c</var><sub><var>n</var>+1</sub> = <var>c</var><sub>1</sub>
+          <small>la vuelta cierra donde empezó</small>
+        </span>
+        <p>Fíjate en que la regla trata a todos los miembros exactamente igual: no hay ningún
+          paso especial para el firmante. Esa simetría es la raíz del anonimato.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg> Laboratorio 3 — Verifica y rompe</h2>
+        <span class="lab__tag">usa la firma del laboratorio 2</span>
+      </div>
+      <p class="lab__intro">
+        Aquí está la firma que construiste. El verificador da la vuelta completa. Cambia
+        cualquier número o el mensaje y observa cómo el anillo deja de cerrar.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="vfMsg">Mensaje recibido</label>
+          <input type="text" id="vfMsg" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field" style="flex-basis:110px;flex-grow:0">
+          <label class="field__label" for="vfC1">c₁</label>
+          <input type="number" id="vfC1" min="0" step="1">
+        </div>
+      </div>
+      <div class="rinputs" id="vfR"></div>
+
+      <div class="calc" id="vfLinks" aria-live="polite" style="margin-top:1.2rem"></div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="vfResult">—</span><span class="metric__label">Resultado</span></div>
+        <div class="metric"><span class="metric__num" id="vfEnd">—</span><span class="metric__label">Desafío final frente a c₁</span></div>
+      </div>
+      <div class="callout callout--warn" id="vfNote" hidden>
+        <span class="callout__title">¡Pasó por casualidad!</span>
+        Cambiaste algo y la firma sigue cerrando. Con un reloj de solo <span id="vfQ">11</span>
+        posiciones, uno o dos de cada <var>q</var> cambios coinciden por suerte. Por eso en la
+        práctica <var>q</var> tiene 77 dígitos y la suerte deja de existir.
+      </div>
+
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="vfRestore" type="button">Restaurar la firma construida</button></div>
+        <div class="field field--auto"><button class="clay-btn" id="vfAlter" type="button">Alterar el mensaje</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · ¿QUIÉN FIRMÓ? ============ -->
+<section class="section note" id="quien">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">¿Quién firmó? Cualquiera pudo hacerlo</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> convencerte de que la firma no
+        delata a nadie, ni siquiera ante alguien con poder de cómputo ilimitado.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Hagamos de detectives. Tomamos la firma válida y nos preguntamos: «¿pudo haberla
+          hecho Ana?». Si Ana hubiera firmado, habría empezado en su propio eslabón con un
+          número al azar <var>a′</var> que cumpliera <var>g</var><sup><var>a′</var></sup> = <var>R</var><sub>Ana</sub>,
+          y habría simulado a todos los demás con las mismas respuestas que vemos en la firma.
+          ¿Existe ese <var>a′</var>? Sí: <var>a′</var> = <var>r</var> + <var>x</var>·<var>c</var>.
+        </p>
+        <p>
+          Lo mismo vale para Beto, para Carla y para todos. <strong>Para cada miembro existe un
+          camino válido que produce exactamente la misma firma</strong>, y todos esos caminos
+          son igual de probables. La firma no favorece a nadie.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Anonimato incondicional</span>
+          No es que averiguar al firmante sea «muy difícil»: es que la información no está en
+          la firma. Ni con una computadora infinitamente rápida, ni conociendo todas las claves
+          secretas, se puede saber quién fue. Lo mejor que puede hacer un detective es adivinar:
+          acierta 1 vez de cada <var>n</var>.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> La cuenta del detective</span>
+        <p>Supón que firmó el miembro <var>i</var>. Su número inicial habría sido</p>
+        <span class="eq">
+          <var>a′</var> = <var>r</var><sub><var>i</var></sub> + <var>x</var><sub><var>i</var></sub><var>c</var><sub><var>i</var></sub> mod <var>q</var>
+        </span>
+        <p>y entonces, efectivamente,</p>
+        <span class="eq">
+          <var>g</var><sup><var>a′</var></sup> = <var>g</var><sup><var>r</var><sub><var>i</var></sub></sup>·<var>y</var><sub><var>i</var></sub><sup><var>c</var><sub><var>i</var></sub></sup> = <var>R</var><sub><var>i</var></sub>
+          <small>funciona para todo i: ningún candidato queda descartado</small>
+        </span>
+        <p>Cada <var>r</var> de los simulados se escogió al azar, igual que el <var>a</var>
+          del firmante. Por eso la firma tiene la misma probabilidad de salir sea quien sea
+          el que firmó.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Laboratorio 4 — Todos son sospechosos</h2>
+        <span class="lab__tag">usa claves secretas que nadie tiene</span>
+      </div>
+      <p class="lab__intro">
+        Para cada miembro suponemos que fue quien firmó y reconstruimos el número inicial que
+        habría usado. Si <var>g</var><sup><var>a′</var></sup> coincide con el <var>R</var> del
+        anillo, ese camino es posible.
+      </p>
+      <div class="table-wrap" style="margin-top:0">
+        <table class="nb">
+          <thead>
+            <tr>
+              <th scope="col">Si firmó…</th>
+              <th scope="col">Su x</th>
+              <th scope="col">c que recibió</th>
+              <th scope="col">r de la firma</th>
+              <th scope="col">a′ = r + x·c</th>
+              <th scope="col">g<sup>a′</sup></th>
+              <th scope="col">R del anillo</th>
+              <th scope="col">¿Camino posible?</th>
+            </tr>
+          </thead>
+          <tbody id="qnTable"></tbody>
+        </table>
+      </div>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="qnReveal" type="button" aria-pressed="false">Mostrar quién firmó en realidad</button></div>
+      </div>
+      <p class="lab__note">
+        Esta tabla usa las claves secretas de todos, algo que nadie tiene en la práctica. Aun
+        así, cada fila funciona: ni con toda la información del mundo se distingue al
+        firmante.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · EN BLOCKCHAIN ============ -->
+<section class="section note" id="blockchain">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Para qué sirve: Monero y otras aplicaciones</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> ver cómo una blockchain usa las firmas
+        de anillo para ocultar quién paga sin abrir la puerta al doble gasto.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          En Bitcoin todo es público: cada pago muestra qué monedas se gastan y quién las
+          firma. Cualquiera puede seguir el rastro del dinero. <strong>Monero</strong>, una
+          criptomoneda lanzada en 2014, usa firmas de anillo para romper ese rastro.
+        </p>
+
+        <h3>Los señuelos</h3>
+        <p>
+          Cuando gastas una moneda en Monero, tu billetera toma otras monedas que ya existen
+          en la cadena, de otras personas, y las mete en el anillo como <strong>señuelos</strong>.
+          Desde 2022 cada anillo tiene 16 miembros: tu moneda real y 15 señuelos. Quien mira la
+          cadena sabe que se gastó una de esas 16, pero no cuál.
+        </p>
+
+        <h3>El problema: ¿y si gasto dos veces?</h3>
+        <p>
+          Si nadie sabe qué moneda se gastó, ¿cómo evita la red el
+          <a href="prueba-de-trabajo.html">doble gasto</a>? Con una variante llamada
+          <strong>firma de anillo enlazable</strong>. Cada firma incluye una <strong>imagen de
+          clave</strong>: una especie de «huella» que se calcula con la clave secreta de la
+          moneda. No revela a cuál miembro del anillo pertenece, pero es <em>siempre la misma</em>
+          para la misma moneda. Si alguien intenta gastarla otra vez, aparece la misma huella y
+          la red rechaza la transacción.
+        </p>
+
+        <div class="callout callout--note">
+          <span class="callout__title">Tres capas de privacidad en Monero</span>
+          Las firmas de anillo ocultan <strong>quién paga</strong>. Las direcciones ocultas
+          (<em>stealth addresses</em>) ocultan <strong>quién recibe</strong>. Y las
+          transacciones confidenciales (RingCT) ocultan <strong>cuánto se paga</strong> usando
+          <a href="compromisos.html">compromisos de Pedersen</a>.
+        </div>
+
+        <h3>Otras aplicaciones</h3>
+        <ul class="plain-list">
+          <li><strong>Denuncias anónimas.</strong> Un empleado demuestra que trabaja en la
+            empresa sin decir quién es: el caso que dio origen a la idea.</li>
+          <li style="--accent:var(--sky)"><strong>Votaciones.</strong> Con firmas enlazables,
+            cada votante prueba que está en el padrón y la red detecta si alguien vota dos
+            veces, sin saber quién votó qué.</li>
+          <li style="--accent:var(--mint)"><strong>Pertenencia a un grupo.</strong> Probar
+            «soy miembro» (de un club, de una universidad) sin revelar cuál miembro.</li>
+        </ul>
+
+        <div class="callout callout--warn">
+          <span class="callout__title">Los límites del anonimato</span>
+          Las matemáticas son perfectas, pero el anonimato depende de los señuelos. Si un
+          señuelo es obviamente falso (por ejemplo, una moneda que se sabe gastada en otro
+          lado), se descarta y el anillo «encoge». En los primeros años de Monero se permitían
+          anillos sin señuelos, y estudios de 2017 y 2018 lograron rastrear muchas de esas
+          transacciones. Por eso hoy el tamaño es obligatorio y los señuelos se eligen con más
+          cuidado.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> Línea de tiempo</span>
+        <ul class="plain-list" style="margin:0">
+          <li><strong>1989</strong> — Schnorr publica su esquema de firma.</li>
+          <li style="--accent:var(--sky)"><strong>2001</strong> — Rivest, Shamir y Tauman
+            inventan las firmas de anillo (con RSA).</li>
+          <li style="--accent:var(--mint)"><strong>2002</strong> — Abe, Ohkubo y Suzuki dan la
+            versión basada en Schnorr, la de este apunte.</li>
+          <li style="--accent:var(--coral)"><strong>2004</strong> — Liu, Wei y Wong proponen
+            las firmas de anillo enlazables.</li>
+          <li style="--accent:var(--amber)"><strong>2013</strong> — El protocolo CryptoNote las
+            lleva a las criptomonedas.</li>
+          <li><strong>2014</strong> — Nace Monero, basado en CryptoNote.</li>
+          <li style="--accent:var(--sky)"><strong>2017</strong> — RingCT oculta también los
+            montos.</li>
+          <li style="--accent:var(--mint)"><strong>2020</strong> — Monero adopta CLSAG, firmas
+            de anillo más pequeñas y rápidas.</li>
+          <li style="--accent:var(--coral)"><strong>2022</strong> — El anillo pasa a 16
+            miembros.</li>
+        </ul>
+      </aside>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="nb">
+        <thead>
+          <tr><th scope="col">Tipo de firma</th><th scope="col">¿Revela quién firmó?</th><th scope="col">¿Hay administrador?</th><th scope="col">¿Los demás participan?</th><th scope="col">Tamaño</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Normal</strong></td><td><span class="status status--bad">sí</span></td><td>No</td><td>No hay «demás»</td><td>Fijo y pequeño</td></tr>
+          <tr><td><strong>Multifirma</strong><br><small>varias personas firman juntas</small></td><td><span class="status status--warn">normalmente sí</span></td><td>No</td><td>Sí, todas deben firmar</td><td>Crece con quienes firman (o fijo, en versiones agregadas)</td></tr>
+          <tr><td><strong>De grupo</strong></td><td><span class="status status--warn">solo al administrador</span></td><td>Sí: inscribe miembros y puede destapar al firmante</td><td>Deben inscribirse antes</td><td>Fijo</td></tr>
+          <tr><td><strong>De anillo</strong></td><td><span class="status status--ok">a nadie, nunca</span></td><td>No</td><td>No, ni se enteran</td><td>Crece con el anillo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · RINCÓN TÉCNICO ============ -->
+<section class="section note" id="formulas">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Rincón técnico: el esquema completo en una página</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Opcional:</strong> todo lo anterior en notación formal,
+        para quien quiera ir más allá. Puedes saltar al <a href="#sintesis">resumen</a>.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Esta es la versión de <strong>Abe, Ohkubo y Suzuki (2002)</strong>, basada en firmas
+          de Schnorr. La construcción original de Rivest, Shamir y Tauman (2001) usa RSA, pero
+          la idea del anillo es la misma. Los índices son cíclicos: después de <var>n</var> viene 1.
+        </p>
+
+        <h3>Parámetros y claves</h3>
+        <span class="eq">
+          <var>p</var> primo, &nbsp; <var>g</var> ∈ ℤ<sub><var>p</var></sub><sup>*</sup> de orden primo <var>q</var>, &nbsp; <var>q</var> | <var>p</var> − 1
+        </span>
+        <span class="eq">
+          <var>x</var><sub><var>i</var></sub> ∈ ℤ<sub><var>q</var></sub> (secreta), &nbsp;
+          <var>y</var><sub><var>i</var></sub> = <var>g</var><sup><var>x</var><sub><var>i</var></sub></sup> mod <var>p</var> (pública)
+        </span>
+        <span class="eq">
+          <var>L</var> = (<var>y</var><sub>1</sub>, …, <var>y</var><sub><var>n</var></sub>), &nbsp;
+          <var>H</var> : {0,1}<sup>*</sup> → ℤ<sub><var>q</var></sub>, &nbsp; <var>c</var> = <var>H</var>(<var>L</var>, <var>m</var>, <var>R</var>)
+          <small>incluir L en el hash amarra la firma a ese anillo concreto</small>
+        </span>
+
+        <h3>Firmar (miembro s)</h3>
+<pre class="code"><code>a ← ℤq al azar
+R_s     ← g^a mod p
+c_(s+1) ← H(L, m, R_s)
+para i = s+1, …, s−1 (cíclico):
+    r_i     ← ℤq al azar
+    R_i     ← g^(r_i) · y_i^(c_i) mod p
+    c_(i+1) ← H(L, m, R_i)
+r_s ← a − x_s · c_s mod q
+devolver σ = (c_1; r_1, …, r_n)</code></pre>
+
+        <h3>Verificar</h3>
+<pre class="code"><code>para i = 1, …, n:
+    R_i     ← g^(r_i) · y_i^(c_i) mod p
+    c_(i+1) ← H(L, m, R_i)
+aceptar si y solo si c_(n+1) = c_1</code></pre>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Por qué cierra</span>
+        <p>En el nodo del firmante, el valor recalculado coincide con el original:</p>
+        <span class="eq">
+          <var>g</var><sup><var>r</var><sub><var>s</var></sub></sup><var>y</var><sub><var>s</var></sub><sup><var>c</var><sub><var>s</var></sub></sup>
+          = <var>g</var><sup><var>a</var> − <var>x</var><sub><var>s</var></sub><var>c</var><sub><var>s</var></sub></sup><var>g</var><sup><var>x</var><sub><var>s</var></sub><var>c</var><sub><var>s</var></sub></sup>
+          = <var>g</var><sup><var>a</var></sup> = <var>R</var><sub><var>s</var></sub>
+        </span>
+        <p>así que el hash entrega el mismo <var>c</var><sub><var>s</var>+1</sub> y la vuelta
+          se completa. En los demás nodos coincide por construcción, porque
+          <var>R</var><sub><var>i</var></sub> se definió con esa misma fórmula.</p>
+        <dl class="params" style="grid-template-columns:1fr">
+          <div><dt>Correctitud</dt><dd>una firma honesta siempre verifica</dd></div>
+          <div><dt>Anonimato</dt><dd>incondicional: la distribución de σ no depende de s</dd></div>
+          <div><dt>No falsificable</dt><dd>sin ninguna x_i del anillo, cerrar la vuelta exige romper el logaritmo discreto (en el modelo de oráculo aleatorio)</dd></div>
+        </dl>
+        <div class="callout callout--warn" style="margin-bottom:0">
+          <span class="callout__title">Diferencias con los laboratorios</span>
+          Aquí usamos <var>H</var>(<var>m</var>, <var>R</var>) = (3<var>m̂</var> + <var>R</var>) mod <var>q</var>,
+          que ignora <var>L</var>, y grupos diminutos. En la práctica <var>q</var> tiene unos 256
+          bits (normalmente sobre curvas elípticas) y <var>H</var> es un hash criptográfico
+          como SHA-256.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Síntesis</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>Una firma de anillo prueba que <strong>alguien de un grupo</strong> firmó, sin
+            revelar quién. El firmante arma el grupo solo, con claves públicas ajenas, y no
+            hay administrador.</li>
+          <li style="--accent:var(--sky)">El truco es la <strong>simulación</strong>: si el
+            desafío te llega ya hecho, puedes escoger la respuesta y despejar el resto sin
+            conocer la clave.</li>
+          <li style="--accent:var(--mint)">El firmante simula a todos los demás y usa su clave
+            secreta <strong>una sola vez</strong>, para cerrar la vuelta en su propio
+            eslabón.</li>
+          <li style="--accent:var(--coral)">El verificador recorre el anillo y comprueba que
+            regresa a <var>c</var><sub>1</sub>. Cualquier cambio rompe el cierre.</li>
+          <li style="--accent:var(--amber)">El anonimato es <strong>incondicional</strong>: todo
+            miembro tiene un camino válido hacia la misma firma. Su costo es una firma que
+            crece con el anillo.</li>
+          <li>Monero usa una versión <strong>enlazable</strong>: la imagen de clave impide el
+            doble gasto sin revelar al firmante.</li>
+        </ul>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Anillo</dt><dd>Lista de claves públicas entre las que se esconde el firmante.</dd></div>
+          <div><dt>Desafío c</dt><dd>Número producido por el hash; nadie puede escogerlo a su gusto.</dd></div>
+          <div><dt>Respuesta r</dt><dd>Número que publica cada eslabón para que la condición ① se cumpla.</dd></div>
+          <div><dt>Simulación</dt><dd>Llenar un eslabón sin clave: escoger r y despejar R.</dd></div>
+          <div><dt>Señuelo</dt><dd>Miembro del anillo que no firmó; en Monero, una moneda ajena.</dd></div>
+          <div><dt>Imagen de clave</dt><dd>Huella de la clave secreta que delata un segundo gasto, pero no al firmante.</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · QUIZ ============ -->
+<section class="section note" id="quiz">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar. Si prefieres
+        hacerlo en papel, está también en el <a href="../latex/anillo-de-firmas.pdf#section.10" target="_blank" rel="noopener">PDF</a>,
+        con las soluciones en el apéndice.</p>
+      </div>
+    </header>
+
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
+
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
+    </div>
+
+    <p class="lab__note reveal" style="margin-top:clamp(26px,3.4vw,40px)">
+      <strong>Referencias:</strong> Rivest, Shamir y Tauman, <em>How to Leak a Secret</em>
+      (ASIACRYPT 2001) · Abe, Ohkubo y Suzuki, <em>1-out-of-n Signatures from a Variety of
+      Keys</em> (ASIACRYPT 2002) · Schnorr (1989) · Liu, Wei y Wong (2004) · van Saberhagen,
+      <em>CryptoNote v2.0</em> (2013) · Möser et al. (2018) · Kumar et al. (2017).
+      Fuente temática: <a href="http://math.com.mx/anillo_de_firmas.html" rel="noopener">math.com.mx/anillo_de_firmas.html</a>.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>¿Quieres el apunte en LaTeX?</h2>
+        <p>El PDF tiene el mismo contenido, con los laboratorios resueltos a mano, ejercicios y las soluciones del quiz.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="../latex/anillo-de-firmas.pdf" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><use href="#i-download"/></svg> Ver el apunte en PDF
+        </a>
+        <a class="clay-btn clay-btn--lg" href="../latex/anillo-de-firmas.tex" download>Código LaTeX (.tex)</a>
+        <a class="clay-btn clay-btn--lg" href="compromisos.html">Esquemas de compromiso</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="anillo-de-firmas.html">Anillo de firmas</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="../latex/anillo-de-firmas.pdf" target="_blank" rel="noopener">Apunte en PDF (LaTeX)</a></li>
+          <li><a href="http://math.com.mx/anillo_de_firmas.html" rel="noopener">Fuente temática</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/anillo-de-firmas.js" defer></script>
+</body>
+</html>

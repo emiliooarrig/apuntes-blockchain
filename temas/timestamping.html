@@ -90,6 +90,12 @@
       </a>
     </li>
 
+    <li>
+      <a class="nav__link" href="#quiz">
+        Quiz
+      </a>
+    </li>
+
   </ul>
 </nav>
 </header>
@@ -267,6 +273,13 @@
           </a>
         </li>
 
+        <li>
+          <a href="#quiz">
+            <span class="toc__n">08</span>
+            Quiz
+          </a>
+        </li>
+
       </ul>
 
     </nav>
@@ -439,6 +452,13 @@
           <a href="#ejercicios">
             <span class="toc__n">07</span>
             Ejercicios
+          </a>
+        </li>
+
+        <li>
+          <a href="#quiz">
+            <span class="toc__n">08</span>
+            Quiz
           </a>
         </li>
 
@@ -1106,6 +1126,43 @@
 </section>
 
 
+<!-- ============ 08 · QUIZ ============ -->
+<section class="section note" id="quiz">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
+    </header>
+
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
+
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 </main>
 
 
@@ -1165,5 +1222,7 @@
 </footer>
 
 <script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/quiz-timestamping.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
 </body>
 </html>

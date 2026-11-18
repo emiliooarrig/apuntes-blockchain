@@ -11,7 +11,7 @@ ChainNotes: a static site (plain HTML + CSS + vanilla JS, no build step, no depe
 There is no build, lint or test tooling.
 
 - View the site: open `index.html` directly (must keep working under `file://`), or `python -m http.server 8000`.
-- LaTeX (`latex/`): `funciones-hash.tex` and `esquemas-de-compromiso.tex` use pdfLaTeX — `pdflatex <file>.tex` twice (for the TOC) or `latexmk -pdf <file>.tex`. `problemas.tex` is different: it uses `fontspec`/`polyglossia` and must be compiled with **XeLaTeX** (two passes). Its header references `data/*.csv` and `scripts/gen_data.py`, which are not in the repo. Compiled PDFs are committed; aux files are gitignored.
+- LaTeX (`latex/`): `funciones-hash.tex`, `esquemas-de-compromiso.tex` and `anillo-de-firmas.tex` use pdfLaTeX — `pdflatex <file>.tex` twice (for the TOC) or `latexmk -pdf <file>.tex`. `problemas.tex` is different: it uses `fontspec`/`polyglossia` and must be compiled with **XeLaTeX** (two passes). Its header references `data/*.csv` and `scripts/gen_data.py`, which are not in the repo. Compiled PDFs are committed; aux files are gitignored.
 
 ## Architecture
 
@@ -20,7 +20,7 @@ There is no build, lint or test tooling.
 - `assets/css/styles.css` — design system (Claymorphism tokens, palette vars `--violet/--mint/--coral/--amber/--sky` in `:root`, light/dark via `[data-theme]`) plus landing sections. Used by every page.
 - `assets/css/apuntes.css` — styles for note pages: topic header, TOC, body, formalism cards, and the `.lab` component (`.lab__head`, `.lab__title`, `.lab__tag`, `.lab__intro`, `.lab__note`, result panels, bars). Later sections are grouped per note (02 compromisos, then PoW). Pages link it with a cache-busting query (`apuntes.css?v=N`); bump `N` on pages that depend on new rules.
 - `assets/js/main.js` — global behavior loaded on every page: theme (persisted in `localStorage` key `chainnotes-theme`, defaults to `prefers-color-scheme`), sticky header + scroll progress, scroll spy, reveal-on-scroll, counters, 3D tilt. Everything honors `prefers-reduced-motion`.
-- `assets/js/<tema>.js` — interactive labs for one page (`hash.js`, `compromisos.js`, `prueba-de-trabajo.js`), loaded with `defer` after `main.js`. Each is an IIFE with `'use strict'`, ES5-style `var`, and a `$ = id => getElementById(id)` helper; labs bind to element IDs in the matching HTML, so renaming an ID requires editing both files. Sections are separated by `/* ===== */` banner comments; `prueba-de-trabajo.js` separates a DOM-free `CORE` block from the lab wiring.
+- `assets/js/<tema>.js` — interactive labs for one page (`hash.js`, `compromisos.js`, `prueba-de-trabajo.js`, `anillo-de-firmas.js` — the last also renders the page's quiz from a data array), loaded with `defer` after `main.js`. Each is an IIFE with `'use strict'`, ES5-style `var`, and a `$ = id => getElementById(id)` helper; labs bind to element IDs in the matching HTML, so renaming an ID requires editing both files. Sections are separated by `/* ===== */` banner comments; `prueba-de-trabajo.js` separates a DOM-free `CORE` block from the lab wiring.
 
 ## Key constraints
 

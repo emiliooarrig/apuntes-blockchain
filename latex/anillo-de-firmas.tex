@@ -1,0 +1,1223 @@
+% ============================================================================
+%  El anillo de firmas
+%  Módulo 08 · Privacidad — ChainNotes
+%
+%  Versión LaTeX del apunte web temas/anillo-de-firmas.html
+%  Todas las figuras se generan con TikZ: no hay imágenes externas.
+%  Los ejemplos numéricos son los mismos que produce assets/js/anillo-de-firmas.js
+%  con p = 23, q = 11, g = 4.
+%
+%  Compilar:  pdflatex anillo-de-firmas.tex   (dos pasadas, por el índice)
+%             o bien:  latexmk -pdf anillo-de-firmas.tex
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- idioma y codificación -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- página ----------------------------------------------------------------
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{multicol}
+
+% --- matemáticas -----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{pifont}   % \ding{172} y \ding{173}: las condiciones (1) y (2) del eslabón
+
+% --- gráficas --------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric,
+                decorations.pathreplacing}
+
+% --- enlaces y cajas (hyperref antes que tcolorbox) ------------------------
+\usepackage[colorlinks=true,linkcolor=violetdeep,urlcolor=violetdeep,
+            citecolor=violetdeep,pdftitle={El anillo de firmas},
+            pdfauthor={ChainNotes}]{hyperref}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------------------------
+%  Paleta (heredada de assets/css/styles.css)
+% ---------------------------------------------------------------------------
+\definecolor{violetc}{HTML}{7A68F5}
+\definecolor{violetdeep}{HTML}{5B46E0}
+\definecolor{mintc}{HTML}{1FA88A}
+\definecolor{coralc}{HTML}{E04E5C}
+\definecolor{amberc}{HTML}{C98A1F}
+\definecolor{skyc}{HTML}{1E88C7}
+\definecolor{inkc}{HTML}{282344}
+
+\hypersetup{linkcolor=violetdeep}
+
+% ---------------------------------------------------------------------------
+%  Estilo de párrafo y encabezados
+% ---------------------------------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\captionsetup{font=small,labelfont={bf,color=violetdeep}}
+
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{inkc}\textsc{El anillo de firmas}}
+\fancyhead[R]{\small\color{inkc}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+%  Entornos de teoremas
+% ---------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\theoremstyle{plain}
+\newtheorem{proposicion}{Proposición}
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observación}
+
+% ---------------------------------------------------------------------------
+%  Cajas de color
+% ---------------------------------------------------------------------------
+\newtcolorbox{nota}[1]{enhanced,breakable,colback=skyc!6,colframe=skyc!75!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{caso}[1]{enhanced,breakable,colback=amberc!8,colframe=amberc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{aviso}[1]{enhanced,breakable,colback=coralc!7,colframe=coralc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{clave}[1]{enhanced,breakable,colback=mintc!7,colframe=mintc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{laboratorio}[1]{enhanced,breakable,colback=violetc!6,colframe=violetc!80!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{algoritmo}[1]{enhanced,breakable,colback=inkc!3,colframe=inkc!60,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=9pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.6pt,arc=2.5pt}
+
+% ---------------------------------------------------------------------------
+%  Atajos de notación
+% ---------------------------------------------------------------------------
+\newcommand{\Zq}{\mathbb{Z}_q}
+\newcommand{\mh}{\hat{m}}
+\newcommand{\azar}{\xleftarrow{\$}}
+\newcommand{\si}{\textcolor{mintc}{\checkmark}}
+\newcommand{\no}{\textcolor{coralc}{$\times$}}
+
+% Viñetas explícitas: con babel-spanish y lmodern la de omisión sale como un glifo raro
+\setlist[itemize]{label=\textcolor{violetc}{$\bullet$}}
+
+% Opciones del quiz: (a), (b), (c), (d)
+\newlist{opciones}{enumerate}{1}
+\setlist[opciones]{label=(\alph*),leftmargin=2.4em,itemsep=0.1em,topsep=0.2em}
+
+% ===========================================================================
+\begin{document}
+% ===========================================================================
+
+% babel-spanish redefine \% inspeccionando \lastskip, lo que revienta dentro de
+% los nodos de TikZ. Restauramos la definición estándar de LaTeX.
+\makeatletter
+\DeclareRobustCommand{\%}{\char`\%\relax}
+\makeatother
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\Large\color{violetdeep}\textsc{ChainNotes}\par}
+{\small\color{inkc}Módulo 08 · Privacidad\par}
+
+\vspace{1.4cm}
+{\Huge\bfseries El anillo de firmas\par}
+\vspace{0.4cm}
+{\LARGE firmar sin decir quién\par}
+
+\vspace{1.2cm}
+\begin{minipage}{0.78\textwidth}
+\centering\itshape\color{inkc}
+Una firma normal dice «esto lo escribió Ana». Una firma de anillo dice «esto lo
+escribió alguien de este grupo», y nadie, ni siquiera con la computadora más
+potente del mundo, puede averiguar quién. Aquí lo construimos paso a paso, con
+números pequeños y sin necesidad de saber criptografía.
+\end{minipage}
+
+\vspace{1.6cm}
+\begin{tikzpicture}
+  \draw[violetc!60,line width=1pt] (0,0) circle (1.6);
+  \foreach \a/\n in {90/A,18/B,-54/C,-126/D,162/E}{
+    \fill[white] (\a:1.6) circle (0.42);
+    \draw[violetdeep,line width=0.8pt,fill=violetc!15] (\a:1.6) circle (0.38);
+    \node[violetdeep,font=\bfseries] at (\a:1.6) {?};
+  }
+  \node[violetdeep,font=\small] at (0,0) {$\sigma$};
+\end{tikzpicture}
+
+\vfill
+{\small Apuntes de Blockchain · Proyecto académico\par}
+{\small\color{inkc}\today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\begin{nota}{Cómo usar este documento}
+Es la versión imprimible del apunte interactivo \texttt{temas/anillo-de-firmas.html}.
+Cada «laboratorio» de la página web aparece aquí como un ejemplo resuelto con
+números fijos, para que puedas seguir todas las cuentas a mano. La sección~\ref{sec:formulas}
+reúne la notación formal y es opcional. Al final hay una autoevaluación de 12
+preguntas con sus soluciones en el apéndice~\ref{app:soluciones}.
+\end{nota}
+
+% ===========================================================================
+\section{La idea: firmar en nombre de un grupo}\label{sec:idea}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Entender qué promete una firma de anillo (y qué no) antes de ver una sola fórmula.
+\end{nota}
+
+Imagina el tablero de avisos de una facultad. Aparece una carta: «El examen final
+tiene un error en la pregunta 4», firmada \textbf{«uno de los cinco profesores de
+criptografía»}, con un sello que solo esos cinco pueden poner. Sabes que la carta
+es auténtica, porque nadie más tiene ese sello. Pero no sabes cuál de los cinco la
+escribió. Eso es, en esencia, una \textbf{firma de anillo}.
+
+Una firma digital ordinaria responde a la pregunta «¿quién escribió esto?» con un
+nombre. Una firma de anillo responde «alguien de esta lista». Lo sorprendente son
+tres detalles:
+
+\begin{itemize}[leftmargin=1.6em,itemsep=0.3em]
+  \item \textbf{El firmante elige el grupo por su cuenta.} Toma las claves públicas
+    de otras personas, que cualquiera puede ver, y las mete en su anillo.
+  \item \textbf{Los demás ni se enteran.} No firman, no dan permiso y no hacen nada.
+    Basta con que su clave pública exista.
+  \item \textbf{No hay jefe.} No existe un administrador que pueda «destapar» al
+    firmante después. El secreto es para siempre.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  per/.style={circle,draw=#1,fill=#1!15,minimum size=8mm,inner sep=0pt,font=\small\bfseries},
+  panel/.style={draw=#1,fill=#1!5,rounded corners=4pt,minimum width=70mm,minimum height=36mm}
+]
+\node[panel=inkc] (P1) at (0,0) {};
+\node[anchor=north,font=\bfseries,inkc] at ($(P1.north)+(0,-2mm)$) {Firma normal};
+\foreach \i/\n in {0/A,1/B,2/C,3/D,4/E}{
+  \ifnum\i=0
+    \node[per=violetdeep] at (-2.4+1.2*\i,0.1) {\textcolor{violetdeep}{\n}};
+  \else
+    \node[per=inkc,opacity=0.35] at (-2.4+1.2*\i,0.1) {\n};
+  \fi
+}
+\node[font=\small,inkc] at ($(P1.south)+(0,5mm)$) {quien verifica concluye: \textbf{«la firmó Ana»}};
+
+\node[panel=violetc] (P2) at (7.8,0) {};
+\node[anchor=north,font=\bfseries,violetdeep] at ($(P2.north)+(0,-2mm)$) {Firma de anillo};
+\foreach \i in {0,...,4}{
+  \node[per=skyc] at (5.4+1.2*\i,0.1) {\textcolor{skyc!70!black}{?}};
+}
+\node[font=\small,inkc,align=center] at ($(P2.south)+(0,6mm)$)
+  {quien verifica concluye: \textbf{«la firmó alguno}\\\textbf{de Ana, Beto, Carla, Diego o Elena»}};
+\end{tikzpicture}
+\caption{Lo que aprende quien verifica. En ambos casos sabe que el mensaje es
+auténtico; en el anillo, adivinar al firmante al azar acierta 1 vez de cada 5
+(20\,\%). Con 10 personas, 1 de cada 10.}
+\label{fig:comparacion}
+\end{figure}
+
+\begin{clave}{¿Por qué «anillo»?}
+No es porque los miembros formen un círculo social. Es por la forma del cálculo: la
+firma es una cadena de pasos donde cada uno alimenta al siguiente y el último se
+conecta con el primero. Como un círculo no tiene principio, mirar la firma no te
+dice dónde empezó y, por lo tanto, quién la hizo.
+\end{clave}
+
+\begin{aviso}{Lo que una firma no prueba}
+Que la carta esté firmada no significa que lo que dice sea verdad. Solo garantiza
+que la escribió alguien del grupo y que nadie la modificó después.
+\end{aviso}
+
+El nombre viene de un artículo de 2001 de Rivest, Shamir y Tauman titulado
+\emph{How to Leak a Secret} («Cómo filtrar un secreto»): un alto funcionario quiere
+denunciar algo y demostrar que es alguien de dentro, sin delatarse.
+
+% ===========================================================================
+\section{Las herramientas: claves, reloj y licuadora}\label{sec:claves}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Conocer las tres piezas que usan todos los ejemplos. No hace falta memorizar nada.
+\end{nota}
+
+\subsection{Aritmética del reloj (mod)}
+
+En un reloj de 12 horas, 3 horas después de las 11 son las 2, no las 14: al pasar
+de 12 vuelves a empezar. Los matemáticos escriben $14 \bmod 12 = 2$ («el residuo de
+dividir entre 12»). Aquí usaremos relojes de otros tamaños, como 23 u 11
+posiciones. Así los números nunca crecen demasiado.
+
+\subsection{Clave secreta y clave pública}
+
+Cada persona elige un número secreto $x$: su \textbf{clave secreta}. Luego calcula
+\[
+  y = g^{x} \bmod p
+\]
+(multiplica $g$ por sí mismo $x$ veces en el reloj de $p$ posiciones) y publica el
+resultado: su \textbf{clave pública}.
+
+Hacia adelante la cuenta es fácil. Hacia atrás, dado $y$, encontrar $x$ es muy
+difícil: con números de 77 dígitos no hay computadora que lo logre. Es como mezclar
+pintura: juntar azul y amarillo es fácil, separarlos después no.
+
+\begin{caso}{Ejemplo con números}
+Usamos un reloj de $p = 23$ posiciones y $g = 4$. Ana elige su clave secreta $x = 7$:
+\[
+  y = 4^{7} \bmod 23 = 16\,384 \bmod 23 = 8 .
+\]
+Ana publica $y = 8$ y guarda $x = 7$. Las potencias de 4 en este reloj se repiten
+cada $q = 11$ pasos:
+\begin{center}\small
+\begin{tabular}{@{}c*{12}{c}@{}}
+\toprule
+$k$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 \\
+\midrule
+$4^{k} \bmod 23$ & 1 & 4 & 16 & 18 & 3 & 12 & 2 & 8 & 9 & 13 & 6 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Por eso todo lo que sean exponentes vive en un segundo reloj, de 11 posiciones.
+Esta tabla te ahorra casi todas las cuentas de este documento.
+\end{caso}
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Los dos relojes y el punto de partida.}
+\label{tab:relojes}
+\begin{tabular}{@{}l l@{}}
+\toprule
+\textbf{Símbolo} & \textbf{Papel} \\
+\midrule
+$p$ (el reloj grande) & donde viven las claves públicas $y$ y los valores $R$ \\
+$q$ (el reloj pequeño) & donde viven las claves secretas $x$, los desafíos $c$ y las respuestas $r$ \\
+$g$ (el punto de partida) & un número fijo que todos comparten \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{La licuadora: una función hash}
+
+Una función hash (módulo 01) mezcla datos y entrega un número que parece
+aleatorio: lo mismo entra, lo mismo sale, pero no puedes predecir ni elegir el
+resultado. En las firmas, el hash fabrica los \textbf{desafíos}: números que nadie
+puede escoger a su conveniencia.
+
+\begin{caso}{Nuestra versión de juguete}
+Para que puedas seguir las cuentas a mano, primero el mensaje se resume en un
+número pequeño $\mh$, su «huella»: las letras se convierten en un número grande y
+nos quedamos con su residuo mód $q$ (la receta exacta está en la
+sección~\ref{sec:formulas}). Luego usamos
+\[
+  H(m, R) = (3\mh + R) \bmod q .
+\]
+Es una licuadora pésima, pero sirve para ver el mecanismo. Por ejemplo, el mensaje
+«hola» tiene huella $\mh = 0$ y «Reunión el viernes» tiene $\mh = 3$ (con $q = 11$).
+\end{caso}
+
+\begin{aviso}{Solo para aprender}
+Con $q = 11$ cualquiera encuentra $x$ probando 11 opciones. En la vida real $q$
+tiene unos 256 bits (unos 77 dígitos).
+\end{aviso}
+
+% ===========================================================================
+\section{La pieza clave: firmar con la clave o simular sin ella}\label{sec:simular}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Descubrir el truco que hace posible el anillo: se puede «fingir» la firma de
+alguien si te dejan escoger las cosas en otro orden.
+\end{nota}
+
+Cada eslabón del anillo es un trío de números $(R, c, r)$ que debe cumplir
+\textbf{dos condiciones}:
+\begin{equation}\label{eq:condiciones}
+  \text{\ding{172}}\quad R = g^{r}\cdot y^{c} \bmod p
+  \qquad\qquad
+  \text{\ding{173}}\quad c = H(m, R).
+\end{equation}
+La condición \ding{172} amarra el eslabón a la clave pública $y$; la \ding{173} lo
+amarra al mensaje. Hay dos formas de conseguir un trío que cumpla \ding{172}:
+
+\begin{description}[leftmargin=1.4em,style=unboxed,itemsep=0.3em]
+  \item[Con la clave secreta (orden natural).] Eliges un número al azar $a$,
+    calculas $R = g^{a}$, dejas que el hash te dé $c$ y al final respondes
+    $r = a - x\cdot c$. Necesitas conocer $x$.
+  \item[Sin la clave (simulación, orden invertido).] Escoges primero $c$ y $r$ a tu
+    gusto y \emph{despejas} $R = g^{r}\cdot y^{c}$. La condición \ding{172} se cumple
+    siempre, sin saber $x$.
+\end{description}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  paso/.style={draw=#1,fill=#1!10,rounded corners=3pt,minimum height=9mm,
+               minimum width=27mm,align=center,inner sep=3pt},
+  >={Stealth[length=2.2mm]}
+]
+\node[font=\bfseries,mintc,anchor=west] at (-1.6,1.1) {Con clave};
+\node[paso=mintc] (a1) at (0,0) {$a$ al azar};
+\node[paso=mintc,right=7mm of a1] (a2) {$R = g^{a}$};
+\node[paso=mintc,right=7mm of a2] (a3) {$c = H(m,R)$};
+\node[paso=mintc,right=7mm of a3] (a4) {$r = a - x c$\\[-1pt]{\scriptsize usa $x$}};
+\draw[->,mintc,thick] (a1) -- (a2);
+\draw[->,mintc,thick] (a2) -- (a3);
+\draw[->,mintc,thick] (a3) -- (a4);
+
+\node[font=\bfseries,amberc,anchor=west] at (-1.6,-1.6) {Simulación};
+\node[paso=amberc] (b1) at (0,-2.7) {eliges $c$ y $r$};
+\node[paso=amberc,right=7mm of b1] (b2) {$R = g^{r} y^{c}$};
+\node[paso=amberc,right=7mm of b2] (b3) {$H(m,R) \overset{?}{=} c$};
+\node[paso=coralc,right=7mm of b3] (b4) {casi nunca\\[-1pt]{\scriptsize 1 de cada $q$}};
+\draw[->,amberc,thick] (b1) -- (b2);
+\draw[->,amberc,thick] (b2) -- (b3);
+\draw[->,coralc,thick] (b3) -- (b4);
+\end{tikzpicture}
+\caption{Las dos maneras de llenar un eslabón. Arriba, el hash se evalúa
+\emph{antes} de la respuesta y la clave hace encajar todo. Abajo, el desafío se
+escogió \emph{antes} que $R$, así que el hash de ese $R$ casi nunca coincide.}
+\label{fig:dosordenes}
+\end{figure}
+
+¿Entonces cualquiera puede falsificar? No, porque la simulación casi nunca cumple
+la condición \ding{173}: tú escogiste $c$ antes de conocer $R$, y el hash de ese $R$
+sale otro número. Es como contestar un examen inventando tú las preguntas: todas
+tus respuestas encajan, pero no con las preguntas oficiales.
+
+\begin{proposicion}[Por qué funciona con la clave]\label{prop:schnorr}
+Si $y = g^{x}$ y $r = a - x c \bmod q$, entonces $g^{r} y^{c} = g^{a} = R$.
+\end{proposicion}
+\begin{proof}
+$g^{r} y^{c} = g^{a - xc}\,(g^{x})^{c} = g^{a - xc}\, g^{xc} = g^{a}$. El término
+$xc$ aparece restando y sumando, y se cancela. (Los exponentes se pueden reducir
+módulo $q$ porque $g^{q} = 1$.)
+\end{proof}
+
+Esta es la firma de \textbf{Schnorr} (1989), una de las más usadas hoy: Bitcoin la
+adoptó en 2021 con la actualización Taproot.
+
+\begin{laboratorio}{Laboratorio 1 — Firma real contra simulación}
+Clave de Ana: $x = 7$, $y = 8$. Grupo $p = 23$, $q = 11$, $g = 4$. Mensaje «hola»,
+con huella $\mh = 0$.
+
+\textbf{Con la clave}, eligiendo $a = 6$:
+\begin{enumerate}[leftmargin=2em,itemsep=0.1em,topsep=0.2em]
+  \item $R = 4^{6} \bmod 23 = 2$.
+  \item $c = H(m, R) = (3\cdot 0 + 2) \bmod 11 = 2$.
+  \item $r = a - x c = 6 - 7\cdot 2 = -8 \equiv 3 \pmod{11}$.
+\end{enumerate}
+Comprobación: \ding{172} $4^{3}\cdot 8^{2} \bmod 23 = 18\cdot 18 \bmod 23 = 2 = R$
+\si; \ding{173} $c = H(m,R)$ \si. Firma válida $(c, r) = (2, 3)$.
+
+\textbf{Simulando}, escogiendo $c = 6$ y $r = 5$:
+\begin{enumerate}[leftmargin=2em,itemsep=0.1em,topsep=0.2em]
+  \item $R = 4^{5}\cdot 8^{6} \bmod 23 = 12 \cdot 13 \bmod 23 = 18$.
+  \item El hash de ese $R$: $H(m, 18) = 18 \bmod 11 = 7$.
+\end{enumerate}
+Comprobación: \ding{172} se cumple por construcción \si; \ding{173} $6 \neq 7$ \no.
+No es una firma.
+
+\textbf{Qué observar.} Con $r = 5$, de los 11 desafíos posibles solo $c = 3$ hace
+coincidir el hash. Para cada $r$ suele haber uno o dos valores que funcionan (a
+veces ninguno), y solo se encuentran \emph{probando}; con un $q$ de 77 dígitos eso es
+imposible. En la página web puedes mover $a$, $c$ y $r$ y ver las cuentas en vivo.
+\end{laboratorio}
+
+\begin{clave}{La idea que hay que llevarse}
+La simulación funciona si el desafío $c$ te llega \textbf{de fuera}, ya fijado, y tú
+solo pones la respuesta. En el anillo pasa justo eso: cada desafío lo produce el
+eslabón anterior. Así el firmante puede rellenar los eslabones de los demás sin
+conocer sus claves.
+\end{clave}
+
+% ===========================================================================
+\section{Construye un anillo: una cadena que se muerde la cola}\label{sec:anillo}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Ver cómo el firmante rellena los eslabones de los demás y cierra el último con su
+propia clave.
+\end{nota}
+
+Piensa en una carrera de relevos en una pista circular. Cada corredor recibe el
+testigo (el desafío $c$) del anterior, hace su parte y produce el testigo del
+siguiente. El firmante organiza toda la carrera él solo, en tres fases:
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.4em,label=\textbf{\arabic*.}]
+  \item \textbf{Arranca en su propio lugar.} Elige un número al azar $a$, calcula su
+    $R = g^{a}$ y el hash le da el desafío para la persona siguiente.
+  \item \textbf{Simula a todos los demás.} A cada miembro le llega su desafío ya
+    hecho. El firmante escoge una respuesta $r$ al azar, despeja su $R$ y obtiene el
+    desafío del siguiente. No necesita sus claves secretas.
+  \item \textbf{Cierra el hueco con su clave.} La vuelta regresa a él con un desafío
+    que no escogió. Para que encaje con el $R$ que fijó al principio calcula
+    $r = a - x\cdot c$. Es el único paso que exige una clave secreta.
+\end{enumerate}
+
+La firma que se publica es muy compacta: el primer desafío $c_1$ y una respuesta
+$r$ por cada miembro.
+\begin{equation}\label{eq:sigma}
+  \sigma = (c_1;\ r_1, r_2, \dots, r_n)
+  \qquad\text{($n+1$ números para un anillo de $n$ personas).}
+\end{equation}
+Los $R$ no se publican, porque cualquiera puede recalcularlos. Junto con el mensaje
+y la lista de claves públicas del anillo, eso es todo lo que necesita quien verifica.
+
+\begin{laboratorio}{Laboratorio 2 — Un anillo de cinco, paso a paso}
+Grupo $p = 23$, $q = 11$, $g = 4$. Mensaje «Reunión el viernes», huella $\mh = 3$,
+así que $H(m,R) = (9 + R) \bmod 11$. Firma \textbf{Carla} (miembro 3).
+
+\begin{center}\small
+\begin{tabular}{@{}l c c l@{}}
+\toprule
+\textbf{Miembro} & \textbf{$x$ (secreta)} & \textbf{$y$ (pública)} & \\
+\midrule
+1 · Ana   & \textcolor{inkc!45}{7} & 8  & \\
+2 · Beto  & \textcolor{inkc!45}{5} & 12 & \\
+3 · Carla & 3 & 18 & \textcolor{violetdeep}{firma} \\
+4 · Diego & \textcolor{inkc!45}{9} & 13 & \\
+5 · Elena & \textcolor{inkc!45}{4} & 3  & \\
+\bottomrule
+\end{tabular}
+\end{center}
+Solo Carla conoce su $x$. Las de los demás van en gris porque en la vida real nadie
+las ve; solo las usaremos en la sección~\ref{sec:quien}.
+
+\begin{description}[leftmargin=1.2em,style=unboxed,itemsep=0.35em,font=\normalfont\bfseries\color{violetdeep}]
+  \item[Paso 1 · Carla arranca.] Elige al azar $a = 6$ y calcula
+    $R_3 = 4^{6} \bmod 23 = 2$. El hash da el desafío de Diego:
+    $c_4 = H(m, 2) = 11 \bmod 11 = 0$.
+  \item[Paso 2 · Diego se simula.] Le llega $c_4 = 0$; se escoge $r_4 = 5$ y se
+    despeja $R_4 = 4^{5}\cdot 13^{0} \bmod 23 = 12$. Desafío de Elena:
+    $c_5 = H(m,12) = 21 \bmod 11 = 10$.
+  \item[Paso 3 · Elena se simula.] Le llega $c_5 = 10$; se escoge $r_5 = 8$ y
+    $R_5 = 4^{8}\cdot 3^{10} \bmod 23 = 9\cdot 8 \bmod 23 = 3$. Desafío de Ana:
+    $c_1 = H(m,3) = 12 \bmod 11 = 1$.
+  \item[Paso 4 · Ana se simula.] Le llega $c_1 = 1$; se escoge $r_1 = 2$ y
+    $R_1 = 4^{2}\cdot 8^{1} \bmod 23 = 128 \bmod 23 = 13$. Desafío de Beto:
+    $c_2 = H(m,13) = 22 \bmod 11 = 0$.
+  \item[Paso 5 · Beto se simula.] Le llega $c_2 = 0$; se escoge $r_2 = 10$ y
+    $R_2 = 4^{10}\cdot 12^{0} \bmod 23 = 6$. Desafío de Carla:
+    $c_3 = H(m,6) = 15 \bmod 11 = 4$.
+  \item[Paso 6 · Carla cierra.] La vuelta le regresa $c_3 = 4$, un desafío que no
+    escogió. Con su clave $x = 3$:
+    $r_3 = a - x c_3 = 6 - 3\cdot 4 = -6 \equiv 5 \pmod{11}$. \textcolor{mintc}{\textbf{Anillo cerrado.}}
+\end{description}
+
+La firma publicada es
+\[
+  \sigma = (c_1 = 1;\ r_1 = 2,\ r_2 = 10,\ r_3 = 5,\ r_4 = 5,\ r_5 = 8).
+\]
+Tamaño: 6 números. Claves públicas que necesita el verificador: 5. Probabilidad de
+adivinar al firmante: $1/5$.
+\end{laboratorio}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  nodo/.style={circle,draw=#1!80!black,fill=#1,minimum size=15mm,inner sep=0pt,
+               line width=0.9pt,align=center},
+  >={Stealth[length=2.4mm]}
+]
+\def\RR{3.1}
+\draw[inkc!10,line width=10pt] (0,0) circle (\RR);
+% arcos en sentido horario, del miembro i al i+1, con el desafío que llevan
+% (nombres \angA… para no pisar \aa, \t o \c, que en LaTeX son acentos)
+\foreach \i/\cl in {0/{c_2 = 0},1/{c_3 = 4},2/{c_4 = 0},3/{c_5 = 10},4/{c_1 = 1}}{
+  \pgfmathsetmacro{\angA}{90-72*\i-15}
+  \pgfmathsetmacro{\angB}{90-72*(\i+1)+15}
+  \pgfmathsetmacro{\angM}{90-72*\i-36}
+  \draw[->,violetdeep,line width=1.1pt] (\angA:\RR) arc[start angle=\angA,end angle=\angB,radius=\RR];
+  \node[violetdeep,font=\small\bfseries,fill=white,inner sep=1.5pt] at (\angM:\RR-0.85) {$\cl$};
+}
+% nodos
+\foreach \i/\n/\y/\col in {0/Ana/8/mintc,1/Beto/12/mintc,2/Carla/18/violetc,3/Diego/13/mintc,4/Elena/3/mintc}{
+  \pgfmathsetmacro{\angN}{90-72*\i}
+  \node[nodo=\col] at (\angN:\RR) {\textbf{\textcolor{white}{\n}}\\[-2pt]{\scriptsize\textcolor{white}{$y = \y$}}};
+}
+% valores R y r fuera del anillo
+\node[inkc,align=center,font=\footnotesize] at (90:\RR+1.25) {$R_1 = 13$, $r_1 = 2$};
+\node[inkc,align=left,anchor=west,font=\footnotesize] at (18:\RR+0.9) {$R_2 = 6$\\$r_2 = 10$};
+\node[violetdeep,align=left,anchor=west,font=\footnotesize] at (-54:\RR+0.9) {$a = 6$, $R_3 = 2$\\$r_3 = 5$ \textbf{(cierre)}};
+\node[inkc,align=right,anchor=east,font=\footnotesize] at (-126:\RR+0.9) {$R_4 = 12$\\$r_4 = 5$};
+\node[inkc,align=right,anchor=east,font=\footnotesize] at (162:\RR+0.9) {$R_5 = 3$\\$r_5 = 8$};
+\node[inkc!70,font=\footnotesize,align=center] at (0,0) {el cálculo\\da la vuelta\\en sentido horario};
+\end{tikzpicture}
+\caption{El anillo del laboratorio 2 ya cerrado. Violeta: la firmante (Carla), que
+arrancó en su lugar con $a = 6$ y cerró con su clave. Verde: los miembros
+simulados. Cada flecha lleva el desafío que un eslabón le entrega al siguiente.}
+\label{fig:anillo}
+\end{figure}
+
+\begin{aviso}{El precio del anonimato}
+La firma crece con el tamaño del anillo: esconderte entre 1000 personas cuesta una
+firma 1000 veces más larga. Existen variantes más compactas, pero esta es la idea
+básica.
+\end{aviso}
+
+% ===========================================================================
+\section{Verificar: dar la vuelta completa}\label{sec:verificar}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Comprobar una firma tú mismo y ver que cualquier cambio, por pequeño que sea, rompe
+el anillo.
+\end{nota}
+
+Quien verifica no conoce ninguna clave secreta ni sabe quién firmó. Tiene el
+mensaje, las claves públicas del anillo y la firma $\sigma$. Su trabajo es
+sencillo:
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+  \item Empieza con el desafío $c_1$ que viene en la firma.
+  \item Para cada miembro, recalcula su $R$ con la condición \ding{172} y, con el
+    hash, el desafío del siguiente.
+  \item Al terminar la vuelta compara: si vuelve a obtener exactamente $c_1$, la
+    firma es \textbf{válida}.
+\end{enumerate}
+En símbolos:
+\begin{equation}\label{eq:verificar}
+  \text{para } i = 1,\dots,n:\quad R_i = g^{r_i} y_i^{c_i},\quad c_{i+1} = H(m, R_i);
+  \qquad \text{válida} \iff c_{n+1} = c_1 .
+\end{equation}
+
+Es como seguir instrucciones del tipo «da 3 pasos, gira, da 5 pasos…» en un
+círculo: si al final llegas al punto de partida, las instrucciones son correctas.
+Si alguien cambió una sola, terminas en otro lugar.
+
+Fíjate en que la regla trata a todos los miembros exactamente igual: no hay ningún
+paso especial para el firmante. Esa simetría es la raíz del anonimato.
+
+\begin{laboratorio}{Laboratorio 3 — Verifica y rompe}
+Verificamos la firma del laboratorio 2, $\sigma = (1;\ 2, 10, 5, 5, 8)$, con el
+mensaje original ($\mh = 3$) y con uno alterado: «Reunión el \emph{jueves}»
+($\mh = 6$, así que $H(m,R) = (18 + R) \bmod 11$).
+
+\begin{center}\small
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Mensaje original}} & & \multicolumn{2}{c}{\textbf{Mensaje alterado}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){5-6}
+\textbf{Eslabón} & $R_i$ & $c_{i+1}$ & & $R_i$ & $c_{i+1}$ \\
+\midrule
+Ana   ($c_1 = 1$)   & $4^{2}\cdot 8^{1} = 13$    & 0  & & $13$ & 9 \\
+Beto  & $4^{10}\cdot 12^{0} = 6$  & 4  & & $4^{10}\cdot 12^{9} = 1$  & 8 \\
+Carla & $4^{5}\cdot 18^{4} = 2$   & 0  & & $4^{5}\cdot 18^{8} = 8$   & 4 \\
+Diego & $4^{5}\cdot 13^{0} = 12$  & 10 & & $4^{5}\cdot 13^{4} = 9$   & 5 \\
+Elena & $4^{8}\cdot 3^{10} = 3$   & \textbf{1} & & $4^{8}\cdot 3^{5} = 2$ & \textbf{9} \\
+\midrule
+\textbf{Resultado} & \multicolumn{2}{c}{$c_6 = 1 = c_1$ \si\ válida} & & \multicolumn{2}{c}{$c_6 = 9 \neq 1$ \no\ inválida} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Observa que en el eslabón de Carla, la firmante, el verificador hace la misma
+cuenta que en los demás: $4^{5}\cdot 18^{4} \bmod 23 = 12\cdot 4 \bmod 23 = 2$.
+Nada lo distingue.
+
+\textbf{Qué observar.} Cambiar una letra cambia la huella, que cambia todos los
+desafíos. Cambiar una respuesta $r$ cambia un $R$, que cambia el desafío siguiente,
+y el error se arrastra por el resto de la vuelta. En la web puedes editar cualquier
+número y ver el resultado en vivo.
+\end{laboratorio}
+
+\begin{aviso}{Coincidencias por suerte}
+Con un reloj de solo $q = 11$ posiciones, uno o dos de cada $q$ cambios hacen que la
+vuelta cierre por casualidad. Por eso en la práctica $q$ tiene 77 dígitos y la
+suerte deja de existir.
+\end{aviso}
+
+% ===========================================================================
+\section{¿Quién firmó? Cualquiera pudo hacerlo}\label{sec:quien}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Convencerte de que la firma no delata a nadie, ni siquiera ante alguien con poder de
+cómputo ilimitado.
+\end{nota}
+
+Hagamos de detectives. Tomamos la firma válida y nos preguntamos: «¿pudo haberla
+hecho Ana?». Si Ana hubiera firmado, habría empezado en su propio eslabón con un
+número al azar $a'$ que cumpliera $g^{a'} = R_{\text{Ana}}$, y habría simulado a
+todos los demás con las mismas respuestas que vemos en la firma. ¿Existe ese $a'$?
+Sí:
+\begin{equation}\label{eq:detective}
+  a' = r_i + x_i c_i \bmod q
+  \qquad\Longrightarrow\qquad
+  g^{a'} = g^{r_i}\cdot (g^{x_i})^{c_i} = g^{r_i} y_i^{c_i} = R_i .
+\end{equation}
+
+Lo mismo vale para Beto, para Carla y para todos. \textbf{Para cada miembro existe un
+camino válido que produce exactamente la misma firma}, y todos esos caminos son
+igual de probables: cada $r$ de los simulados se escogió al azar, igual que el $a$
+del firmante. La firma no favorece a nadie.
+
+\begin{laboratorio}{Laboratorio 4 — Todos son sospechosos}
+Con la firma del laboratorio 2, suponemos uno por uno que firmó cada miembro y
+reconstruimos su número inicial. (Esta tabla usa las claves secretas de todos, algo
+que nadie tiene en la práctica.)
+
+\begin{center}\small
+\begin{tabular}{@{}l c c c l c c c@{}}
+\toprule
+\textbf{Si firmó…} & $x$ & $c$ recibido & $r$ & $a' = r + x c \bmod 11$ & $g^{a'}$ & $R$ del anillo & ¿posible? \\
+\midrule
+Ana   & 7 & 1  & 2  & $2 + 7\cdot 1 = 9$            & 13 & 13 & \si \\
+Beto  & 5 & 0  & 10 & $10 + 5\cdot 0 = 10$          & 6  & 6  & \si \\
+\textcolor{violetdeep}{\textbf{Carla}} & 3 & 4  & 5  & $5 + 3\cdot 4 = 17 \equiv 6$  & 2  & 2  & \si\ \textcolor{violetdeep}{\textbf{(firmó)}} \\
+Diego & 9 & 0  & 5  & $5 + 9\cdot 0 = 5$            & 12 & 12 & \si \\
+Elena & 4 & 10 & 8  & $8 + 4\cdot 10 = 48 \equiv 4$ & 3  & 3  & \si \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Para Carla sale $a' = 6$: justo el número que de verdad usó. Pero las otras cuatro
+filas funcionan igual de bien. Ni con toda la información del mundo se distingue a la
+firmante.
+\end{laboratorio}
+
+\begin{clave}{Anonimato incondicional}
+No es que averiguar al firmante sea «muy difícil»: es que la información no está en
+la firma. Ni con una computadora infinitamente rápida, ni conociendo todas las
+claves secretas, se puede saber quién fue. Lo mejor que puede hacer un detective es
+adivinar: acierta 1 vez de cada $n$.
+\end{clave}
+
+% ===========================================================================
+\section{Para qué sirve: Monero y otras aplicaciones}\label{sec:blockchain}
+% ===========================================================================
+
+\begin{nota}{Objetivo}
+Ver cómo una blockchain usa las firmas de anillo para ocultar quién paga sin abrir
+la puerta al doble gasto.
+\end{nota}
+
+En Bitcoin todo es público: cada pago muestra qué monedas se gastan y quién las
+firma. Cualquiera puede seguir el rastro del dinero. \textbf{Monero}, una
+criptomoneda lanzada en 2014, usa firmas de anillo para romper ese rastro.
+
+\subsection{Los señuelos}
+
+Cuando gastas una moneda en Monero, tu billetera toma otras monedas que ya existen
+en la cadena, de otras personas, y las mete en el anillo como \textbf{señuelos}.
+Desde 2022 cada anillo tiene 16 miembros: tu moneda real y 15 señuelos. Quien mira
+la cadena sabe que se gastó una de esas 16, pero no cuál.
+
+\subsection{El problema: ¿y si gasto dos veces?}
+
+Si nadie sabe qué moneda se gastó, ¿cómo evita la red el doble gasto (módulo 07)?
+Con una variante llamada \textbf{firma de anillo enlazable}. Cada firma incluye una
+\textbf{imagen de clave}: una especie de «huella» que se calcula con la clave
+secreta de la moneda. No revela a cuál miembro del anillo pertenece, pero es
+\emph{siempre la misma} para la misma moneda. Si alguien intenta gastarla otra vez,
+aparece la misma huella y la red rechaza la transacción.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  moneda/.style={circle,draw=skyc!80!black,fill=skyc!15,minimum size=6.5mm,inner sep=0pt,font=\scriptsize},
+  caja/.style={draw=#1,fill=#1!8,rounded corners=3pt,align=center,inner sep=5pt},
+  >={Stealth[length=2.2mm]}
+]
+\foreach \k in {0,...,15}{
+  \node[moneda] (m\k) at ({90-22.5*\k}:2.0) {?};
+}
+\node[align=center,font=\footnotesize,inkc] at (0,0) {16 monedas:\\1 real + 15\\señuelos};
+\node[caja=violetc] (I) at (6.2,1.0) {\textbf{imagen de clave} $I$\\{\scriptsize igual cada vez que se gasta la misma moneda}};
+\node[caja=inkc] (L) at (6.2,-1.0) {lista de imágenes ya usadas\\{\scriptsize ¿ya apareció $I$?}};
+\draw[->,violetdeep,thick] (2.5,0.6) -- (I.west);
+\draw[->,inkc,thick] (I) -- (L);
+\node[caja=mintc,font=\scriptsize] at (4.2,-2.6) {no: el pago es válido};
+\node[caja=coralc,font=\scriptsize] at (8.2,-2.6) {sí: doble gasto, se rechaza};
+\draw[->,mintc,thick] (L.south) -- ++(-1.2,-0.75);
+\draw[->,coralc,thick] (L.south) -- ++(1.2,-0.75);
+\end{tikzpicture}
+\caption{El anillo oculta cuál moneda se gasta; la imagen de clave delata un
+segundo gasto de la misma moneda sin revelar cuál de las 16 era.}
+\label{fig:monero}
+\end{figure}
+
+\begin{caso}{Tres capas de privacidad en Monero}
+Las firmas de anillo ocultan \textbf{quién paga}. Las direcciones ocultas
+(\emph{stealth addresses}) ocultan \textbf{quién recibe}. Y las transacciones
+confidenciales (RingCT) ocultan \textbf{cuánto se paga} usando compromisos de
+Pedersen (módulo 02).
+\end{caso}
+
+\subsection{Otras aplicaciones}
+
+\begin{itemize}[leftmargin=1.6em,itemsep=0.3em]
+  \item \textbf{Denuncias anónimas.} Un empleado demuestra que trabaja en la empresa
+    sin decir quién es: el caso que dio origen a la idea.
+  \item \textbf{Votaciones.} Con firmas enlazables, cada votante prueba que está en el
+    padrón y la red detecta si alguien vota dos veces, sin saber quién votó qué.
+  \item \textbf{Pertenencia a un grupo.} Probar «soy miembro» (de un club, de una
+    universidad) sin revelar cuál miembro.
+\end{itemize}
+
+\begin{aviso}{Los límites del anonimato}
+Las matemáticas son perfectas, pero el anonimato depende de los señuelos. Si un
+señuelo es obviamente falso (por ejemplo, una moneda que se sabe gastada en otro
+lado), se descarta y el anillo «encoge». En los primeros años de Monero se permitían
+anillos sin señuelos, y estudios de 2017 y 2018 lograron rastrear muchas de esas
+transacciones. Por eso hoy el tamaño es obligatorio y los señuelos se eligen con más
+cuidado.
+\end{aviso}
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Cuatro tipos de firma frente a frente.}
+\label{tab:tipos}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Tipo} & \textbf{¿Revela quién firmó?} & \textbf{¿Hay administrador?} & \textbf{¿Los demás participan?} & \textbf{Tamaño} \\
+\midrule
+Normal & \textcolor{coralc}{Sí} & No & No hay «demás» & Fijo y pequeño \\
+Multifirma (varias personas firman juntas) & \textcolor{amberc}{Normalmente sí} & No & Sí, todas deben firmar & Crece con quienes firman (o fijo, en versiones agregadas) \\
+De grupo & \textcolor{amberc}{Solo al administrador} & Sí: inscribe miembros y puede destapar al firmante & Deben inscribirse antes & Fijo \\
+De anillo & \textcolor{mintc}{A nadie, nunca} & No & No, ni se enteran & Crece con el anillo \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Línea de tiempo.}
+\label{tab:tiempo}
+\begin{tabular}{@{}r l@{}}
+\toprule
+\textbf{Año} & \textbf{Hito} \\
+\midrule
+1989 & Schnorr publica su esquema de firma. \\
+2001 & Rivest, Shamir y Tauman inventan las firmas de anillo (con RSA). \\
+2002 & Abe, Ohkubo y Suzuki dan la versión basada en Schnorr, la de este apunte. \\
+2004 & Liu, Wei y Wong proponen las firmas de anillo enlazables. \\
+2013 & El protocolo CryptoNote las lleva a las criptomonedas. \\
+2014 & Nace Monero, basado en CryptoNote. \\
+2017 & RingCT oculta también los montos. \\
+2020 & Monero adopta CLSAG, firmas de anillo más pequeñas y rápidas. \\
+2022 & El anillo pasa a 16 miembros. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===========================================================================
+\section{Rincón técnico: el esquema completo}\label{sec:formulas}
+% ===========================================================================
+
+\begin{nota}{Opcional}
+Todo lo anterior en notación formal, para quien quiera ir más allá. Puedes saltar a
+la síntesis (sección~\ref{sec:sintesis}).
+\end{nota}
+
+Esta es la versión de \textbf{Abe, Ohkubo y Suzuki (2002)}, basada en firmas de
+Schnorr. La construcción original de Rivest, Shamir y Tauman (2001) usa RSA, pero la
+idea del anillo es la misma. Los índices son cíclicos: después de $n$ viene $1$.
+
+\begin{definicion}[Parámetros y claves]
+Sea $p$ primo y $g \in \mathbb{Z}_p^{*}$ de orden primo $q$, con $q \mid p-1$. Cada
+miembro $i$ tiene una clave secreta $x_i \in \Zq$ y una pública
+$y_i = g^{x_i} \bmod p$. El anillo es la lista $L = (y_1,\dots,y_n)$ y
+$H : \{0,1\}^{*} \to \Zq$ es una función hash; los desafíos son
+$c = H(L, m, R)$. Incluir $L$ en el hash amarra la firma a ese anillo concreto.
+\end{definicion}
+
+\begin{algoritmo}{Firmar (miembro $s$)}
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.15em,label=\arabic*:]
+  \item $a \azar \Zq$
+  \item $R_s \gets g^{a} \bmod p$, \quad $c_{s+1} \gets H(L, m, R_s)$
+  \item \textbf{para} $i = s+1, \dots, s-1$ (cíclico):
+  \begin{itemize}[leftmargin=1.4em,label={}]
+    \item $r_i \azar \Zq$, \quad $R_i \gets g^{r_i} y_i^{c_i} \bmod p$, \quad
+          $c_{i+1} \gets H(L, m, R_i)$
+  \end{itemize}
+  \item $r_s \gets a - x_s c_s \bmod q$
+  \item \textbf{devolver} $\sigma = (c_1;\ r_1, \dots, r_n)$
+\end{enumerate}
+\end{algoritmo}
+
+\begin{algoritmo}{Verificar}
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.15em,label=\arabic*:]
+  \item \textbf{para} $i = 1, \dots, n$: \quad $R_i \gets g^{r_i} y_i^{c_i} \bmod p$,
+        \quad $c_{i+1} \gets H(L, m, R_i)$
+  \item \textbf{aceptar} si y solo si $c_{n+1} = c_1$
+\end{enumerate}
+\end{algoritmo}
+
+\begin{proposicion}[Correctitud]\label{prop:correcta}
+Una firma producida honestamente siempre verifica.
+\end{proposicion}
+\begin{proof}
+En los nodos $i \neq s$, el verificador recalcula $R_i$ con la misma fórmula con que
+se definió, así que obtiene los mismos $c_{i+1}$. En el nodo del firmante, por la
+proposición~\ref{prop:schnorr},
+\[
+  g^{r_s} y_s^{c_s} = g^{a - x_s c_s}\, g^{x_s c_s} = g^{a} = R_s ,
+\]
+de modo que el hash entrega el mismo $c_{s+1}$ y la vuelta se completa:
+$c_{n+1} = c_1$.
+\end{proof}
+
+\begin{proposicion}[Anonimato incondicional]\label{prop:anonimato}
+Para un mensaje y un anillo fijos, la distribución de $\sigma$ no depende de $s$.
+\end{proposicion}
+\begin{proof}[Idea de la prueba]
+Fijado $c_1$, la firma queda determinada por las $n$ respuestas. Las $n-1$
+respuestas simuladas son uniformes en $\Zq$ por construcción, y $r_s = a - x_s c_s$
+también lo es porque $a$ es uniforme e independiente. Por la
+ecuación~\eqref{eq:detective}, cada $\sigma$ válida se obtiene desde cualquier $s$
+con exactamente una elección de azar. Luego todas las $\sigma$ válidas son
+equiprobables sea quien sea el firmante.
+\end{proof}
+
+\begin{observacion}[No falsificabilidad]
+Sin conocer ninguna $x_i$ del anillo, cerrar la vuelta exige acertar un hash o
+calcular un logaritmo discreto. En el modelo de oráculo aleatorio se demuestra que
+falsificar es tan difícil como resolver el logaritmo discreto en el grupo.
+\end{observacion}
+
+\begin{caso}{Diferencias con los ejemplos de este documento}
+Aquí usamos $H(m,R) = (3\mh + R) \bmod q$, que ignora $L$, y grupos diminutos
+($p = 23$, $q = 11$; la página web ofrece también $p = 47$, $q = 23$ y $p = 59$,
+$q = 29$). La huella del mensaje se calcula así: con $u_1,\dots,u_\ell$ los códigos
+de sus caracteres (UTF-16),
+\[
+  h_0 = 7,\qquad h_k = (131\, h_{k-1} + u_k) \bmod 1\,000\,003,\qquad \mh = h_\ell \bmod q .
+\]
+En la práctica $q$ tiene unos 256 bits (normalmente sobre curvas elípticas) y $H$ es
+un hash criptográfico como SHA-256.
+\end{caso}
+
+% ===========================================================================
+\section{Síntesis}\label{sec:sintesis}
+% ===========================================================================
+
+\begin{clave}{Lo que hay que llevarse}
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em]
+  \item Una firma de anillo prueba que \textbf{alguien de un grupo} firmó, sin revelar
+    quién. El firmante arma el grupo solo, con claves públicas ajenas, y no hay
+    administrador.
+  \item El truco es la \textbf{simulación}: si el desafío te llega ya hecho, puedes
+    escoger la respuesta y despejar el resto sin conocer la clave.
+  \item El firmante simula a todos los demás y usa su clave secreta \textbf{una sola
+    vez}, para cerrar la vuelta en su propio eslabón.
+  \item El verificador recorre el anillo y comprueba que regresa a $c_1$. Cualquier
+    cambio rompe el cierre.
+  \item El anonimato es \textbf{incondicional}: todo miembro tiene un camino válido
+    hacia la misma firma. Su costo es una firma que crece con el anillo.
+  \item Monero usa una versión \textbf{enlazable}: la imagen de clave impide el doble
+    gasto sin revelar al firmante.
+\end{itemize}
+\end{clave}
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Glosario mínimo.}
+\label{tab:glosario}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Término} & \textbf{Significado} \\
+\midrule
+Anillo & Lista de claves públicas entre las que se esconde el firmante. \\
+Desafío $c$ & Número producido por el hash; nadie puede escogerlo a su gusto. \\
+Respuesta $r$ & Número que publica cada eslabón para que la condición \ding{172} se cumpla. \\
+Simulación & Llenar un eslabón sin clave: escoger $r$ y despejar $R$. \\
+Señuelo & Miembro del anillo que no firmó; en Monero, una moneda ajena. \\
+Imagen de clave & Huella de la clave secreta que delata un segundo gasto, pero no al firmante. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Todo el módulo en seis renglones.}
+\label{tab:resumen}
+\begin{tabular}{@{}l l l@{}}
+\toprule
+\textbf{Concepto} & \textbf{Expresión} & \textbf{Dónde} \\
+\midrule
+Clave pública & $y = g^{x} \bmod p$ & §\ref{sec:claves} \\
+Eslabón & $R = g^{r} y^{c}$, \ $c = H(m,R)$ & Ec.~\eqref{eq:condiciones} \\
+Cierre del firmante & $r_s = a - x_s c_s \bmod q$ & §\ref{sec:anillo} \\
+Firma publicada & $\sigma = (c_1;\ r_1,\dots,r_n)$ & Ec.~\eqref{eq:sigma} \\
+Verificación & válida $\iff c_{n+1} = c_1$ & Ec.~\eqref{eq:verificar} \\
+Camino del detective & $a' = r_i + x_i c_i$, \ $g^{a'} = R_i$ & Ec.~\eqref{eq:detective} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===========================================================================
+\section{Pon a prueba lo aprendido}\label{sec:quiz}
+% ===========================================================================
+
+\begin{nota}{Instrucciones}
+Doce preguntas sobre los conceptos clave, cada una con una sola respuesta correcta.
+Contéstalas antes de mirar las soluciones del apéndice~\ref{app:soluciones}, que
+explican cada respuesta e indican qué sección repasar. En la página web el quiz se
+corrige solo.
+\end{nota}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.9em,label=\textbf{\arabic*.}]
+\item Una firma de anillo válida sobre un mensaje le demuestra a quien la verifica que…
+  \begin{opciones}
+    \item lo firmó la persona que aparece primero en el anillo.
+    \item lo firmó alguno de los miembros del anillo, sin revelar cuál.
+    \item lo firmaron todos los miembros del anillo juntos.
+    \item lo que dice el mensaje es verdad.
+  \end{opciones}
+
+\item ¿Qué necesita la persona que firma para armar el anillo?
+  \begin{opciones}
+    \item Las claves secretas de todos los miembros.
+    \item El permiso de cada miembro y la aprobación de un administrador.
+    \item Su propia clave secreta y las claves públicas de los demás.
+    \item Solo claves públicas; nadie usa claves secretas.
+  \end{opciones}
+
+\item ¿En qué se diferencia una firma de anillo de una firma de grupo?
+  \begin{opciones}
+    \item En la de grupo hay un administrador que puede revelar quién firmó; en la de
+      anillo nadie tiene ese poder.
+    \item La firma de anillo siempre es más pequeña.
+    \item En la de anillo los miembros deben inscribirse antes.
+    \item No hay diferencia: son dos nombres para lo mismo.
+  \end{opciones}
+
+\item Al simular el eslabón de otra persona, ¿cuál es el truco?
+  \begin{opciones}
+    \item Adivinar su clave secreta probando números.
+    \item Copiar una firma vieja de esa persona.
+    \item Pedirle que firme en secreto.
+    \item Invertir el orden: con el desafío $c$ ya dado, escoger la respuesta $r$ y
+      despejar $R$.
+  \end{opciones}
+
+\item Si simular no requiere la clave, ¿por qué no sirve para falsificar una firma de
+  una sola persona?
+  \begin{opciones}
+    \item Porque el desafío debe salir del hash de $R$, y al simular se escoge $c$ antes
+      de conocer $R$: casi nunca coinciden.
+    \item Porque la simulación solo funciona con números pares.
+    \item Porque el verificador pregunta al dueño de la clave.
+    \item Sí sirve: cualquier firma se puede falsificar así.
+  \end{opciones}
+
+\item ¿En qué momento usa quien firma su clave secreta?
+  \begin{opciones}
+    \item Al principio, para escoger a los miembros del anillo.
+    \item En cada uno de los eslabones.
+    \item Nunca; por eso la firma es anónima.
+    \item Al final, para cerrar el único hueco que queda: su propio eslabón.
+  \end{opciones}
+
+\item ¿Qué hace quien verifica para aceptar la firma?
+  \begin{opciones}
+    \item Recorre el anillo desde $c_1$ recalculando cada eslabón y comprueba que
+      vuelve a obtener $c_1$.
+    \item Pregunta a cada miembro si fue quien firmó.
+    \item Comprueba que el firmante esté en una lista oficial.
+    \item Usa la clave secreta del firmante para descifrar la firma.
+  \end{opciones}
+
+\item Alguien cambia una sola letra del mensaje después de que se firmó. ¿Qué pasa?
+  \begin{opciones}
+    \item Nada: la firma protege a los miembros, no al mensaje.
+    \item La firma sigue siendo válida, pero cambia quién aparece como firmante.
+    \item Los desafíos recalculados cambian, la vuelta ya no regresa a $c_1$ y la firma
+      es inválida.
+    \item Queda revelada la identidad de quien firmó.
+  \end{opciones}
+
+\item Una investigadora con una computadora infinitamente potente estudia una firma
+  de anillo de 5 miembros. ¿Puede saber quién firmó?
+  \begin{opciones}
+    \item Sí, probando todas las claves hasta encontrar la correcta.
+    \item Solo si el anillo tiene menos de 10 miembros.
+    \item No: para cada miembro existe un camino válido que produce exactamente esa
+      firma; lo mejor que puede hacer es adivinar (1 de 5).
+    \item Sí, porque la clave del firmante siempre va primero.
+  \end{opciones}
+
+\item ¿Por qué Monero usa firmas de anillo enlazables?
+  \begin{opciones}
+    \item Para que la firma ocupe menos espacio.
+    \item Para que un administrador pueda rastrear a los usuarios.
+    \item Para detectar, con la imagen de clave, si la misma moneda se gasta dos veces,
+      sin revelar quién la gasta.
+    \item Para vincular cada transacción con el nombre real del usuario.
+  \end{opciones}
+
+\item En Monero cada anillo tiene 16 miembros. ¿Qué afirmación es correcta?
+  \begin{opciones}
+    \item La firma mide lo mismo sin importar el tamaño del anillo.
+    \item La firma revela a la mitad de los miembros.
+    \item Más miembros hacen que la firma sea más fácil de falsificar.
+    \item Más miembros dan más anonimato (1 de 16 al adivinar), pero la firma crece con
+      el anillo.
+  \end{opciones}
+
+\item ¿Por qué los ejemplos de este apunte NO son seguros?
+  \begin{opciones}
+    \item Porque usan números diminutos ($q = 11$, $23$ o $29$) y un hash de juguete, así
+      que se pueden probar todas las opciones.
+    \item Porque se calculan a mano o en un navegador.
+    \item Porque las firmas de anillo están rotas en general.
+    \item Porque el anillo tiene menos de 100 miembros.
+  \end{opciones}
+\end{enumerate}
+
+\subsection*{Ejercicios para hacer a mano}
+\addcontentsline{toc}{subsection}{Ejercicios para hacer a mano}
+
+Usa el grupo $p = 23$, $q = 11$, $g = 4$ y la tabla de potencias de la
+sección~\ref{sec:claves}.
+
+\begin{enumerate}[leftmargin=2.4em,itemsep=0.5em]
+  \item Beto tiene clave secreta $x = 5$. Calcula su clave pública y compárala con la
+    del laboratorio 2.
+  \item Con la clave de Ana ($x = 7$, $y = 8$) y $\mh = 0$, firma con $a = 9$: calcula
+    $R$, $c$ y $r$, y comprueba la condición \ding{172}.
+  \item En el laboratorio 2, repite la construcción suponiendo que firma
+    \textbf{Diego} ($x = 9$) con $a = 5$ y que las respuestas simuladas son
+    $r_1 = 2$, $r_2 = 10$, $r_3 = 5$, $r_5 = 8$. ¿Qué $r_4$ obtienes? Compara la firma
+    con la de Carla y explica el resultado usando la sección~\ref{sec:quien}.
+  \item Verifica la firma $\sigma = (1;\ 2, 10, 5, 5, 9)$ (solo cambió $r_5$) con el
+    mensaje original. ¿Cierra el anillo? ¿En qué eslabón se nota el cambio?
+\end{enumerate}
+
+\clearpage
+% ===========================================================================
+\appendix
+\section{Soluciones de la autoevaluación}\label{app:soluciones}
+% ===========================================================================
+
+\begin{center}\small
+\captionsetup{type=table}
+\caption{Respuestas correctas.}
+\begin{tabular}{@{}*{12}{c}@{}}
+\toprule
+1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+\midrule
+(b) & (c) & (a) & (d) & (a) & (d) & (a) & (c) & (c) & (c) & (d) & (a) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.6em,label=\textbf{\arabic*.}]
+\item \textbf{(b).} Prueba que el autor está en el grupo y que el mensaje no se
+  alteró. No dice quién fue y tampoco garantiza que el contenido sea cierto.
+  \emph{Repasa la sección~\ref{sec:idea}.}
+\item \textbf{(c).} Las claves públicas de los demás están a la vista de todos, así
+  que no hace falta su permiso. Su propia clave secreta la usa una sola vez, para
+  cerrar el anillo. \emph{Repasa la sección~\ref{sec:idea}.}
+\item \textbf{(a).} La firma de grupo necesita un administrador que inscribe a los
+  miembros y puede destapar al firmante. En la de anillo no hay administrador y el
+  secreto es para siempre. \emph{Repasa la sección~\ref{sec:blockchain}.}
+\item \textbf{(d).} Si escoges $r$ y despejas $R = g^{r} y^{c}$, la condición
+  \ding{172} se cumple sin conocer la clave secreta. Es aritmética, no hay ningún
+  secreto involucrado. \emph{Repasa la sección~\ref{sec:simular}.}
+\item \textbf{(a).} La condición \ding{173} exige $c = H(m, R)$. Al simular eliges $c$
+  primero y el hash de $R$ sale otro número. Solo acertarías por suerte, 1 vez de
+  cada $q$, y en la práctica $q$ tiene 77 dígitos. \emph{Repasa la
+  sección~\ref{sec:simular}.}
+\item \textbf{(d).} Arranca en su eslabón con un número al azar, simula a todos los
+  demás y, cuando la vuelta le regresa un desafío que no escogió, calcula
+  $r = a - x c$. Solo ese paso exige la clave. \emph{Repasa la
+  sección~\ref{sec:anillo}.}
+\item \textbf{(a).} El verificador solo usa datos públicos: el mensaje, las claves
+  públicas y $\sigma$. Si la vuelta regresa a $c_1$, la firma es válida. Además trata
+  a todos los miembros igual. \emph{Repasa la sección~\ref{sec:verificar}.}
+\item \textbf{(c).} La huella del mensaje entra en cada hash, así que cambian todos
+  los desafíos y el anillo deja de cerrar. Con números de juguete puede coincidir por
+  suerte; con números reales, no. \emph{Repasa la sección~\ref{sec:verificar}.}
+\item \textbf{(c).} El anonimato es incondicional: la información sobre quién firmó no
+  está en la firma. Ni conociendo todas las claves secretas se distingue al firmante.
+  \emph{Repasa la sección~\ref{sec:quien}.}
+\item \textbf{(c).} La imagen de clave es siempre la misma para la misma moneda, pero
+  no indica cuál miembro del anillo es. Si aparece dos veces, la red rechaza el
+  segundo gasto. \emph{Repasa la sección~\ref{sec:blockchain}.}
+\item \textbf{(d).} En la versión de esta lección la firma tiene $n + 1$ números. Más
+  miembros significa más señuelos entre los cuales esconderse, a cambio de una firma
+  más grande y una verificación más lenta. \emph{Repasa la sección~\ref{sec:anillo}.}
+\item \textbf{(a).} Con $q = 11$ basta probar 11 valores para encontrar cualquier
+  clave secreta. Los sistemas reales usan números de unos 256 bits, normalmente sobre
+  curvas elípticas, y un hash criptográfico. \emph{Repasa la sección~\ref{sec:claves}.}
+\end{enumerate}
+
+\begin{nota}{¿Cómo te fue?}
+\textbf{12 aciertos:} entiendes qué promete una firma de anillo, cómo se construye y
+por qué nadie puede saber quién firmó. \textbf{9 a 11:} muy bien; revisa la
+explicación de las que fallaste. \textbf{6 a 8:} vas por buen camino; los
+laboratorios 1 y 2 ayudan mucho. \textbf{Menos de 6:} conviene repasar desde la
+sección~\ref{sec:simular}, la idea en la que se apoya todo lo demás.
+\end{nota}
+
+\section*{Referencias}
+\addcontentsline{toc}{section}{Referencias}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.25em]
+  \item R. Rivest, A. Shamir, Y. Tauman. \emph{How to Leak a Secret}. ASIACRYPT 2001.
+  \item M. Abe, M. Ohkubo, K. Suzuki. \emph{1-out-of-n Signatures from a Variety of Keys}.
+    ASIACRYPT 2002.
+  \item C.-P. Schnorr. \emph{Efficient Identification and Signatures for Smart Cards}.
+    CRYPTO 1989.
+  \item J. K. Liu, V. K. Wei, D. S. Wong. \emph{Linkable Spontaneous Anonymous Group
+    Signature for Ad Hoc Groups}. ACISP 2004.
+  \item N. van Saberhagen. \emph{CryptoNote v2.0}. 2013.
+  \item A. Kumar, C. Fischer, S. Tople, P. Saxena. \emph{A Traceability Analysis of
+    Monero's Blockchain}. ESORICS 2017.
+  \item M. Möser et al. \emph{An Empirical Analysis of Traceability in the Monero
+    Blockchain}. PoPETs 2018.
+  \item Fuente temática: \url{http://math.com.mx/anillo_de_firmas.html}.
+\end{itemize}
+
+\vfill
+\begin{center}
+\color{inkc}\small
+\rule{0.35\textwidth}{0.4pt}\\[0.6em]
+\textsc{ChainNotes} · Módulo 08 · Anterior: prueba de trabajo\\
+{\footnotesize Versión LaTeX del apunte interactivo \texttt{temas/anillo-de-firmas.html}.
+Todas las figuras se generan con TikZ.}
+\end{center}
+
+\end{document}
