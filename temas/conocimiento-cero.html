@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas de conocimiento cero — ChainNotes</title>
+<meta name="description" content="Apunte: pruebas de conocimiento cero explicadas con calma. Completitud, solidez y conocimiento cero; la cueva de Alí Babá, las bolas de color, la 3-coloración de grafos, el protocolo de Schnorr, la compartición de secretos de Shamir y su uso real en blockchain, con seis laboratorios interactivos.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=6 rompe la caché: apuntes.css creció con la sección Q de este apunte -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=6">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M3 12s3.5-6.5 9-6.5S21 12 21 12s-3.5 6.5-9 6.5S3 12 3 12Z"/><circle cx="12" cy="12" r="2.8"/><path d="M4.5 4.5l15 15"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#idea">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#idea">Idea</a></li>
+        <li><a class="nav__link" href="#cueva">Cueva</a></li>
+        <li><a class="nav__link" href="#grafo">Grafo</a></li>
+        <li><a class="nav__link" href="#schnorr">Schnorr</a></li>
+        <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#idea">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="apunte-bg">
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>10 · Conocimiento cero</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 10 · Criptografía
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Convencer <span class="underlined">sin revelar</span>:<br>
+        pruebas de <span class="grad">conocimiento cero</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        ¿Se puede demostrar que sabes una contraseña sin decirla? Sí. Una prueba de conocimiento
+        cero deja a <span class="zk-peggy">Peggy</span> convencer a <span class="zk-victor">Víctor</span>
+        de que algo es cierto sin que él aprenda nada más. El truco es un juego de preguntas y
+        respuestas que una tramposa no puede ganar muchas veces seguidas.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Completitud · solidez</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-eyeoff"/></svg> Conocimiento cero</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Schnorr · Shamir</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 6 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: cuánta suerte necesita una tramposa -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> ¿Cuánta suerte necesita una tramposa?</h2>
+        <span class="lab__tag">engaño = p<sup>n</sup></span>
+      </div>
+      <p class="lab__intro">
+        Cada ronda, una Peggy que <em>no</em> sabe el secreto sólo puede adivinar. Para engañar
+        tiene que adivinar bien <strong>todas</strong> las rondas seguidas. Mueve las rondas y mira
+        qué tan rápido se vuelve imposible.
+      </p>
+
+      <div class="seg" id="rSeg" role="group" aria-label="Probabilidad de adivinar en una ronda">
+        <button type="button" aria-pressed="true" data-p="0.5">Cueva o bolas · 1/2</button>
+        <button type="button" aria-pressed="false" data-p="0.9285714285714286">Grafo · 13/14</button>
+        <button type="button" aria-pressed="false" data-p="0.09090909090909091">Schnorr de juguete · 1/11</button>
+      </div>
+
+      <div class="controls" style="margin-top:1.1rem;margin-bottom:0">
+        <div class="field field--wide">
+          <label class="field__label" for="rN">Rondas superadas</label>
+          <input type="range" id="rN" min="1" max="100" step="1" value="10">
+          <span class="field__label" id="rNOut" style="text-transform:none;letter-spacing:0"></span>
+        </div>
+      </div>
+      <div class="zkcoins" id="rCoins" aria-hidden="true"></div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--violet" id="rOdds">—</span><span class="metric__label">Suerte de la tramposa</span></div>
+        <div class="metric"><span class="metric__num" id="rMin">—</span><span class="metric__label">Rondas para «1 en un millón»</span></div>
+      </div>
+      <ul class="zkhitos" id="rHitos"></ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#idea"><span class="toc__n">01</span> La idea en una frase</a></li>
+        <li><a href="#cueva"><span class="toc__n">02</span> La cueva de Alí Babá</a></li>
+        <li><a href="#bolas"><span class="toc__n">03</span> El amigo daltónico</a></li>
+        <li><a href="#grafo"><span class="toc__n">04</span> Colorear un mapa</a></li>
+        <li><a href="#schnorr"><span class="toc__n">05</span> Schnorr: una clave real</a></li>
+        <li><a href="#shamir"><span class="toc__n">06</span> Shamir: repartir un secreto</a></li>
+        <li><a href="#mundo-real"><span class="toc__n">07</span> Del juguete al mundo real</a></li>
+        <li><a href="#sintesis"><span class="toc__n">08</span> Síntesis</a></li>
+        <li><a href="#ejercicios"><span class="toc__n">09</span> Ejercicios</a></li>
+        <li><a href="#referencias"><span class="toc__n">10</span> Referencias</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · LA IDEA ============ -->
+<section class="section note" id="idea">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">La idea en una frase</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender las tres reglas que debe cumplir
+        una prueba de conocimiento cero y la receta de tres pasos que comparten todos los
+        laboratorios de este apunte.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Imagina que quieres demostrarle a un portero que tienes la llave de un edificio, pero no
+          quieres prestársela porque podría copiarla. Le dices: «Ciérrame la puerta y dime qué
+          hacer; si tengo la llave, siempre podré obedecer». No le enseñas la llave, sólo le
+          demuestras que puedes usarla.
+        </p>
+        <p>
+          Eso es una <strong>prueba de conocimiento cero</strong> (en inglés, <em>zero-knowledge
+          proof</em> o ZKP). La inventaron Goldwasser, Micali y Rackoff en 1985. Siempre hay dos
+          personajes:
+        </p>
+        <ul class="plain-list">
+          <li><span class="zk-peggy">Peggy</span>, la que <strong>prueba</strong>. Dice que sabe un secreto o que algo es cierto.</li>
+          <li style="--accent:var(--sky)"><span class="zk-victor">Víctor</span>, el que <strong>verifica</strong>. Desconfía y hace preguntas.</li>
+        </ul>
+        <p>Una buena prueba de este tipo cumple tres reglas:</p>
+
+        <div class="quad quad--3">
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>Completitud</h4>
+            <p>Si es verdad y Peggy es honesta, Víctor <strong>siempre</strong> queda convencido.</p>
+            <small>la verdad gana</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--coral)">
+            <h4>Solidez</h4>
+            <p>Si es mentira, una Peggy tramposa sólo engaña por suerte, y esa suerte se hace tan
+            pequeña como queramos repitiendo rondas.</p>
+            <small>la mentira pierde</small>
+          </div>
+          <div class="quad__cell" style="--accent:var(--violet)">
+            <h4>Conocimiento cero</h4>
+            <p>Víctor no aprende nada además de «es verdad». Todo lo que vio lo podría haber
+            inventado él solo.</p>
+            <small>el secreto no sale</small>
+          </div>
+        </div>
+
+        <div class="callout callout--key">
+          <span class="callout__title">¿Cómo que «lo podría haber inventado él solo»?</span>
+          Es la forma de medir que no se filtró nada. Si Víctor, sin saber el secreto, puede
+          fabricar una conversación idéntica a la real, entonces la conversación real no le
+          enseñó nada que no tuviera. A esa máquina de fabricar conversaciones se le llama
+          <strong>simulador</strong>. Lo verás en acción en la cueva y en Schnorr.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> La receta de tres pasos</span>
+        <p>Casi todas las pruebas de este apunte siguen el mismo baile, que se repite varias rondas:</p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Compromiso</h4>
+            <p><span class="zk-peggy">Peggy</span> se ata a algo antes de saber la pregunta: entra a
+            un pasillo, sella sobres o envía un número.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Reto</h4>
+            <p><span class="zk-victor">Víctor</span> hace una pregunta <strong>al azar</strong>. Que sea
+            al azar es lo que impide que Peggy se prepare para hacer trampa.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Respuesta</h4>
+            <p>Peggy responde. Si sabe el secreto, siempre puede; si no, sólo a veces.</p>
+          </div></div>
+        </div>
+        <span class="eq">
+          Pr[engañar en <var>n</var> rondas] = <var>p</var><sup><var>n</var></sup>
+          <small>p = probabilidad de adivinar bien una ronda</small>
+        </span>
+        <p>Con <var>p</var> = 1/2 y 20 rondas: menos de 1 en un millón. Es lo que calcula el
+          laboratorio de la portada.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · CUEVA ============ -->
+<section class="section note" id="cueva">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">La cueva de Alí Babá</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Es el ejemplo clásico, de Quisquater y otros (1989), escrito para explicarle la idea a
+          niños. La cueva tiene forma de anillo: desde la entrada se abre en dos pasillos,
+          <strong>A</strong> y <strong>B</strong>, que se juntan al fondo en una puerta mágica.
+          <span class="zk-peggy">Peggy</span> dice conocer la palabra que la abre.
+        </p>
+        <ol class="plain-list" style="counter-reset:none">
+          <li><strong>Compromiso:</strong> Peggy entra por un pasillo sin que Víctor vea cuál.</li>
+          <li style="--accent:var(--sky)"><strong>Reto:</strong> <span class="zk-victor">Víctor</span> llega a la bifurcación y grita «¡sal por A!» o «¡sal por B!», al azar.</li>
+          <li style="--accent:var(--mint)"><strong>Respuesta:</strong> Peggy sale por donde le pidieron.</li>
+        </ol>
+        <p>
+          Si Peggy conoce la palabra, siempre cumple: si está del otro lado, abre la puerta y
+          cruza. Si no la conoce, sólo cumple cuando Víctor pidió justo el pasillo por el que
+          ella entró: <strong>la mitad de las veces</strong>. Tras 20 rondas seguidas, una
+          impostora habría necesitado una suerte de 1 en más de un millón.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-eyeoff"/></svg> Por qué Víctor no aprende la palabra</span>
+        <p>Víctor sólo ve a Peggy salir por el pasillo que pidió. Nunca la ve abrir la puerta.</p>
+        <p>Además, no puede usar un video de la prueba para convencer a nadie más. Cualquiera
+          podría fabricar ese video con una actriz que no sabe la palabra: se graban muchas
+          tomas y se cortan las que salieron mal. El resultado es idéntico al real.</p>
+        <div class="callout callout--key" style="margin-bottom:0">
+          <span class="callout__title">Ese video falso es el simulador</span>
+          Si una conversación se puede fabricar sin el secreto, la conversación verdadera no
+          contiene el secreto. Así se demuestra el «conocimiento cero».
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 1 — La cueva</h2>
+        <span class="lab__tag">engaño por ronda: 1/2</span>
+      </div>
+      <p class="lab__intro">
+        Juega como Víctor. Primero deja entrar a Peggy y luego grita un pasillo. Cambia a
+        «impostora» y mira cuánto aguanta sin la palabra.
+      </p>
+
+      <div class="two-col" style="align-items:start">
+        <div class="zkstage">
+          <svg id="caveSvg" viewBox="0 0 400 470" role="img" aria-label="Cueva en forma de anillo con dos pasillos, A y B, unidos al fondo por una puerta mágica">
+            <rect class="zkrock" x="20" y="20" width="360" height="330" rx="40"/>
+            <rect class="zkrock" x="170" y="300" width="60" height="150"/>
+            <path class="zktunnel" id="pE" d="M200,445 L200,290"/>
+            <path class="zktunnel" id="pA" d="M200,290 C90,290 60,110 185,80"/>
+            <path class="zktunnel" id="pB" d="M200,290 C310,290 340,110 215,80"/>
+            <path class="zktunnel" id="pD" d="M185,80 L215,80" style="stroke-linecap:butt"/>
+            <text class="zktxt zktxt--big" x="78" y="200">A</text>
+            <text class="zktxt zktxt--big" x="306" y="200">B</text>
+            <rect class="zkdoor" id="door" x="193" y="60" width="14" height="40" rx="2"/>
+            <text class="zktxt" x="200" y="45" text-anchor="middle">puerta mágica</text>
+            <rect class="zkveil" id="veil" x="20" y="20" width="360" height="232" rx="40" opacity="0"/>
+            <text class="zktxt zktxt--ink" id="veilTxt" x="200" y="140" text-anchor="middle" opacity="0">Víctor no ve el interior</text>
+            <g class="zkactor zkactor--v" id="victorG" transform="translate(110,445)"><circle r="13"/><text y="4" text-anchor="middle">V</text></g>
+            <g class="zkactor zkactor--p" id="peggyG" transform="translate(200,445)"><circle r="13"/><text y="4" text-anchor="middle">P</text></g>
+            <text class="zkshout" id="shout" x="290" y="380" text-anchor="middle"></text>
+          </svg>
+        </div>
+
+        <div>
+          <div class="controls" style="margin-bottom:.8rem">
+            <div class="seg" id="caveMode" role="group" aria-label="Qué sabe Peggy">
+              <button type="button" aria-pressed="true" data-v="1">Conoce la palabra</button>
+              <button type="button" aria-pressed="false" data-v="0">Impostora</button>
+            </div>
+            <label class="switch"><input type="checkbox" id="caveSee"><span class="switch__track"></span> Ver lo que Víctor no ve</label>
+          </div>
+          <div class="controls" style="margin-bottom:0">
+            <button class="clay-btn clay-btn--primary" type="button" id="caveStart">1 · Peggy entra</button>
+            <button class="clay-btn" type="button" id="caveA" disabled>2 · «¡Sal por A!»</button>
+            <button class="clay-btn" type="button" id="caveB" disabled>«¡Sal por B!»</button>
+          </div>
+          <p class="state" id="caveState" aria-live="polite">Pulsa «Peggy entra». Elegirá un pasillo al azar.</p>
+
+          <div class="readout">
+            <div class="metric"><span class="metric__num" id="cvN">0</span><span class="metric__label">Rondas</span></div>
+            <div class="metric"><span class="metric__num metric__num--mint" id="cvOk">0</span><span class="metric__label">Superadas</span></div>
+            <div class="metric"><span class="metric__num metric__num--coral" id="cvP">1</span><span class="metric__label">Suerte de una impostora</span></div>
+          </div>
+          <p class="lab__note" style="margin-top:1rem">Confianza de Víctor: <b class="mono" id="cvConf">0 %</b></p>
+          <div class="zkmeter"><i id="cvMeter"></i></div>
+          <div class="zkchips" id="cvChips" aria-label="Historial de rondas"></div>
+          <div class="controls" style="margin:1rem 0 0">
+            <button class="clay-btn" type="button" id="caveFast">20 rondas rápidas</button>
+            <button class="clay-btn" type="button" id="caveReset">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+      <p class="lab__note">
+        Cada ficha del historial dice por qué pasillo entró Peggy y cuál pidió Víctor
+        (por ejemplo, <span class="mono">A→B</span>: entró por A y le pidieron B; sólo con la palabra puede cumplir).
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · BOLAS ============ -->
+<section class="section note" id="bolas">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">El amigo daltónico: probar una diferencia sin señalarla</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          <span class="zk-victor">Víctor</span> no distingue el rojo del verde, y cree que sus dos
+          bolas son iguales. <span class="zk-peggy">Peggy</span> quiere convencerlo de que son de
+          colores distintos, pero sin decirle cuál es cuál.
+        </p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Víctor esconde las bolas</h4>
+            <p>Las pone tras su espalda y lanza una moneda en secreto: si sale águila, las intercambia de mano.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Víctor las vuelve a mostrar</h4>
+            <p>Y le pregunta a Peggy: «¿las cambié o no?».</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Peggy responde</h4>
+            <p>Como ella sí ve los colores, siempre acierta. Si las bolas fueran iguales, sólo podría adivinar: 1 de cada 2.</p>
+          </div></div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-eyeoff"/></svg> Qué se lleva Víctor</span>
+        <p>Víctor aprende <strong>que hay</strong> una diferencia, pero nunca <strong>cuál</strong>
+          bola es la roja. La respuesta de Peggy («sí las cambiaste») es algo que él ya sabía,
+          porque él lanzó la moneda.</p>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">Fíjate en quién lanza la moneda</span>
+          Aquí el reto lo pone Víctor y Peggy responde sobre algo que él mismo controla. Por eso
+          no hay nada nuevo en la respuesta: él ya conocía el resultado de su moneda.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-eyeoff"/></svg> Laboratorio 2 — Dos bolas y un verificador daltónico</h2>
+        <span class="lab__tag">engaño por ronda: 1/2</span>
+      </div>
+      <p class="lab__intro">
+        Lanza la moneda y observa si Peggy acierta. Activa «ver como Víctor» para entender por
+        qué él no puede saber cuál es cuál. Luego dile a Peggy que mienta.
+      </p>
+
+      <div class="two-col" style="align-items:start">
+        <div class="zkballs" id="balls">
+          <span class="zkballs__tag" id="ballTag">Vista de Peggy (ve colores)</span>
+          <div class="zkball zkball--r" id="ballR"></div>
+          <div class="zkball zkball--g" id="ballG"></div>
+          <span class="zkballs__back">… tras la espalda de Víctor …</span>
+        </div>
+        <div>
+          <div class="controls" style="margin-bottom:.8rem">
+            <div class="seg" id="ballMode" role="group" aria-label="Cómo son las bolas">
+              <button type="button" aria-pressed="true" data-v="1">Distintas</button>
+              <button type="button" aria-pressed="false" data-v="0">Iguales (Peggy miente)</button>
+            </div>
+            <label class="switch"><input type="checkbox" id="ballView"><span class="switch__track"></span> Ver como Víctor</label>
+          </div>
+          <div class="controls" style="margin-bottom:0">
+            <button class="clay-btn clay-btn--primary" type="button" id="ballGo">Víctor lanza la moneda</button>
+            <button class="clay-btn" type="button" id="ballFast">30 rondas rápidas</button>
+            <button class="clay-btn" type="button" id="ballReset">Reiniciar</button>
+          </div>
+          <p class="state" id="ballState" aria-live="polite">Las bolas son roja y verde.</p>
+          <div class="readout">
+            <div class="metric"><span class="metric__num" id="blN">0</span><span class="metric__label">Rondas</span></div>
+            <div class="metric"><span class="metric__num metric__num--mint" id="blOk">0</span><span class="metric__label">Aciertos</span></div>
+            <div class="metric"><span class="metric__num metric__num--coral" id="blP">1</span><span class="metric__label">Suerte de una mentirosa</span></div>
+          </div>
+          <div class="zkchips" id="blChips" aria-label="Historial de rondas"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · GRAFO ============ -->
+<section class="section note" id="grafo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Colorear un mapa: una prueba que sirve para todo</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Piensa en un mapa de países: quieres pintarlo con sólo <strong>3 colores</strong> sin
+          que dos vecinos queden del mismo color. En matemáticas el mapa es un
+          <strong>grafo</strong>: puntos (vértices) unidos por líneas (aristas). Encontrar esa
+          coloración es difícil en general, pero <em>comprobarla</em> es fácil.
+        </p>
+        <p>
+          <span class="zk-peggy">Peggy</span> tiene una coloración válida y quiere demostrarlo
+          sin enseñarla. Cada ronda:
+        </p>
+        <div class="phases">
+          <div class="phase"><div>
+            <h4>Baraja y sella</h4>
+            <p>Renombra sus 3 colores al azar (el amarillo pasa a ser azul, etc.) y guarda el color de cada vértice en un <strong>sobre cerrado</strong>.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Víctor elige una arista</h4>
+            <p>Una sola línea, al azar. Sólo se abren los dos sobres de sus extremos.</p>
+          </div></div>
+          <div class="phase"><div>
+            <h4>Comprobación</h4>
+            <p>Si los dos colores son distintos, la ronda pasa. Si son iguales, Peggy queda atrapada.</p>
+          </div></div>
+        </div>
+        <div class="callout callout--key">
+          <span class="callout__title">¿Por qué barajar en cada ronda?</span>
+          Porque así lo único que Víctor ve es «dos colores distintos, al azar», algo que podría
+          inventar él solo. Si Peggy no barajara, Víctor iría anotando colores ronda tras ronda
+          hasta reconstruir todo el mapa. Pruébalo en el laboratorio apagando el interruptor
+          «barajar».
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-nodes"/></svg> Por qué esto importa tanto</span>
+        <p>Goldreich, Micali y Wigderson (1986) mostraron que la 3-coloración es
+          <strong>NP-completa</strong>: cualquier problema cuya solución se pueda comprobar
+          rápido se puede traducir a colorear un grafo. Así que esta prueba sirve, en
+          principio, para <em>cualquier</em> afirmación de ese tipo.</p>
+        <p>Los sobres son <strong>esquemas de compromiso</strong>, como los del
+          <a href="compromisos.html">módulo 02</a>: Peggy no puede cambiar el color después
+          de ver qué arista eligió Víctor.</p>
+        <span class="eq">
+          Pr[engañar en <var>n</var> rondas] ≤ (13/14)<sup><var>n</var></sup>
+          <small>con 14 aristas y al menos una mala</small>
+        </span>
+        <p>Si hay una arista mala entre 14, cada ronda la encuentra con probabilidad 1/14 o más.
+          Para 99 % de certeza bastan unas 62 rondas: (13/14)<sup>62</sup> ≈ 0.01.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Laboratorio 3 — 3-coloración con sobres sellados</h2>
+        <span class="lab__tag">7 vértices · 14 aristas</span>
+      </div>
+      <p class="lab__intro">
+        Primero Peggy baraja y sella. Después haz clic en una arista (o usa «arista al azar»).
+        El candado indica un sobre cerrado.
+      </p>
+
+      <div class="two-col" style="align-items:start">
+        <div>
+          <div class="zkstage" id="gHost"></div>
+          <div class="legend">
+            <span><i style="background:var(--amber)"></i> amarillo</span>
+            <span><i style="background:var(--mint)"></i> verde</span>
+            <span><i style="background:var(--sky)"></i> azul</span>
+            <span><i style="background:var(--violet)"></i> arista revisada</span>
+          </div>
+        </div>
+        <div>
+          <div class="controls" style="margin-bottom:.8rem">
+            <div class="seg" id="gMode" role="group" aria-label="Qué coloración tiene Peggy">
+              <button type="button" aria-pressed="true" data-v="1">Coloración válida</button>
+              <button type="button" aria-pressed="false" data-v="0">Coloración falsa</button>
+            </div>
+          </div>
+          <div class="controls" style="margin-bottom:.8rem">
+            <label class="switch"><input type="checkbox" id="gShuffle" checked><span class="switch__track"></span> Barajar colores</label>
+            <label class="switch"><input type="checkbox" id="gSee"><span class="switch__track"></span> Espiar a Peggy</label>
+          </div>
+          <div class="controls" style="margin-bottom:0">
+            <button class="clay-btn clay-btn--primary" type="button" id="gCommit">1 · Barajar y sellar</button>
+            <button class="clay-btn" type="button" id="gRand" disabled>2 · Arista al azar</button>
+          </div>
+          <p class="state" id="gState" aria-live="polite"></p>
+          <div class="readout">
+            <div class="metric"><span class="metric__num" id="gN">0</span><span class="metric__label">Rondas</span></div>
+            <div class="metric"><span class="metric__num metric__num--coral" id="gBad">0</span><span class="metric__label">Veces atrapada</span></div>
+            <div class="metric"><span class="metric__num metric__num--violet" id="gP">1</span><span class="metric__label">Suerte de una tramposa</span></div>
+          </div>
+          <div class="zkchips" id="gChips" aria-label="Historial de aristas revisadas"></div>
+          <span class="lab__sub">Cuaderno de Víctor · colores vistos en cada vértice</span>
+          <div class="zkbook" id="gBook"></div>
+          <p class="state" id="gBookNote" aria-live="polite"></p>
+          <div class="controls" style="margin:1rem 0 0">
+            <button class="clay-btn" type="button" id="gFast">100 rondas rápidas</button>
+            <button class="clay-btn" type="button" id="gReset">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+      <span class="lab__sub">Compromisos publicados en la última ronda</span>
+      <span class="hashout hashout--sm" id="gCom">—</span>
+      <p class="lab__note">
+        Cada compromiso es una huella de juguete de «color | número aleatorio». En un sistema
+        real sería un hash criptográfico como SHA-256: con el número aleatorio, nadie puede
+        adivinar el color mirando la huella.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · SCHNORR ============ -->
+<section class="section note" id="schnorr">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Schnorr: probar que tienes una clave sin enviarla</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Ahora la versión criptográfica de verdad. Peggy tiene una <strong>clave privada</strong>
+          <var>x</var> y todo el mundo conoce su <strong>clave pública</strong>
+          <var>y</var> = <var>g</var><sup><var>x</var></sup> mod <var>p</var>. Calcular
+          <var>y</var> a partir de <var>x</var> es fácil; recuperar <var>x</var> a partir de
+          <var>y</var> es tan difícil como el <strong>logaritmo discreto</strong>. Peggy quiere
+          demostrar que conoce <var>x</var> sin mandarla.
+        </p>
+        <p>El protocolo de Schnorr (1989) lo logra con los mismos tres pasos de siempre:</p>
+        <ul class="plain-list">
+          <li><strong>Compromiso:</strong> Peggy elige un número secreto al azar <var>r</var> y envía <var>t</var> = <var>g</var><sup><var>r</var></sup> mod <var>p</var>. Es como el pasillo de la cueva.</li>
+          <li style="--accent:var(--sky)"><strong>Reto:</strong> Víctor responde con un número al azar <var>c</var>.</li>
+          <li style="--accent:var(--mint)"><strong>Respuesta:</strong> Peggy envía <var>s</var> = <var>r</var> + <var>c</var>·<var>x</var> mod <var>q</var>. El <var>r</var> aleatorio «tapa» a <var>x</var>, como una máscara.</li>
+        </ul>
+        <p>
+          Víctor comprueba que <var>g</var><sup><var>s</var></sup> = <var>t</var>·<var>y</var><sup><var>c</var></sup>
+          (mod <var>p</var>). Funciona porque <var>g</var><sup><var>r</var> + <var>c</var><var>x</var></sup>
+          = <var>g</var><sup><var>r</var></sup>·(<var>g</var><sup><var>x</var></sup>)<sup><var>c</var></sup>.
+        </p>
+        <div class="callout callout--warn">
+          <span class="callout__title">El error que delata el secreto</span>
+          Si Peggy usa el <strong>mismo</strong> <var>r</var> con dos retos distintos, cualquiera
+          despeja <var>x</var> con dos restas y una división. Es el mismo fallo del nonce repetido
+          que tumba a ECDSA en el <a href="firma-digital.html">módulo 03</a>. Y es, a la vez, la
+          prueba de que quien responde bien a dos retos <em>tiene que</em> conocer <var>x</var>
+          (a esto se le llama <em>solidez especial</em>).
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Un ejemplo a mano</span>
+        <p>Números diminutos para poder seguir las cuentas: <var>p</var> = 23, <var>q</var> = 11,
+          <var>g</var> = 2 (2<sup>11</sup> mod 23 = 1, así que <var>g</var> tiene orden 11).
+          En la práctica <var>q</var> tiene unos 256 bits.</p>
+        <span class="eq">
+          <var>x</var> = 7 &nbsp;→&nbsp; <var>y</var> = 2<sup>7</sup> mod 23 = 13
+          <small>clave privada y clave pública</small>
+        </span>
+        <span class="eq">
+          <var>r</var> = 5 → <var>t</var> = 9 &nbsp;·&nbsp; <var>c</var> = 3 &nbsp;·&nbsp; <var>s</var> = 5 + 3·7 mod 11 = 4
+          <small>compromiso, reto y respuesta</small>
+        </span>
+        <span class="eq">
+          2<sup>4</sup> mod 23 = 16 &nbsp; y &nbsp; 9·13<sup>3</sup> mod 23 = 9·12 mod 23 = 16 ✓
+          <small>Víctor acepta</small>
+        </span>
+        <p><strong>El simulador:</strong> sin conocer <var>x</var>, elige primero <var>c</var> = 3 y
+          <var>s</var> = 4, y despeja <var>t</var> = <var>g</var><sup><var>s</var></sup>·<var>y</var><sup>−<var>c</var></sup>
+          = 16·2 mod 23 = 9. Obtiene la misma conversación (9, 3, 4). Por eso Víctor no aprende nada.</p>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Laboratorio 4 — El protocolo de Schnorr paso a paso</h2>
+        <span class="lab__tag">p = 23 · q = 11 · g = 2</span>
+      </div>
+      <p class="lab__intro">
+        Elige el secreto de Peggy y avanza paso a paso. Después compara transcripciones reales
+        con simuladas: no hay forma de distinguirlas.
+      </p>
+
+      <div class="two-col" style="align-items:start">
+        <div>
+          <div class="controls" style="margin-bottom:.4rem">
+            <div class="field">
+              <label class="field__label" for="sxR">Secreto de Peggy · x = <b class="zk-peggy" id="sx">7</b></label>
+              <input type="range" id="sxR" min="1" max="10" step="1" value="7">
+            </div>
+          </div>
+          <p class="lab__note" style="margin:0 0 .4rem">Clave pública: <span class="mono" id="sy"></span></p>
+          <div class="phases phases--live" id="sSteps">
+            <div class="phase" id="st1"><div><h4 class="zk-peggy">Peggy · compromiso</h4><span class="zkcalc" id="c1"></span></div></div>
+            <div class="phase" id="st2"><div><h4 class="zk-victor">Víctor · reto</h4><span class="zkcalc" id="c2"></span></div></div>
+            <div class="phase" id="st3"><div><h4 class="zk-peggy">Peggy · respuesta</h4><span class="zkcalc" id="c3"></span></div></div>
+            <div class="phase" id="st4"><div><h4 class="zk-victor">Víctor · verifica</h4><span class="zkcalc" id="c4"></span></div></div>
+          </div>
+          <div class="controls" style="margin:1rem 0 0">
+            <button class="clay-btn clay-btn--primary" type="button" id="sNext">Siguiente paso</button>
+            <button class="clay-btn" type="button" id="sAuto">Ronda completa</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="lab__sub" style="margin-top:0">Transcripciones reales frente a simuladas</span>
+          <p class="lab__note" style="margin:0">El simulador no conoce <var>x</var>: elige <var>c</var>
+            y <var>s</var> al azar y calcula <var>t</var> = <var>g</var><sup><var>s</var></sup>·<var>y</var><sup>−<var>c</var></sup>.</p>
+          <div class="controls" style="margin:.8rem 0 0">
+            <button class="clay-btn" type="button" id="sSim">Generar 5 simuladas</button>
+            <button class="clay-btn" type="button" id="sClr">Limpiar</button>
+          </div>
+          <div class="table-wrap zktbl">
+            <table class="nb">
+              <thead><tr><th>Origen</th><th>t</th><th>c</th><th>s</th><th>¿Verifica?</th></tr></thead>
+              <tbody id="sTab"></tbody>
+            </table>
+          </div>
+
+          <span class="lab__sub">El error: reutilizar r</span>
+          <div class="controls" style="margin:0">
+            <button class="clay-btn" type="button" id="sReuse">Reutilizar r y extraer x</button>
+          </div>
+          <p class="state" id="sReuseOut" aria-live="polite">Peggy responde dos retos distintos con el mismo r. ¿Qué puede hacer Víctor con eso?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · SHAMIR ============ -->
+<section class="section note" id="shamir">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Shamir: repartir un secreto en pedazos</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Una idea hermana. No es una prueba, pero comparte el espíritu de «tener información
+          sin aprender nada». Supón que la clave de la bóveda no debe quedar en manos de una
+          sola persona. Shamir (1979) la reparte entre <var>n</var> personas de modo que
+          <strong>cualquier grupo de <var>k</var></strong> la puede reconstruir, pero
+          <strong><var>k</var> − 1 no aprenden absolutamente nada</strong>.
+        </p>
+        <p>La idea es geométrica:</p>
+        <ul class="plain-list">
+          <li>Por <strong>2 puntos</strong> pasa una sola recta. Con <strong>1 punto</strong> hay infinitas rectas posibles.</li>
+          <li style="--accent:var(--sky)">Por <strong>3 puntos</strong> pasa una sola parábola. Con 2, infinitas.</li>
+          <li style="--accent:var(--mint)">En general, <var>k</var> puntos fijan una curva de grado <var>k</var> − 1.</li>
+        </ul>
+        <p>
+          El repartidor esconde el secreto <var>S</var> donde la curva corta al eje vertical,
+          <var>S</var> = <var>f</var>(0), y le da a cada persona un punto de la curva. Con
+          <var>k</var> puntos se recupera la curva entera (por <strong>interpolación de
+          Lagrange</strong>) y con ella el secreto.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">En corto</span>
+          Con un pedazo de menos, para <em>cada</em> secreto posible existe una curva que pasa por
+          tus puntos. Todos los secretos siguen siendo igual de probables: no sabes nada.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Un ejemplo con k = 3</span>
+        <p>El repartidor elige <var>f</var>(<var>x</var>) = 12 + 2<var>x</var> − <var>x</var><sup>2</sup>,
+          así que <var>S</var> = 12. Reparte <var>f</var>(1) = 13, <var>f</var>(2) = 12,
+          <var>f</var>(3) = 9, …</p>
+        <span class="eq">
+          <var>S</var> = <var>f</var>(0) = Σ <var>y</var><sub><var>j</var></sub>·Π<sub><var>m</var>≠<var>j</var></sub> <var>x</var><sub><var>m</var></sub> / (<var>x</var><sub><var>m</var></sub> − <var>x</var><sub><var>j</var></sub>)
+          <small>interpolación de Lagrange evaluada en 0</small>
+        </span>
+        <p>Con los puntos (1, 13), (2, 12) y (3, 9) los pesos salen 3, −3 y 1:</p>
+        <span class="eq">
+          3·13 − 3·12 + 1·9 = 39 − 36 + 9 = <strong>12</strong> ✓
+        </span>
+        <p>En la práctica todo se calcula módulo un número primo. Así, con <var>k</var> − 1
+          pedazos cada secreto queda <em>exactamente</em> igual de probable, no sólo «parecido».</p>
+      </aside>
+    </div>
+
+    <!-- LAB 5 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Laboratorio 5 — Compartir un secreto entre cinco</h2>
+        <span class="lab__tag">umbral k de n = 5</span>
+      </div>
+      <p class="lab__intro">
+        Selecciona fragmentos. Con <var>k</var> fragmentos la curva morada queda fija y su
+        corte con el eje es el secreto. Con <var>k</var> − 1 aparecen en azul muchas curvas
+        posibles, cada una con un secreto distinto.
+      </p>
+
+      <div class="two-col" style="align-items:start">
+        <div>
+          <div class="zkstage" id="shHost"></div>
+          <div class="legend">
+            <span><i style="background:var(--violet)"></i> curva reconstruida</span>
+            <span><i style="background:var(--sky)"></i> curvas posibles</span>
+            <span><i style="background:var(--mint)"></i> secreto f(0)</span>
+            <span><i style="background:var(--amber)"></i> polinomio del repartidor</span>
+          </div>
+        </div>
+        <div>
+          <div class="controls" style="margin-bottom:.6rem">
+            <div class="field">
+              <label class="field__label" for="shSR">Secreto · S = <b class="zk-peggy" id="shS">12</b></label>
+              <input type="range" id="shSR" min="0" max="30" step="1" value="12">
+            </div>
+          </div>
+          <div class="controls" style="margin-bottom:.8rem">
+            <div class="field field--auto">
+              <span class="field__label">Umbral k</span>
+              <div class="seg" id="shK" role="group" aria-label="Umbral k">
+                <button type="button" aria-pressed="false" data-v="2">2</button>
+                <button type="button" aria-pressed="true" data-v="3">3</button>
+                <button type="button" aria-pressed="false" data-v="4">4</button>
+              </div>
+            </div>
+          </div>
+          <span class="lab__sub" style="margin-top:0">Fragmentos (clic para usarlos)</span>
+          <div class="zkshares" id="shShares"></div>
+          <p class="state" id="shState" aria-live="polite"></p>
+          <div class="controls" style="margin:1rem 0 0">
+            <button class="clay-btn" type="button" id="shNew">Nuevo polinomio</button>
+            <label class="switch"><input type="checkbox" id="shShow"><span class="switch__track"></span> Ver polinomio del repartidor</label>
+          </div>
+          <span class="hashout" id="shPoly" hidden></span>
+        </div>
+      </div>
+      <p class="lab__note">
+        Dibujamos sobre los números reales para ver la geometría; en un sistema real todo
+        se calcula módulo un primo.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · MUNDO REAL ============ -->
+<section class="section note" id="mundo-real">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Del juguete al mundo real</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Los laboratorios anteriores son interactivos: Víctor tiene que estar presente haciendo
+          preguntas. En una blockchain eso no sirve, porque miles de nodos deben comprobar la
+          misma prueba sin conversar con nadie. El paso que lo resuelve es sorprendentemente simple.
+        </p>
+        <div class="quad">
+          <div class="quad__cell" style="--accent:var(--violet)">
+            <h4>Fiat–Shamir (1986)</h4>
+            <p>Se cambia la pregunta de Víctor por un hash: <span class="mono">c = H(t, mensaje)</span>.
+            Como nadie controla el resultado del hash, sirve de reto «al azar». La prueba deja de
+            ser interactiva y se convierte en una <strong>firma digital</strong>: así nacen
+            las firmas de Schnorr y EdDSA.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>zk-SNARKs y zk-STARKs</h4>
+            <p>Pruebas cortas y no interactivas de que un cálculo arbitrario se hizo bien.
+            <strong>Zcash</strong> las usa para transacciones privadas y los
+            <strong>rollups ZK</strong> de Ethereum para resumir miles de transacciones en una sola prueba.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--sky)">
+            <h4>Credenciales y edad</h4>
+            <p>Demostrar «soy mayor de 18» o «tengo un título válido» sin mostrar la fecha de
+            nacimiento ni el documento completo.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--amber)">
+            <h4>Contraseñas que no viajan</h4>
+            <p>Protocolos como SRP y OPAQUE permiten iniciar sesión sin que el servidor vea ni
+            guarde la contraseña en claro.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> De Schnorr a una firma</span>
+        <p>Es el laboratorio 4 con el reto calculado por un hash en lugar de pedírselo a Víctor:</p>
+        <span class="eq">
+          <var>c</var> = H(<var>t</var> ‖ <var>m</var>), &nbsp; <var>s</var> = <var>r</var> + <var>c</var>·<var>x</var> mod <var>q</var>
+          <small>la firma del mensaje m es el par (t, s)</small>
+        </span>
+        <span class="eq">
+          <var>g</var><sup><var>s</var></sup> ≟ <var>t</var>·<var>y</var><sup>H(<var>t</var> ‖ <var>m</var>)</sup>
+          <small>cualquiera la verifica, sin hablar con Peggy</small>
+        </span>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">Ojo con un detalle</span>
+          La prueba interactiva no convencía a terceros (el video se podía fingir). La versión
+          con hash sí convence a cualquiera, porque nadie puede elegir el reto a su gusto. Eso
+          es justo lo que hace falta para una firma. Más en el <a href="firma-digital.html">módulo 03</a>.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Síntesis: los cinco juegos lado a lado</h2>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead>
+          <tr><th>Laboratorio</th><th>Qué se demuestra</th><th>Reto de Víctor</th><th>Suerte de una tramposa por ronda</th><th>Qué ve Víctor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cueva</strong></td><td>Conoce la palabra mágica</td><td>Pasillo A o B</td><td class="num">1/2</td><td>A Peggy salir por donde pidió</td></tr>
+          <tr><td><strong>Bolas</strong></td><td>Las bolas son distintas</td><td>¿Las cambié?</td><td class="num">1/2</td><td>Una respuesta que él ya conocía</td></tr>
+          <tr><td><strong>3-coloración</strong></td><td>El grafo se puede colorear</td><td>Una arista</td><td class="num">≤ 13/14</td><td>Dos colores distintos, al azar</td></tr>
+          <tr><td><strong>Schnorr</strong></td><td>Conoce <var>x</var> con <var>y</var> = <var>g</var><sup><var>x</var></sup></td><td>Un número <var>c</var></td><td class="num">1/<var>q</var> (≈ 2<sup>−256</sup> real)</td><td>(<var>t</var>, <var>c</var>, <var>s</var>), que podría simular</td></tr>
+          <tr><td><strong>Shamir</strong></td><td colspan="4">No es una prueba sino un reparto: <var>k</var> fragmentos recuperan el secreto y <var>k</var> − 1 no revelan nada.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(26px,3.4vw,44px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>Una prueba de conocimiento cero convence de algo <strong>sin revelar por qué es cierto</strong>.</li>
+          <li style="--accent:var(--sky)">Se basa en un reto <strong>al azar</strong>: una tramposa no puede prepararse para todos.</li>
+          <li style="--accent:var(--mint)">Repetir rondas hace que la suerte necesaria decaiga <strong>exponencialmente</strong>.</li>
+          <li style="--accent:var(--coral)">El «cero» se demuestra con un <strong>simulador</strong>: si se puede fingir sin el secreto, no lo filtra.</li>
+          <li style="--accent:var(--amber)">Con Fiat–Shamir el reto sale de un hash, y la prueba se vuelve una <strong>firma</strong> que cualquiera verifica.</li>
+        </ul>
+      </div>
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Dos trampas comunes</span>
+        <p><strong>Reutilizar aleatoriedad.</strong> El <var>r</var> de Schnorr o el barajado del
+          grafo deben ser nuevos en cada ronda. Si se repiten, el secreto se filtra.</p>
+        <p><strong>Retos predecibles.</strong> Si Peggy conoce el reto antes de comprometerse,
+          puede hacer trampa siempre. Por eso el compromiso va primero y el reto después.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · EJERCICIOS ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Ejercicios</h2>
+    </header>
+
+    <div class="note__body exlist reveal" style="max-width:80ch">
+      <h3 style="margin-top:0">Ejercicio 1 · ¿Cuántas rondas en la cueva?</h3>
+      <p>¿Cuántas rondas superadas necesita Víctor para que la suerte de una impostora sea menor que 1 en un millón?</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Se busca el menor <var>n</var> con (1/2)<sup><var>n</var></sup> &lt; 10<sup>−6</sup>, es
+          decir, 2<sup><var>n</var></sup> &gt; 1 000 000. Como 2<sup>19</sup> = 524 288 y
+          2<sup>20</sup> = 1 048 576, hacen falta <strong>20 rondas</strong>.</p>
+      </details>
+
+      <hr>
+
+      <h3>Ejercicio 2 · El video que no convence</h3>
+      <p>Víctor grabó las 20 rondas de la cueva y se las enseña a su amiga Alicia. ¿Por qué Alicia no debería creerle?</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Porque Víctor y una actriz que no conoce la palabra pueden fabricar ese video: se
+          ponen de acuerdo en qué pasillo pedirá en cada ronda, o graban muchas tomas y cortan las
+          fallidas. El video falso es idéntico al real. A Víctor lo convenció que <em>él</em>
+          eligió los retos al azar en vivo; Alicia no tiene esa garantía. Esa misma idea, la de
+          que se puede simular, es la que demuestra que la prueba no filtra la palabra.</p>
+      </details>
+
+      <hr>
+
+      <h3>Ejercicio 3 · El grafo sin barajar</h3>
+      <p>(a) Si Peggy no baraja los colores entre rondas, ¿qué aprende Víctor? (b) Con 14 aristas y una sola mala, ¿cuántas rondas hacen falta para 99.9 % de certeza?</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>(a) Cada vértice muestra siempre el mismo color, así que tras suficientes rondas Víctor
+          anota los colores de todos los vértices y reconstruye la coloración completa. Ya no es
+          conocimiento cero. Lo puedes ver en el «cuaderno de Víctor» del laboratorio 3.</p>
+        <p>(b) Se pide (13/14)<sup><var>n</var></sup> ≤ 0.001, es decir,
+          <var>n</var> ≥ ln(0.001)/ln(13/14) ≈ 6.908/0.0741 ≈ 93.2. Hacen falta
+          <strong>94 rondas</strong>.</p>
+      </details>
+
+      <hr>
+
+      <h3>Ejercicio 4 · Schnorr a mano</h3>
+      <p>Con <var>p</var> = 23, <var>q</var> = 11, <var>g</var> = 2 y <var>x</var> = 7, Peggy elige <var>r</var> = 5 y Víctor reta con <var>c</var> = 8. Calcula <var>t</var>, <var>s</var> y verifica.</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <ul class="plain-list">
+          <li><var>y</var> = 2<sup>7</sup> mod 23 = 128 − 115 = <strong>13</strong></li>
+          <li style="--accent:var(--sky)"><var>t</var> = 2<sup>5</sup> mod 23 = 32 − 23 = <strong>9</strong></li>
+          <li style="--accent:var(--mint)"><var>s</var> = 5 + 8·7 mod 11 = 61 mod 11 = <strong>6</strong></li>
+        </ul>
+        <p>Lado izquierdo: 2<sup>6</sup> mod 23 = 64 − 46 = 18. Lado derecho: 13<sup>8</sup> mod 23.
+          Como 13<sup>2</sup> ≡ 8, 13<sup>4</sup> ≡ 64 ≡ 18 y 13<sup>8</sup> ≡ 18<sup>2</sup> = 324 ≡ 2,
+          queda 9·2 = <strong>18</strong>. Coinciden: Víctor acepta.</p>
+      </details>
+
+      <hr>
+
+      <h3>Ejercicio 5 · Atrapar a Peggy por repetir r</h3>
+      <p>Peggy usó el mismo <var>r</var> en dos rondas: con <var>c</var><sub>1</sub> = 3 respondió <var>s</var><sub>1</sub> = 4 y con <var>c</var><sub>2</sub> = 8 respondió <var>s</var><sub>2</sub> = 6 (módulo <var>q</var> = 11). Recupera <var>x</var>.</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Restando las dos respuestas, <var>r</var> se cancela:
+          <var>s</var><sub>1</sub> − <var>s</var><sub>2</sub> = (<var>c</var><sub>1</sub> − <var>c</var><sub>2</sub>)·<var>x</var> (mod 11).</p>
+        <span class="eq">
+          <var>x</var> = (4 − 6)·(3 − 8)<sup>−1</sup> = 9·6<sup>−1</sup> = 9·2 = 18 ≡ <strong>7</strong> (mod 11)
+          <small>6⁻¹ = 2 porque 6·2 = 12 ≡ 1</small>
+        </span>
+        <p>Es exactamente el secreto de los ejercicios anteriores. Por eso el número aleatorio
+          debe ser nuevo en cada ronda, igual que el nonce de una firma ECDSA.</p>
+      </details>
+
+      <hr>
+
+      <h3>Ejercicio 6 · Shamir con un pedazo de menos</h3>
+      <p>Con umbral <var>k</var> = 3 tienes sólo dos fragmentos: (1, 13) y (2, 12). Encuentra una parábola que pase por ellos y esconda el secreto <var>S</var> = 0. ¿Qué te dice eso?</p>
+      <details>
+        <summary><strong>Ver respuesta</strong></summary>
+        <p>Buscamos <var>f</var>(<var>x</var>) = <var>a</var><var>x</var><sup>2</sup> + <var>b</var><var>x</var>
+          (sin término independiente, para que <var>f</var>(0) = 0). Las condiciones son
+          <var>a</var> + <var>b</var> = 13 y 4<var>a</var> + 2<var>b</var> = 12. Restando el doble de la
+          primera: 2<var>a</var> = −14, así que <var>a</var> = −7 y <var>b</var> = 20.</p>
+        <p><var>f</var>(<var>x</var>) = 20<var>x</var> − 7<var>x</var><sup>2</sup> pasa por (1, 13) y (2, 12)
+          con secreto 0, igual que 12 + 2<var>x</var> − <var>x</var><sup>2</sup> pasa por ellos con secreto 12.
+          Con dos fragmentos, <strong>cualquier</strong> secreto es posible: no aprendiste nada.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · REFERENCIAS ============ -->
+<section class="section note" id="referencias">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Referencias</h2>
+    </header>
+
+    <div class="note__body reveal" style="max-width:80ch">
+      <ol class="refs">
+        <li>Goldwasser, S., Micali, S., Rackoff, C. <em>The Knowledge Complexity of Interactive Proof-Systems</em>, STOC 1985. Define las pruebas de conocimiento cero.</li>
+        <li>Quisquater, J.-J. et al. <em>How to Explain Zero-Knowledge Protocols to Your Children</em>, CRYPTO 1989. El origen de la cueva de Alí Babá.</li>
+        <li>Goldreich, O., Micali, S., Wigderson, A. <em>Proofs that Yield Nothing but their Validity</em>, FOCS 1986 / JACM 1991. La prueba de la 3-coloración para todo NP.</li>
+        <li>Schnorr, C. P. <em>Efficient Identification and Signatures for Smart Cards</em>, CRYPTO 1989.</li>
+        <li>Fiat, A., Shamir, A. <em>How to Prove Yourself: Practical Solutions to Identification and Signature Problems</em>, CRYPTO 1986.</li>
+        <li>Shamir, A. <em>How to Share a Secret</em>, Communications of the ACM 22(11), 1979.</li>
+        <li>Groth, J. <em>On the Size of Pairing-based Non-interactive Arguments</em>, EUROCRYPT 2016. El SNARK más usado. <a href="https://eprint.iacr.org/2016/260" rel="noopener">eprint.iacr.org/2016/260</a></li>
+        <li>Ben-Sasson, E. et al. <em>Scalable, Transparent, and Post-Quantum Secure Computational Integrity</em>, 2018. Los zk-STARKs. <a href="https://eprint.iacr.org/2018/046" rel="noopener">eprint.iacr.org/2018/046</a></li>
+        <li>Jarecki, S., Krawczyk, H., Xu, J. <em>OPAQUE: An Asymmetric PAKE Protocol Secure Against Pre-Computation Attacks</em>, EUROCRYPT 2018.</li>
+      </ol>
+      <p class="lab__note">
+        Los laboratorios son simulaciones didácticas con parámetros diminutos.
+        Fuente temática: <a href="http://math.com.mx/laboratorio_conocimiento_cero.html" rel="noopener">math.com.mx/laboratorio_conocimiento_cero.html</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>¿Sigues con la criptografía?</h2>
+        <p>Los sobres sellados son compromisos, y Schnorr con Fiat–Shamir es una firma digital. Ambos temas tienen su propio apunte.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="compromisos.html">
+          Repasar compromisos <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="firma-digital.html">Repasar firma digital</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="firma-digital.html">Firma digital</a></li>
+          <li><a href="conocimiento-cero.html">Conocimiento cero</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="#referencias">Papers citados</a></li>
+          <li><a href="http://math.com.mx/laboratorio_conocimiento_cero.html" rel="noopener">Fuente temática</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/conocimiento-cero.js" defer></script>
+</body>
+</html>

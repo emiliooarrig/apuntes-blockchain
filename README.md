@@ -18,7 +18,8 @@ apuntes-blockchain/
 │  ├─ timestamping.html         # 05 · Time stamping
 │  ├─ prueba-de-trabajo.html    # 07 · Prueba de trabajo y doble gasto
 │  ├─ utxo-vs-cuentas.html      # 08 · Modelo UTXO frente a modelo de cuentas
-│  └─ generales-bizantinos.html # 09 · El problema de los generales bizantinos
+│  ├─ generales-bizantinos.html # 09 · El problema de los generales bizantinos
+│  └─ conocimiento-cero.html    # 10 · Pruebas de conocimiento cero
 ├─ assets/                      # Recursos estáticos compartidos por todas las páginas
 │  ├─ favicon.svg               # Icono de pestaña
 │  ├─ css/                      # Hojas de estilo
@@ -31,7 +32,8 @@ apuntes-blockchain/
 │     ├─ firma-digital.js       # Laboratorios de firma digital y red P2P
 │     ├─ prueba-de-trabajo.js   # Laboratorios de prueba de trabajo (SHA-256d con midstate)
 │     ├─ utxo-vs-cuentas.js     # Laboratorios de UTXO frente a cuentas
-│     └─ generales-bizantinos.js # Laboratorios de generales bizantinos (escenarios, quórums, OM(1), Sybil)
+│     ├─ generales-bizantinos.js # Laboratorios de generales bizantinos (escenarios, quórums, OM(1), Sybil)
+│     └─ conocimiento-cero.js   # Laboratorios de conocimiento cero (cueva, bolas, 3-coloración, Schnorr, Shamir)
 ├─ latex/                       # Versión en LaTeX de los apuntes
 │  ├─ funciones-hash.tex        # 01 · Hash — documento completo, figuras en TikZ/pgfplots
 │  ├─ funciones-hash.pdf        # Salida compilada (17 páginas)
