@@ -1,0 +1,736 @@
+% ============================================================================
+%  Modelo UTXO frente a modelo de cuentas
+%  Módulo 08 · Modelos de estado — ChainNotes
+%
+%  Versión LaTeX del apunte web temas/utxo-vs-cuentas.html
+%  Los números de selección de monedas salen del mismo modelo de tarifas que
+%  usa assets/js/utxo-vs-cuentas.js (entrada 68 vB, salida 31 vB, LTR 10).
+%
+%  Compilar:  pdflatex utxo-vs-cuentas.tex   (dos pasadas, por el índice)
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- idioma y codificación -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- página ----------------------------------------------------------------
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{longtable}
+
+% --- matemáticas -----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+
+% --- gráficas --------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric,
+                decorations.pathreplacing}
+
+% --- enlaces y cajas (hyperref antes que tcolorbox) ------------------------
+\usepackage[colorlinks=true,linkcolor=violetdeep,urlcolor=violetdeep,
+            citecolor=violetdeep,pdftitle={Modelo UTXO frente a modelo de cuentas},
+            pdfauthor={ChainNotes}]{hyperref}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------------------------
+%  Paleta (heredada de assets/css/styles.css)
+% ---------------------------------------------------------------------------
+\definecolor{violetc}{HTML}{7A68F5}
+\definecolor{violetdeep}{HTML}{5B46E0}
+\definecolor{mintc}{HTML}{1FA88A}
+\definecolor{coralc}{HTML}{E04E5C}
+\definecolor{amberc}{HTML}{C98A1F}
+\definecolor{skyc}{HTML}{1E88C7}
+\definecolor{inkc}{HTML}{282344}
+
+\hypersetup{linkcolor=violetdeep}
+
+% ---------------------------------------------------------------------------
+%  Estilo de párrafo y encabezados
+% ---------------------------------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\captionsetup{font=small,labelfont={bf,color=violetdeep}}
+
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{inkc}\textsc{UTXO frente a cuentas}}
+\fancyhead[R]{\small\color{inkc}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+%  Entornos de teoremas
+% ---------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\theoremstyle{plain}
+\newtheorem{proposicion}{Proposición}
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observación}
+
+% ---------------------------------------------------------------------------
+%  Cajas de color
+% ---------------------------------------------------------------------------
+\newtcolorbox{nota}[1]{enhanced,breakable,colback=skyc!6,colframe=skyc!75!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{caso}[1]{enhanced,breakable,colback=amberc!8,colframe=amberc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{aviso}[1]{enhanced,breakable,colback=coralc!7,colframe=coralc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{clave}[1]{enhanced,breakable,colback=mintc!7,colframe=mintc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{laboratorio}[1]{enhanced,breakable,colback=violetc!6,colframe=violetc!80!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{algoritmo}[1]{enhanced,breakable,colback=inkc!3,colframe=inkc!60,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=9pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.6pt,arc=2.5pt}
+
+% ---------------------------------------------------------------------------
+%  Atajos de notación
+% ---------------------------------------------------------------------------
+\newcommand{\si}{\textcolor{mintc}{\checkmark}}
+\newcommand{\no}{\textcolor{coralc}{$\times$}}
+\newcommand{\mecanismo}[1]{\textbf{\textcolor{violetdeep}{#1}}}
+
+\setlist[itemize]{label=\textcolor{violetc}{$\bullet$}}
+
+\newlist{opciones}{enumerate}{1}
+\setlist[opciones]{label=(\alph*),leftmargin=2.4em,itemsep=0.1em,topsep=0.2em}
+
+\begin{document}
+
+\makeatletter
+\DeclareRobustCommand{\%}{\char`\%\relax}
+\makeatother
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\Large\color{violetdeep}\textsc{ChainNotes}\par}
+{\small\color{inkc}Módulo 08 · Modelos de estado\par}
+
+\vspace{1.4cm}
+{\Huge\bfseries Modelo UTXO\par}
+\vspace{0.4cm}
+{\LARGE frente a modelo de cuentas\par}
+
+\vspace{1.2cm}
+\begin{minipage}{0.78\textwidth}
+\centering\itshape\color{inkc}
+Las funciones hash dicen quién autoriza y el sellado de tiempo dice cuándo. Falta
+una pregunta anterior y más básica: cuando un nodo afirma que tienes 8 unidades,
+¿qué hay escrito realmente en su disco? Hay dos respuestas razonables, y cada
+gran familia de blockchains escogió una.
+\end{minipage}
+
+\vspace{1.4cm}
+\begin{tikzpicture}[scale=0.95]
+  % objetos
+  \node[inkc,font=\small\bfseries] at (-3.1,1.5) {objetos};
+  \draw[violetc,line width=0.8pt,fill=violetc!15,rounded corners=3pt] (-4.1,0.55) rectangle (-3.3,1.15);
+  \node[violetdeep,font=\scriptsize] at (-3.7,0.85) {5};
+  \draw[violetc,line width=0.8pt,fill=violetc!15,rounded corners=3pt] (-2.9,0.55) rectangle (-2.1,1.15);
+  \node[violetdeep,font=\scriptsize] at (-2.5,0.85) {3};
+  \node[inkc,font=\scriptsize] at (-3.1,0.1) {dos monedas};
+  % celda
+  \node[inkc,font=\small\bfseries] at (3.1,1.5) {celda};
+  \draw[skyc,line width=0.8pt,fill=skyc!12,rounded corners=3pt] (2.0,0.55) rectangle (4.2,1.15);
+  \node[skyc,font=\scriptsize] at (3.1,0.85) {0xa1c3\ldots\ $\mapsto$ 8};
+  \node[inkc,font=\scriptsize] at (3.1,0.1) {un renglón};
+  \node[violetdeep,font=\small\itshape] at (0,0.85) {«tienes 8»};
+\end{tikzpicture}
+
+\vfill
+{\small Apuntes de Blockchain · Proyecto académico\par}
+{\small\color{inkc}\today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\begin{nota}{Cómo usar este documento}
+Es la versión imprimible del apunte interactivo
+\texttt{temas/utxo-vs-cuentas.html}. Los tres laboratorios aparecen aquí como
+ejemplos resueltos con números fijos, calculados con el mismo modelo de tarifas
+que usa \texttt{assets/js/utxo-vs-cuentas.js}. Al final hay seis ejercicios con
+soluciones en el apéndice~\ref{app:sol}.
+\end{nota}
+
+% ===========================================================================
+\section{La pregunta que los separa}\label{sec:pregunta}
+% ===========================================================================
+
+Un nodo no almacena una idea abstracta de riqueza: almacena bytes. Y para los
+bytes que representan «Alicia tiene 8» hay dos formas sensatas de organizarlos.
+
+\textbf{Como un conjunto de objetos.} El nodo guarda una colección de monedas
+indivisibles, cada una con un valor y una condición que dice quién puede
+gastarla. Que Alicia tenga 8 significa que existen por ahí un objeto de 5 y otro
+de 3 que solo ella puede consumir. No hay ningún renglón con su nombre. Y los
+objetos jamás se editan: se destruyen y nacen otros.
+
+\textbf{Como una tabla de saldos.} El nodo guarda un diccionario que lleva de
+dirección a saldo. Que Alicia tenga 8 significa que en la celda de su dirección
+está escrito un 8. No hay monedas, hay una celda. Y las celdas jamás se
+destruyen: se sobrescriben.
+
+\begin{clave}{Efectivo y banca, con su letra chica}
+UTXO se parece al efectivo: pagas 6 entregando un billete de 5 y uno de 3, y
+recibes 2 de cambio; no existe medio billete. Cuentas se parece al banco: el
+cajero tacha tu saldo y escribe otro, sin que ningún objeto físico cambie de
+manos.
+
+La analogía tiene fecha de caducidad: en el efectivo real las denominaciones son
+fijas, mientras que un UTXO puede valer cualquier cantidad. El cambio que recibes
+no es un billete estándar, es uno fabricado a la medida en ese mismo instante.
+\end{clave}
+
+La diferencia de fondo se ve en cómo se obtiene el saldo. En el modelo de objetos
+no está escrito en ninguna parte: es una consulta.
+\[
+  \mathrm{saldo}(\text{alicia}) = \sum \{\, v : (v,c) \in U,\ c \text{ la satisface alicia} \,\}
+\]
+En el modelo de celdas es el dato, y leerlo cuesta una búsqueda:
+\[
+  \mathrm{saldo}(\text{alicia}) = S[\text{alicia}].\text{saldo}
+\]
+Derivar el saldo o leerlo: esa es la raíz de todo lo que sigue.
+
+% ===========================================================================
+\section{Definiciones}\label{sec:def}
+% ===========================================================================
+
+\begin{definicion}[UTXO]
+\emph{Unspent Transaction Output}, salida de transacción no gastada. Es una
+pareja $(\text{valor}, \text{condición de gasto})$ identificada por el par
+$(\textit{txid}, \text{índice})$, llamado \textbf{outpoint}.
+
+El estado global es el conjunto $U$ de todos los UTXO vigentes. Una transacción
+es una función que toma un subconjunto finito de $U$, lo elimina e inserta
+salidas nuevas:
+\[
+  U' = (U \setminus \text{entradas}) \cup \text{salidas}.
+\]
+\textbf{Validez:} cada entrada existe en $U$, su condición de gasto se satisface,
+y $\sum \text{entradas} \ge \sum \text{salidas}$. La diferencia es la comisión.
+\end{definicion}
+
+\begin{definicion}[Cuentas]
+El estado global es una función parcial
+$S: \text{dirección} \to (\text{nonce}, \text{saldo}, \text{código}, \text{almacenamiento})$.
+Ethereum distingue las cuentas controladas por una llave privada de las cuentas
+de contrato, que además tienen código y almacenamiento propio.
+
+Una transacción modifica entradas de $S$:
+\[
+  S' = S[\text{origen} \mapsto -\text{monto}-\text{gas},\ \text{destino} \mapsto +\text{monto}].
+\]
+\textbf{Validez:} la firma corresponde al origen, el saldo alcanza, y el nonce de
+la transacción coincide exactamente con el de la cuenta.
+\end{definicion}
+
+\begin{observacion}[La asimetría que hay que notar]
+En UTXO la validez de una transacción se decide mirando \emph{solo} las entradas
+que consume: la verificación es local. En cuentas hay que mirar el renglón
+completo del emisor, incluido un contador que no tiene nada que ver con el
+dinero. Ese contador —el nonce— hace un trabajo que en UTXO nadie necesita hacer.
+\end{observacion}
+
+% ===========================================================================
+\section{Anatomía de una transacción}\label{sec:anatomia}
+% ===========================================================================
+
+\begin{algoritmo}{Bitcoin}
+\begin{verbatim}
+version    2
+entradas
+  [0] 3f9c...a1:0   testigo: <firma> <pubkey>
+  [1] 77b2...e4:1   testigo: <firma> <pubkey>
+salidas
+  [0] 600 000 sat -> OP_1 <beto>
+  [1] 190 000 sat -> OP_1 <alicia_cambio>
+locktime   0
+\end{verbatim}
+No aparece ningún remitente: el emisor se deduce de quién pudo firmar las
+entradas. Tampoco aparece la comisión, que es el residuo aritmético.
+\end{algoritmo}
+
+\begin{algoritmo}{Ethereum}
+\begin{verbatim}
+chainId    1
+nonce      7
+to         0x5aE2...c19f
+value      6 000 000 000 000 000 000
+gasLimit   21 000
+maxFeePerGas          24 gwei
+maxPriorityFeePerGas   1 gwei
+data       0x
+firma      v, r, s
+\end{verbatim}
+Todo es explícito: destinatario, monto, límite de gas, cadena. Y un nonce, el
+único campo cuya razón de ser no se adivina a primera vista.
+\end{algoritmo}
+
+\begin{aviso}{La consecuencia inmediata}
+En Bitcoin el tamaño de la transacción depende de cuántas monedas hayas tenido
+que juntar, y la comisión depende del tamaño. \textbf{Pagar la misma cantidad
+puede costarte el doble si tu cartera está fragmentada.} En Ethereum una
+transferencia simple cuesta 21\,000 de gas sin importar tu historial.
+\end{aviso}
+
+% ===========================================================================
+\section{Elegir monedas es NP-difícil}\label{sec:seleccion}
+% ===========================================================================
+
+Tu cartera tiene varias monedas y quieres pagar una cantidad concreta. ¿Cuáles
+entregas? Cada moneda que incluyas agranda la transacción y encarece la comisión.
+Pero si usas pocas monedas grandes, el cambio que recibes fragmenta tu cartera
+para el futuro. Es un problema con dos horizontes temporales en conflicto.
+
+\begin{nota}{Modelo de tarifas de este documento}
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Entrada & 68 vB \\
+Salida & 31 vB \\
+Encabezado & 11 vB \\
+Tasa de largo plazo & 10 sat/vB \\
+Umbral de polvo & 546 sat \\
+\bottomrule
+\end{tabular}
+\end{center}
+Son los pesos de una entrada y una salida modernas, redondeados.
+\end{nota}
+
+\subsection{La métrica de desperdicio}
+
+Bitcoin Core no elige un algoritmo: los ejecuta todos y compara. Desde la versión
+22.0 (2021) cada candidato se puntúa con una métrica llamada \emph{waste}:
+\[
+  \text{desperdicio} = \text{peso}_{\text{entradas}} \times
+  (\text{tasa} - \text{tasa}_{\text{LP}}) + \text{costo}_{\text{cambio}} + \text{exceso}.
+\]
+
+El término que manda es el primero. Si la tasa actual está por debajo de la de
+largo plazo, gastar monedas de más es barato ahora y caro después, así que la
+métrica empuja a \textbf{consolidar}. Si la tasa está por arriba, empuja a usar
+el \textbf{mínimo de entradas}. La cartera se comporta distinto según el mercado
+de comisiones sin que el usuario toque nada.
+
+El \textbf{valor efectivo} de una moneda es lo que aporta ya descontado lo que
+cuesta gastarla:
+\[
+  \text{valor efectivo} = \text{valor} - 68\,\text{vB} \times \text{tasa}.
+\]
+Una moneda con valor efectivo negativo \emph{cuesta dinero} incluirla. A
+20 sat/vB eso ocurre por debajo de 1360 sat: el polvo deja de ser gastable sin
+que nadie lo borre.
+
+\subsection{Los algoritmos}
+
+\textbf{Branch and Bound.} Propuesto por Murch en 2016 e incorporado en Bitcoin
+Core 0.17. Busca un subconjunto cuyo valor efectivo caiga dentro de una ventana
+estrecha alrededor del objetivo, de modo que no haga falta crear cambio. Una
+transacción sin cambio ahorra los 31 vB de la salida ahora y los 68 de gastarla
+después, corta el grafo de transacciones y mejora la privacidad.
+
+\textbf{CoinGrinder.} Añadido en Bitcoin Core 27.0 (abril de 2024). Busca el
+conjunto de entradas de peso mínimo y sí produce cambio. Solo se activa cuando la
+tasa supera unas tres veces la de largo plazo. La restricción es deliberada: si
+minimizaras entradas todo el tiempo, triturarías la cartera. En simulaciones
+sobre los picos de 2023 redujo el gasto entre 4\% y 9.5\%.
+
+\textbf{Mochila y sorteo aleatorio.} El \emph{knapsack} heredado hace mil
+intentos aleatorios. El sorteo aleatorio simple (SRD) toma monedas al azar: es
+peor en comisión pero excelente en privacidad, porque no deja huella reconocible.
+
+\begin{laboratorio}{Ejemplo resuelto}
+Cartera de 1, 3, 7, 12 y 20 mil satoshis. Se quiere pagar 15 mil a 20 sat/vB. El
+costo del cambio es $31 \times 20 + 68 \times 10 = 1300$ sat. Hay 20 subconjuntos
+válidos; los tres mejores:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrlr@{}}
+\toprule
+Selección & Entradas & Comisión & Cambio & Desperdicio \\
+\midrule
+$7000 + 12\,000$          & 2 & 4000 & sin cambio & \textbf{1800} \\
+$20\,000$                 & 1 & 2820 & 2180       & 1980 \\
+$1000 + 7000 + 12\,000$   & 3 & 5000 & sin cambio & 2120 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Gana $\{7000, 12\,000\}$ sin cambio. El cálculo:
+$2 \times 68 \times (20-10) = 1360$ del término temporal, más 440 de exceso que
+se va a comisión.
+\end{laboratorio}
+
+\begin{observacion}
+La opción de una sola entrada paga menos comisión \emph{hoy} —2820 frente a
+4000— y aun así pierde, porque arrastra el costo del cambio: 1300 sat que habrá
+que pagar mañana. Es justo el punto de la métrica.
+\end{observacion}
+
+\begin{aviso}{Por qué NP-difícil}
+Decidir si existe un subconjunto de monedas cuya suma sea exactamente el objetivo
+es el problema de la \textbf{suma de subconjuntos}. Lo que salva a las carteras
+reales es que el número de monedas es pequeño y que basta una solución
+suficientemente buena, no la óptima.
+\end{aviso}
+
+% ===========================================================================
+\section{El nonce hace el trabajo que en UTXO hace el objeto}\label{sec:nonce}
+% ===========================================================================
+
+Aquí está la simetría profunda entre los dos modelos.
+
+En \textbf{UTXO}, una transacción firmada es imposible de repetir: consume
+objetos concretos que después de la primera vez ya no existen. Reenviarla no hace
+nada, porque sus entradas no están en $U$. La protección es automática y no
+requiere ningún campo adicional.
+
+En \textbf{cuentas}, una transferencia firmada de 6 unidades es un mensaje válido
+para siempre: los saldos son números, no objetos, y nada impide aplicarla cien
+veces. Por eso cada cuenta lleva un contador que se incrementa con cada
+transacción, y cada transacción declara el valor que espera encontrar.
+
+\begin{aviso}{Lo que cuesta el contador}
+El nonce impone un \textbf{orden total estricto} a todo lo que hace una cuenta.
+Si la transacción 5 se queda atorada por comisión baja, la 6 y la 7 no pueden
+ejecutarse aunque paguen bien. En UTXO no existe tal cosa: dos pagos que gastan
+monedas distintas son independientes aunque salgan de la misma cartera.
+\end{aviso}
+
+\begin{observacion}[Un matiz histórico]
+El nonce protege contra la repetición \emph{dentro} de una cadena, pero no
+\emph{entre} cadenas. Cuando Ethereum se bifurcó en 2016, la misma transacción
+firmada era válida en las dos redes. La solución fue el \textbf{EIP-155}, que
+metió el identificador de cadena dentro de lo que se firma.
+\end{observacion}
+
+% ===========================================================================
+\section{Paralelismo}\label{sec:paralelismo}
+% ===========================================================================
+
+Dos transacciones se pueden validar en paralelo si no tocan el mismo estado. En
+UTXO, «el mismo estado» significa la misma moneda: dos pagos al mismo
+destinatario son independientes, porque cada uno crea su propia moneda nueva. En
+el modelo de cuentas, los dos escriben el mismo renglón, y hay conflicto.
+
+\begin{laboratorio}{Seis pagos, dos modelos}
+Los pagos: P1 Ana$\to$Zoe, P2 Beto$\to$Zoe, P3 Caro$\to$Zoe, P4 Dan$\to$Eva,
+P5 Eva$\to$Ana, P6 Zoe$\to$Beto.
+
+\textbf{Como UTXO:} un solo carril. Los seis gastan monedas distintas, así que se
+validan a la vez. Que P1, P2 y P3 paguen los tres a Zoe da igual, porque cada uno
+crea una moneda nueva e independiente.
+
+\textbf{Como cuentas:} cuatro carriles. Zoe aparece en P1, P2, P3 y P6, y los
+cuatro escriben su renglón, así que hay que serializarlos.
+\end{laboratorio}
+
+El número de carriles no depende de cuánto trabajo hay, sino de cómo está
+repartido el estado. Los seis pagos cuestan lo mismo en los dos modelos; lo que
+cambia es cuántos caben a la vez.
+
+\begin{observacion}[La letra chica]
+El ejemplo está construido para que el contraste sea nítido. En la práctica
+muchas transacciones de Bitcoin gastan salidas creadas por otras transacciones
+del mismo bloque, lo que sí crea dependencias. Pero la asimetría estructural es
+real, y es la que llevó a varios diseños recientes a recuperar parte del modelo
+de objetos: Sui trata cada activo como un objeto con dueño explícito; Aptos y
+Monad conservan cuentas pero ejecutan de forma optimista con Block-STM; Solana
+exige que cada transacción declare por adelantado qué estado va a tocar.
+\end{observacion}
+
+% ===========================================================================
+\section{El estado en disco}\label{sec:estado}
+% ===========================================================================
+
+\subsection{El conjunto UTXO}
+
+Bitcoin Core lo mantiene en una base clave-valor local, el \textbf{chainstate},
+indexada por outpoint. Es el único estado que un nodo necesita para validar
+bloques nuevos.
+
+Su tamaño es una preocupación viva: pasó de unos 52 millones de salidas a finales
+de 2017 a alrededor de 173 millones a principios de 2025. Nadie puede borrar
+entradas salvo gastándolas, así que el polvo acumulado es permanente.
+
+Demostrar que una transacción está en un bloque es una rama de Merkle corta.
+Demostrar que una salida \emph{sigue sin gastarse} requiere estructuras
+adicionales, y es un problema abierto en el que se trabaja con acumuladores como
+\textbf{Utreexo}.
+
+\subsection{El árbol de estado}
+
+Ethereum usa un \textbf{árbol de Merkle Patricia hexario}: cada nivel ramifica
+según un nibble de la clave. La raíz va en cada encabezado de bloque, lo que
+permite demostrar criptográficamente el saldo de cualquier cuenta.
+
+El costo es el tamaño de las pruebas: una prueba de acceso ronda los 3 kB, y con
+miles de accesos por bloque el testigo total se vuelve inviable de difundir en un
+intervalo de doce segundos.
+
+\begin{nota}{El giro de 2025}
+Durante años la solución candidata fueron los \textbf{árboles Verkle}. Ganaban en
+tamaño de prueba, pero sus compromisos polinomiales descansan en curvas
+elípticas, e introducirlos en el corazón del protocolo significaba apoyarse en
+criptografía que no resiste a un adversario cuántico, justo cuando NIST
+recomienda abandonarla hacia 2030.
+
+La propuesta vigente es el \textbf{EIP-7864}, un árbol binario unificado basado
+solo en funciones hash, con ramas unas cuatro veces más cortas. Se sacrificó
+tamaño de prueba a cambio de una estructura que probablemente no habrá que volver
+a cambiar.
+\end{nota}
+
+% ===========================================================================
+\section{Privacidad}\label{sec:privacidad}
+% ===========================================================================
+
+En el modelo de cuentas tu dirección es un identificador permanente: toda tu
+historia cuelga de un solo renglón público. En UTXO no hay renglón, y las
+carteras generan una dirección nueva para cada cambio, así que a primera vista el
+rastro se disuelve.
+
+A primera vista. La \textbf{heurística de propiedad común de entradas} dice que
+si una transacción gasta varias monedas a la vez, lo más probable es que todas
+pertenezcan al mismo dueño, porque solo él pudo firmarlas todas. Basta esa
+observación para volver a unir buena parte de las monedas de una cartera.
+
+\begin{clave}{La selección de monedas vuelve a aparecer}
+Elegir monedas deja de ser solo un problema de comisiones y se vuelve también uno
+de privacidad. Por eso al Branch and Bound se le acredita \emph{no crear cambio}
+—corta el grafo— y al sorteo aleatorio \emph{no dejar patrón}.
+\end{clave}
+
+El resumen: UTXO ofrece mejor privacidad por omisión, y cuentas ofrece peor
+privacidad por omisión pero mucha mejor auditabilidad, que es exactamente lo que
+un contrato inteligente necesita.
+
+% ===========================================================================
+\section{Síntesis}\label{sec:sintesis}
+% ===========================================================================
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+Dimensión & UTXO & Cuentas \\
+\midrule
+Unidad de estado & Objeto inmutable con dueño & Celda mutable indexada por dirección \\
+Operación & Destruir y crear & Sobrescribir \\
+Antirrepetición & Implícita: el objeto desaparece & Explícita: contador nonce \\
+Orden entre pagos & Libre si las monedas son distintas & Total y estricto por cuenta \\
+Paralelismo & Alto por construcción & Requiere ejecución optimista \\
+Costo de transferencia & Variable, depende de la fragmentación & Fijo, 21\,000 de gas \\
+Privacidad por omisión & Mejor, erosionada por heurísticas & Peor, dirección persistente \\
+Estado con contratos & Incómodo & Natural \\
+Complejidad de cartera & Alta: selección de monedas & Baja: leer un saldo \\
+Crecimiento del estado & Salidas de polvo permanentes & Cuentas y almacenamiento \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Más allá de la dicotomía}
+
+Presentar esto como una elección binaria era razonable en 2018. Ya no lo es.
+
+\textbf{Cardano} usa eUTXO: conserva los objetos, pero cada salida puede llevar
+un dato arbitrario adjunto, lo que permite contratos manteniendo la validación
+local. El precio es que el estado compartido se vuelve un cuello de botella.
+
+\textbf{Sui} generaliza el UTXO a objetos con versión: los objetos propios van
+por una vía rápida sin consenso completo; los compartidos sí pasan por consenso.
+
+\textbf{Aptos y Monad} mantienen cuentas y atacan el problema desde la ejecución:
+corren todo en paralelo suponiendo que no habrá conflictos y reejecutan los que
+sí ocurren.
+
+\begin{clave}{La moraleja}
+Lo que importa no es la etiqueta, sino qué tan fina es la \textbf{granularidad
+del estado} y \textbf{quién puede tocarlo}. UTXO y cuentas son los dos extremos
+de ese eje.
+\end{clave}
+
+% ===========================================================================
+\section{Ejercicios}\label{sec:ej}
+% ===========================================================================
+
+\begin{enumerate}[leftmargin=1.8em,itemsep=0.8em]
+
+\item\label{e:enum} \textbf{Enumerar a mano.}
+Una cartera tiene monedas de 1, 3, 7, 12 y 20 mil satoshis. Se quiere pagar 15
+mil a 20 sat/vB. Enumera los subconjuntos válidos, calcula el desperdicio de cada
+uno y decide cuál elegiría Bitcoin Core.
+
+\item\label{e:orden} \textbf{Independencia del orden.}
+Demuestra que si dos transacciones UTXO tienen conjuntos de entradas disjuntos,
+el resultado no depende del orden. Muestra con un contraejemplo que la propiedad
+análoga es falsa en el modelo de cuentas.
+
+\item\label{e:grafo} \textbf{El grafo de transacciones.}
+Modela el conjunto UTXO como un grafo dirigido donde cada transacción es un
+vértice. ¿Qué tipo de grafo resulta? ¿Puede tener ciclos? Justifica usando que el
+identificador de una transacción es el hash de su contenido.
+
+\item\label{e:replay} \textbf{Un mundo sin nonce.}
+Si el nonce no existiera en Ethereum, diseña un ataque concreto de repetición.
+Después explica por qué el mismo ataque es imposible en Bitcoin sin invocar
+ninguna propiedad criptográfica adicional.
+
+\item\label{e:pruebas} \textbf{Tamaño de las pruebas.}
+Una prueba de acceso en el árbol hexario ronda 3 kB. Estima el tamaño con un
+árbol binario de la misma profundidad efectiva y explica de dónde sale el factor
+de reducción que reporta el EIP-7864.
+
+\item\label{e:crec} \textbf{Discusión.}
+¿El crecimiento irreversible del conjunto UTXO es un problema peor o mejor que el
+crecimiento del estado de contratos en Ethereum? Considera quién paga el costo.
+
+\end{enumerate}
+
+% ===========================================================================
+\appendix
+\section{Soluciones}\label{app:sol}
+% ===========================================================================
+
+\subsection*{Ejercicio \ref{e:enum}}
+Hay 20 subconjuntos que alcanzan. El costo del cambio a 20 sat/vB es
+$31 \times 20 + 68 \times 10 = 1300$ sat. Los tres mejores aparecen en la tabla
+de la sección~\ref{sec:seleccion}: gana $\{7000, 12\,000\}$ sin cambio, con
+desperdicio 1800.
+
+La opción de una sola entrada paga menos comisión hoy (2820 frente a 4000) y aun
+así pierde, porque arrastra el costo del cambio.
+
+\subsection*{Ejercicio \ref{e:orden}}
+\textbf{UTXO.} Sean $t_1, t_2$ con entradas $E_1 \cap E_2 = \emptyset$ y salidas
+$O_1, O_2$ distintas entre sí (el outpoint incluye el txid). Aplicarlas en
+cualquier orden da
+\[
+  \bigl(U \setminus (E_1 \cup E_2)\bigr) \cup O_1 \cup O_2,
+\]
+porque la diferencia y la unión de conjuntos conmutan cuando los conjuntos
+retirados son disjuntos. La validez también se conserva: $E_2 \subseteq U$ sigue
+cumpliéndose tras quitar $E_1$, justo porque son disjuntos.
+
+\textbf{Cuentas.} Alicia tiene saldo 5. $t_1$ paga 4 a Beto, $t_2$ paga 3 a
+Caro. Por separado cada una es válida. En el orden $(t_1,t_2)$ la segunda falla
+por saldo insuficiente; en el inverso falla la otra. El estado final difiere. Y
+eso antes de considerar el nonce, que directamente prohíbe el orden inverso.
+
+\subsection*{Ejercicio \ref{e:grafo}}
+Resulta un \textbf{grafo acíclico dirigido} (DAG). Hay una arista de $t_1$ a
+$t_2$ cuando $t_2$ gasta una salida de $t_1$, y entonces $t_2$ contiene el txid
+de $t_1$ entre sus entradas.
+
+Un ciclo exigiría que el contenido de $t_1$ incluyera el hash de $t_2$, cuyo
+contenido a su vez incluye el hash de $t_1$: una preimagen circular. Construirlo
+equivale a romper la resistencia a preimagen de la función hash. Los UTXO
+vigentes son exactamente las \emph{hojas} del DAG.
+
+\subsection*{Ejercicio \ref{e:replay}}
+\textbf{El ataque.} Alicia paga 2 ETH a una tienda. La transacción firmada es
+pública. Sin nonce, la tienda —o cualquiera que lea la cadena— puede reenviarla,
+byte por byte, tantas veces como quiera. Cada reenvío es válido: la firma
+verifica, el origen es correcto y el saldo alcanza. Alicia pierde 2 ETH por
+repetición hasta quedarse en cero. No hace falta falsificar nada; basta copiar.
+
+\textbf{Por qué no aplica en Bitcoin.} La transacción consume outpoints
+concretos. Tras el primer minado esos outpoints ya no están en $U$, así que la
+copia falla en la primera regla de validez —«cada entrada existe en $U$»— antes
+de que nadie mire la firma. Es un argumento puramente estructural sobre
+conjuntos.
+
+\subsection*{Ejercicio \ref{e:pruebas}}
+La prueba es la lista de hermanos en cada nivel. En un árbol de aridad $k$ cada
+nodo del camino aporta $k-1$ hermanos de 32 bytes, y para cubrir el mismo espacio
+de claves hacen falta $\log_k N$ niveles:
+\[
+  (k-1)\,\log_k N \cdot 32\,\text{B}.
+\]
+Para $k = 16$ el factor $(k-1)/\log_2 k$ es $15/4 = 3.75$; para $k = 2$ es
+$1/1 = 1$. La razón entre ambos es $\approx 3.75$, de donde sale el «unas cuatro
+veces más cortas». Con 3 kB de partida quedan unos 800 bytes.
+
+Lo que se paga a cambio es profundidad: más niveles, más hashes al verificar. Es
+un intercambio de ancho de banda por cómputo, y el ancho de banda era el recurso
+escaso.
+
+\subsection*{Ejercicio \ref{e:crec}}
+No tiene respuesta única. Elementos que deberían aparecer:
+
+\begin{itemize}
+  \item En UTXO el costo recae por completo en quien opera un nodo, y es una
+        externalidad: quien creó el polvo ya pagó su comisión y no vuelve.
+  \item En Ethereum el gas de almacenamiento internaliza parte del costo y los
+        reembolsos premian liberar estado, aunque siguen siendo insuficientes.
+  \item El conjunto UTXO tiene un techo natural ligado al número de salidas
+        económicamente viables; el estado de contratos no lo tiene.
+  \item Las soluciones van en direcciones distintas: acumuladores (Utreexo) para
+        no guardar el conjunto, y caducidad de estado del lado de cuentas.
+\end{itemize}
+
+% ===========================================================================
+\section{Referencias}
+% ===========================================================================
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Nakamoto, S. \emph{Bitcoin: A Peer-to-Peer Electronic Cash System}, 2008,
+        secciones 9 y 11.
+  \item Wood, G. \emph{Ethereum: A Secure Decentralised Generalised Transaction
+        Ledger} (Yellow Paper), secciones 4.1 y 6.
+  \item Erhardt, M. (Murch). \emph{An Evaluation of Coin Selection Strategies},
+        tesis de maestría, 2016. Origen del Branch and Bound.
+  \item Bitcoin Core, \texttt{src/wallet/coinselection.cpp}. Implementación de
+        BnB, Knapsack, SRD y CoinGrinder.
+  \item EIP-155 (repetición entre cadenas), EIP-7864 (árbol binario unificado) y
+        EIP-6800 (Verkle, estancado).
+  \item Chakravarty, M. et al. \emph{The Extended UTXO Model}, 2020.
+  \item Gelashvili, R. et al. \emph{Block-STM}, 2022.
+  \item Meiklejohn, S. et al. \emph{A Fistful of Bitcoins}, IMC 2013. La
+        heurística de propiedad común de entradas.
+  \item Dryja, T. \emph{Utreexo}, 2019.
+  \item Fuente temática: \url{http://math.com.mx/u_vs_c.html}
+\end{itemize}
+
+\end{document}

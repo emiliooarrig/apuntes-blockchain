@@ -1,0 +1,704 @@
+% ============================================================================
+%  La firma digital y el viaje del mensaje firmado
+%  Módulo 03 · Criptografía y redes — ChainNotes
+%
+%  Versión LaTeX del apunte web temas/firma-digital.html
+%  Los ejemplos numéricos son los que produce assets/js/firma-digital.js
+%  con la curva y^2 = x^3 + 3x + 6 mod 10007, n = 10039, G = (5,4270).
+%
+%  Compilar:  pdflatex firma-digital.tex   (dos pasadas, por el índice)
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- idioma y codificación -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- página ----------------------------------------------------------------
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{longtable}
+
+% --- matemáticas -----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+
+% --- gráficas --------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,shapes.geometric,
+                decorations.pathreplacing}
+
+% --- enlaces y cajas (hyperref antes que tcolorbox) ------------------------
+\usepackage[colorlinks=true,linkcolor=violetdeep,urlcolor=violetdeep,
+            citecolor=violetdeep,pdftitle={La firma digital y la red P2P},
+            pdfauthor={ChainNotes}]{hyperref}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------------------------
+%  Paleta (heredada de assets/css/styles.css)
+% ---------------------------------------------------------------------------
+\definecolor{violetc}{HTML}{7A68F5}
+\definecolor{violetdeep}{HTML}{5B46E0}
+\definecolor{mintc}{HTML}{1FA88A}
+\definecolor{coralc}{HTML}{E04E5C}
+\definecolor{amberc}{HTML}{C98A1F}
+\definecolor{skyc}{HTML}{1E88C7}
+\definecolor{inkc}{HTML}{282344}
+
+\hypersetup{linkcolor=violetdeep}
+
+% ---------------------------------------------------------------------------
+%  Estilo de párrafo y encabezados
+% ---------------------------------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\captionsetup{font=small,labelfont={bf,color=violetdeep}}
+
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{inkc}\textsc{Firma digital y red P2P}}
+\fancyhead[R]{\small\color{inkc}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+%  Entornos de teoremas
+% ---------------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\theoremstyle{plain}
+\newtheorem{proposicion}{Proposición}
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observación}
+
+% ---------------------------------------------------------------------------
+%  Cajas de color
+% ---------------------------------------------------------------------------
+\newtcolorbox{nota}[1]{enhanced,breakable,colback=skyc!6,colframe=skyc!75!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{caso}[1]{enhanced,breakable,colback=amberc!8,colframe=amberc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{aviso}[1]{enhanced,breakable,colback=coralc!7,colframe=coralc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{clave}[1]{enhanced,breakable,colback=mintc!7,colframe=mintc!85!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{laboratorio}[1]{enhanced,breakable,colback=violetc!6,colframe=violetc!80!black,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=7pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.7pt,arc=2.5pt,
+  before upper={\setlength{\parskip}{0.5em}}}
+
+\newtcolorbox{algoritmo}[1]{enhanced,breakable,colback=inkc!3,colframe=inkc!60,
+  coltitle=white,fonttitle=\bfseries\small,title={#1},
+  left=9pt,right=7pt,top=5pt,bottom=5pt,boxrule=0.6pt,arc=2.5pt}
+
+% ---------------------------------------------------------------------------
+%  Atajos de notación
+% ---------------------------------------------------------------------------
+\newcommand{\si}{\textcolor{mintc}{\checkmark}}
+\newcommand{\no}{\textcolor{coralc}{$\times$}}
+\newcommand{\mecanismo}[1]{\textbf{\textcolor{violetdeep}{#1}}}
+
+\setlist[itemize]{label=\textcolor{violetc}{$\bullet$}}
+
+\newlist{opciones}{enumerate}{1}
+\setlist[opciones]{label=(\alph*),leftmargin=2.4em,itemsep=0.1em,topsep=0.2em}
+
+\begin{document}
+
+\makeatletter
+\DeclareRobustCommand{\%}{\char`\%\relax}
+\makeatother
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+
+{\Large\color{violetdeep}\textsc{ChainNotes}\par}
+{\small\color{inkc}Módulo 03 · Criptografía y redes\par}
+
+\vspace{1.4cm}
+{\Huge\bfseries La firma digital\par}
+\vspace{0.4cm}
+{\LARGE y el viaje del mensaje firmado\par}
+
+\vspace{1.2cm}
+\begin{minipage}{0.78\textwidth}
+\centering\itshape\color{inkc}
+Un nodo recibe una transacción de alguien a quien no conoce y tiene que decidir
+solo, en milisegundos, si de verdad la autorizó quien dice. Eso lo resuelve la
+firma digital. Pero una transacción que nadie recibe tampoco existe, así que la
+otra mitad del problema es cómo ese mensaje firmado llega a toda la red. Las dos
+mitades se encuentran en un punto: antes de reenviar nada, cada nodo verifica la
+firma.
+\end{minipage}
+
+\vspace{1.6cm}
+\begin{tikzpicture}[scale=1.0]
+  \node[violetdeep,font=\small\bfseries] (d) at (-3.2,0) {$d$};
+  \node[inkc,font=\scriptsize,below=1pt] at (d) {privada};
+  \node[skyc,font=\small\bfseries] (Q) at (3.2,0) {$Q = d\cdot G$};
+  \node[inkc,font=\scriptsize,below=1pt] at (Q) {pública};
+  \draw[-{Stealth[length=5pt]},violetc,line width=1pt] (-2.7,0.25) -- (2.2,0.25);
+  \node[violetc,font=\scriptsize,above] at (-0.25,0.25) {barato};
+  \draw[-{Stealth[length=5pt]},coralc,line width=1pt,dashed] (2.2,-0.3) -- (-2.7,-0.3);
+  \node[coralc,font=\scriptsize,below] at (-0.25,-0.3) {inviable};
+\end{tikzpicture}
+
+\vfill
+{\small Apuntes de Blockchain · Proyecto académico\par}
+{\small\color{inkc}\today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\begin{nota}{Cómo usar este documento}
+Es la versión imprimible del apunte interactivo \texttt{temas/firma-digital.html}.
+Los tres laboratorios de la página web aparecen aquí como ejemplos resueltos con
+números fijos. La curva es deliberadamente pequeña ($p = 10\,007$) para que todas
+las cuentas quepan en una línea y los ataques se puedan seguir a mano: la
+inseguridad es intencional. Al final hay siete ejercicios con soluciones en el
+apéndice~\ref{app:sol}.
+\end{nota}
+
+% ===========================================================================
+\section{¿Quién autorizó esto?}\label{sec:quien}
+% ===========================================================================
+
+Una transacción llega a un nodo que no conoce a nadie y no puede preguntarle a
+nadie. Tiene que decidir, él solo y en milisegundos, si ese mensaje lo autorizó
+quien dice haberlo autorizado. No hay servidor central al que consultar, ni
+sesión iniciada, ni soporte técnico.
+
+Una contraseña no sirve aquí. Para comprobar una contraseña hay que conocerla, y
+entonces quien la comprueba también puede usarla. En una red abierta eso
+significa darle tu secreto a miles de desconocidos.
+
+La firma digital resuelve exactamente esa asimetría: \textbf{firmar requiere un
+secreto, verificar no requiere ninguno}.
+
+\begin{clave}{Tres garantías distintas}
+\textbf{Autenticidad:} el mensaje viene de quien dice.
+\textbf{Integridad:} no fue alterado desde que se firmó.
+\textbf{No repudio:} el firmante no puede negar después que fue él.
+
+Las tres salen de la misma operación, pero conviene no mezclarlas: un hash solo
+da integridad, y un MAC da autenticidad e integridad pero no repudio, porque
+quien verifica también podría haberlo generado.
+\end{clave}
+
+% ===========================================================================
+\section{Qué es un esquema de firma}\label{sec:esquema}
+% ===========================================================================
+
+\begin{definicion}[Esquema de firma]
+Son tres algoritmos:
+\[
+  \mathrm{Gen}(1^\lambda) \to (d, Q), \qquad
+  \mathrm{Firmar}(d, m) \to \sigma, \qquad
+  \mathrm{Verificar}(Q, m, \sigma) \to \{0,1\}.
+\]
+\end{definicion}
+
+\textbf{Correctitud:} una firma honesta siempre verifica,
+$\mathrm{Verificar}(Q, m, \mathrm{Firmar}(d,m)) = 1$ para todo $m$.
+
+\textbf{Seguridad (EUF-CMA).} El modelo estándar es la infalsificabilidad
+existencial bajo ataque de mensaje elegido. Al adversario se le concede mucho:
+conoce $Q$ y puede pedir la firma de todos los mensajes que quiera, elegidos por
+él, incluso adaptándolos según lo que vaya viendo. Gana si produce una firma
+válida de \emph{cualquier} mensaje que no haya pedido:
+\[
+  \Pr\bigl[\mathrm{Verificar}(Q, m^*, \sigma^*) = 1 \ \wedge\ m^* \notin \mathcal{Q}_{\text{firmadas}}\bigr]
+  \;\le\; \mathrm{negl}(\lambda).
+\]
+
+No hace falta que el mensaje falsificado sea útil ni que signifique algo: basta
+con uno. Esa exigencia tan estricta es deliberada, porque en un sistema real el
+adversario elige qué le conviene falsificar.
+
+\begin{observacion}
+EUF-CMA no promete que la firma sea única, ni que no se pueda transformar en otra
+firma válida del \emph{mismo} mensaje. Esa propiedad extra se llama
+maleabilidad, y en Bitcoin costó cara: por eso existe SegWit, que sacó la firma
+del cálculo del identificador de la transacción.
+\end{observacion}
+
+% ===========================================================================
+\section{Se firma el hash, no el documento}\label{sec:hash}
+% ===========================================================================
+
+Las firmas sobre curvas operan con números menores que $n$, no con textos de
+longitud arbitraria. Así que lo que se firma nunca es el mensaje: es $H(m)$. A
+eso se le llama \emph{hash-then-sign}, y además de resolver el tamaño, hace la
+firma más rápida y permite firmar sin ver el documento completo.
+
+\begin{proposicion}[Firma con hash]
+Sea $\Sigma$ un esquema EUF-CMA y $\Sigma_H$ el esquema que firma $H(m)$ en lugar
+de $m$. Entonces $\Sigma_H$ es EUF-CMA si $\Sigma$ lo es \emph{y} $H$ es
+resistente a colisión.
+\end{proposicion}
+
+\begin{aviso}{La clave privada nunca se compromete}
+Si alguien encuentra $m_1 \ne m_2$ con $H(m_1) = H(m_2)$, puede pedirte que
+firmes el inocuo y quedarse con una firma válida sobre el fraudulento. No se
+rompió la curva, no se filtró $d$, no hubo fuerza bruta: se rompió la resistencia
+a colisión del hash, y la firma cayó con ella.
+
+Por eso Bitcoin firma sobre doble SHA-256, y por eso la migración de SHA-1 fue
+urgente en cuanto las colisiones se volvieron prácticas en 2017.
+\end{aviso}
+
+% ===========================================================================
+\section{Dónde vive la clave}\label{sec:curva}
+% ===========================================================================
+
+Una curva elíptica sobre un campo finito es el conjunto de puntos $(x,y)$ que
+cumplen $y^2 = x^3 + ax + b \pmod p$, más un punto al infinito. Lo valioso es que
+esos puntos forman un \textbf{grupo}.
+
+Sumar un punto consigo mismo muchas veces es multiplicar por un escalar, y se
+hace rápido duplicando: para calcular $1000\cdot G$ no hacen falta mil sumas sino
+unas diez. La operación inversa —dado $G$ y $Q = d\cdot G$, hallar $d$— es el
+\textbf{problema del logaritmo discreto en curva elíptica}, y es lo único que
+impide que cualquiera deduzca tu clave privada a partir de tu dirección.
+
+Bitcoin y Ethereum usan \textbf{secp256k1}, con un primo de 256 bits. El mejor
+ataque conocido cuesta del orden de $2^{128}$ operaciones.
+
+\begin{nota}{La curva de este documento}
+\[
+  y^2 = x^3 + 3x + 6 \pmod{10\,007}, \qquad n = 10\,039 \ \text{(primo)}, \qquad G = (5, 4270).
+\]
+Misma aritmética que secp256k1, cuatro cifras en vez de setenta y siete. Como $n$
+es primo, cualquier punto distinto del infinito genera todo el grupo, así que no
+hay claves débiles que esquivar.
+
+Con $n = 10\,039$ tu clave privada se encuentra probando diez mil valores: cosa
+de milisegundos. Eso es justamente lo que hace visibles los ataques de la
+sección~\ref{sec:nonce}.
+\end{nota}
+
+% ===========================================================================
+\section{ECDSA paso a paso}\label{sec:ecdsa}
+% ===========================================================================
+
+\subsection{Las ecuaciones}
+
+\textbf{Firmar} con clave $d$ y nonce $k$:
+\[
+  R = k\cdot G, \qquad r = R_x \bmod n, \qquad
+  e = H(m) \bmod n, \qquad
+  s = k^{-1}(e + r\,d) \bmod n.
+\]
+La firma es el par $(r,s)$.
+
+\textbf{Verificar} con la clave pública $Q$:
+\[
+  w = s^{-1}, \qquad P = (e\,w)\cdot G + (r\,w)\cdot Q,
+  \qquad \text{válida} \iff P_x \bmod n = r.
+\]
+
+\begin{proposicion}[Por qué cierra la verificación]
+Sustituyendo $Q = d\cdot G$ y sacando $G$ de factor común,
+\[
+  P = (e\,w)\cdot G + (r\,w)(d\cdot G) = \bigl(w(e + r\,d)\bigr)\cdot G.
+\]
+Como $w = s^{-1} = k\,(e + r\,d)^{-1}$, el paréntesis se cancela y
+\[
+  P = k\,(e+r\,d)^{-1}(e + r\,d)\cdot G = k\cdot G = R.
+\]
+El verificador reconstruye $R$ sin conocer $k$ ni $d$.
+\end{proposicion}
+
+\subsection{Ejemplo resuelto}
+
+Con $d = 1234$, $k = 9871$ y el mensaje «pago 5 a Beto»:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Dato & Valor \\
+\midrule
+Clave pública $Q = d\cdot G$ & $(5354,\ 481)$ \\
+$e = \mathrm{SHA256}(m) \bmod n$ & $5592$ \\
+$R = k\cdot G$, de donde $r = R_x$ & $6126$ \\
+$s = k^{-1}(e + r\,d) \bmod n$ & $7316$ \\
+\midrule
+Verificación & válida \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{observacion}
+Si cambias solo la clave privada y vuelves a firmar, $r$ no cambia: $r$ depende
+únicamente de $k$. Si cambias el nonce, cambia todo. Esa dependencia es la que
+explota el ataque de la sección siguiente.
+\end{observacion}
+
+\begin{aviso}{Dos secretos, no uno}
+La clave privada es un secreto permanente. El nonce es un secreto de usar y
+tirar, y es igual de crítico: filtrarlo o repetirlo entrega la clave privada
+completa.
+\end{aviso}
+
+% ===========================================================================
+\section{El nonce que entrega la clave}\label{sec:nonce}
+% ===========================================================================
+
+La $k$ de ECDSA tiene que ser secreta, impredecible y \textbf{distinta en cada
+firma}. Las tres condiciones son obligatorias, y la tercera es la que más se
+incumple, porque incumplirla no produce ningún error visible: las firmas siguen
+siendo válidas.
+
+\subsection{El despeje}
+
+Dos firmas con la misma $k$ sobre mensajes distintos comparten la misma $r$:
+\[
+  s_1 = k^{-1}(e_1 + r\,d), \qquad s_2 = k^{-1}(e_2 + r\,d).
+\]
+Restando, el término con $d$ desaparece:
+\[
+  s_1 - s_2 = k^{-1}(e_1 - e_2)
+  \quad\Longrightarrow\quad
+  k = \frac{e_1 - e_2}{s_1 - s_2} \bmod n,
+\]
+y con $k$ en la mano sale la clave privada:
+\[
+  d = \frac{s_1 k - e_1}{r} \bmod n.
+\]
+
+\begin{laboratorio}{Ejemplo resuelto}
+Con $d = 1234$ y $k = 4242$ reutilizado en «pago 5 a Beto» y «pago 7 a Caro»:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Firma 1 & Firma 2 \\
+\midrule
+$r$ & 6153 & 6153 \\
+$s$ & 7542 & 5657 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Las dos $r$ coinciden en $6153$, lo que delata públicamente el reuso. El despeje da
+$k = 4242$ y $d = 1234$: la clave privada real.
+\end{laboratorio}
+
+\begin{observacion}
+No interviene el tamaño de la curva. Con secp256k1 el ataque es igual de
+instantáneo: 256 bits no protegen de un error de implementación. No se resuelve
+ningún logaritmo discreto, son dos ecuaciones lineales en $\mathbb{Z}_n$ con dos
+incógnitas.
+\end{observacion}
+
+\subsection{No es teórico}
+
+En 2010 Sony firmaba el software de la PlayStation 3 con una $k$ constante, y el
+grupo fail0verflow extrajo la clave maestra de la consola. En 2013 un generador
+de azar defectuoso en Android repitió nonces en carteras de Bitcoin y se vaciaron
+monederos reales. En los dos casos la curva era sólida y la implementación de la
+firma correcta; lo que falló fue el número aleatorio.
+
+\begin{clave}{La solución: no usar azar}
+El \textbf{RFC 6979} deriva $k$ de forma determinista a partir del mensaje y de
+la clave privada, con un HMAC. Así $k$ sigue siendo impredecible para quien no
+tenga la clave, pero deja de depender del generador aleatorio del dispositivo.
+Es lo que usan hoy las carteras serias, y la razón por la que dos firmas del
+mismo mensaje con la misma clave salen idénticas.
+\end{clave}
+
+% ===========================================================================
+\section{Schnorr y la multifirma}\label{sec:schnorr}
+% ===========================================================================
+
+Bitcoin añadió Schnorr en 2021 con Taproot. El motivo no fue la seguridad sino
+una propiedad algebraica que ECDSA no tiene.
+
+\textbf{Firmar:}
+\[
+  R = k\cdot G, \qquad e = H(R \parallel Q \parallel m), \qquad
+  s = k + e\,d \bmod n.
+\]
+\textbf{Verificar:} $s\cdot G = R + e\cdot Q$.
+
+Comparada con la de ECDSA llama la atención lo que le falta: no hay ningún
+$k^{-1}$. Es \textbf{lineal} en la clave y en el nonce, y de ahí sale todo lo
+demás.
+
+\subsection{Agregación}
+
+Si dos personas firman el mismo mensaje, sus firmas se suman:
+\[
+  Q = Q_1 + Q_2, \qquad R = R_1 + R_2, \qquad s = s_1 + s_2,
+\]
+y el resultado verifica contra la suma de las claves públicas, porque
+\[
+  s_1 + s_2 = (k_1 + k_2) + e(d_1 + d_2)
+\]
+tiene exactamente la forma $s = k + e\,d$ con $k$ y $d$ agregados. Para la red
+eso es indistinguible de una firma de un solo firmante: mismo tamaño, mismo costo
+de verificación. Un monedero de tres de tres deja de anunciarse como tal.
+
+\begin{observacion}
+Con ECDSA no funciona. Cada sumando lleva su propio $k^{-1}$ y no hay forma de
+factorizar uno común, porque $k_1^{-1} + k_2^{-1} \ne (k_1+k_2)^{-1}$. Además
+cada firma tiene su propia $r$, mientras que una firma agregada necesitaría una
+sola. Esa es la diferencia completa entre los dos esquemas.
+\end{observacion}
+
+\subsection{El ataque de clave deshonesta}
+
+\begin{aviso}{Sumar claves públicas tal cual está roto}
+Quien publica su clave al último puede elegirla en función de las ajenas. Si Beto
+ve la clave $Q_1$ de Alicia y publica
+\[
+  Q_2 = d\cdot G - Q_1,
+\]
+entonces la clave agregada queda
+\[
+  Q = Q_1 + Q_2 = d\cdot G,
+\]
+que es exactamente su propia clave, sin rastro de Alicia. Beto firma solo y la
+firma verifica contra la clave de los dos. Alicia nunca participó y no se entera.
+\end{aviso}
+
+Por eso lo que se usa de verdad es \textbf{MuSig2}, que obliga a cada firmante a
+comprometerse primero con su nonce y pondera cada clave con un coeficiente que
+depende de todas las demás, de modo que nadie puede elegir la suya en función de
+las ajenas.
+
+% ===========================================================================
+\section{De la firma a la red}\label{sec:puente}
+% ===========================================================================
+
+Hasta aquí el mensaje está firmado, pero sigue en tu computadora. Una transacción
+que nadie recibe no existe. La otra mitad del problema es cómo ese mensaje
+firmado llega a miles de nodos que no se conocen entre sí.
+
+\begin{clave}{Dónde se encuentran las dos mitades}
+Antes de reenviar nada, \textbf{cada nodo verifica la firma}. Si no cuadra, tira
+el mensaje y no lo propaga.
+
+Sin firmas, el gossip sería un canal de inundación: cualquiera podría generar
+transacciones falsas a nombre ajeno y la red las repartiría obedientemente. La
+firma convierte cada nodo en un filtro que cuesta cero confianza, porque
+verificar no requiere conocer a nadie ni consultar a nadie. Es lo que permite que
+la red no tenga portero.
+\end{clave}
+
+\subsection{Cómo se propaga}
+
+Cada nodo mantiene conexiones con un puñado de pares y les reenvía lo que recibe
+y valida. En pocos saltos el mensaje alcanza a toda la red, sin que exista un
+directorio central ni un orden de reparto.
+
+Las transacciones válidas que aún no están en un bloque esperan en la
+\textbf{mempool} de cada nodo. No es una cola global: cada nodo tiene la suya, y
+pueden diferir.
+
+\subsection{Qué ocurre si aparecen dos bloques}
+
+Dos mineros pueden resolver el acertijo casi a la vez. Entonces parte de la red
+ve un bloque y parte ve el otro: es una \textbf{bifurcación temporal}. Se resuelve
+sola en cuanto aparece el siguiente bloque, porque todos adoptan la cadena con
+más trabajo acumulado y la otra rama queda huérfana.
+
+\begin{observacion}
+Por eso la finalidad en una red de prueba de trabajo es \emph{probabilística}: no
+hay un instante en que el bloque se declare definitivo, solo una probabilidad de
+reversión que cae con cada confirmación.
+\end{observacion}
+
+% ===========================================================================
+\section{Síntesis}\label{sec:sintesis}
+% ===========================================================================
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+Pregunta & La responde \\
+\midrule
+¿Quién autorizó esto?        & La firma: solo quien tiene $d$ produce $(r,s)$; cualquiera lo comprueba con $Q$. \\
+¿Lo alteraron?               & La firma: se firma $H(m)$, así que cambiar un carácter rompe la verificación. \\
+¿Puede negarlo después?      & La firma: verificar no requiere el secreto, así que nadie más pudo firmarlo. \\
+¿Cómo se entera la red?      & El gossip: cada nodo reenvía a sus pares. \\
+¿Por qué no se inunda de basura? & Las dos: cada nodo verifica \emph{antes} de reenviar. \\
+¿Y si llegan dos bloques a la vez? & El consenso: bifurcación temporal y cadena con más trabajo. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item Firmar necesita un secreto; verificar no necesita ninguno. Esa asimetría
+        permite una red abierta sin portero.
+  \item Nunca se firma el documento, sino su hash. La seguridad de la firma queda
+        amarrada a la resistencia a colisión del hash.
+  \item ECDSA necesita un nonce secreto, impredecible y distinto cada vez.
+        Repetirlo entrega la clave privada con álgebra elemental.
+  \item Schnorr es lineal, así que las firmas se suman. La agregación ingenua de
+        claves es atacable; por eso existe MuSig2.
+  \item Una transacción firmada que nadie recibe no existe.
+\end{enumerate}
+
+% ===========================================================================
+\section{Ejercicios}\label{sec:ej}
+% ===========================================================================
+
+\begin{enumerate}[leftmargin=1.8em,itemsep=0.8em]
+
+\item\label{e:verif} \textbf{Por qué cierra la verificación.}
+Partiendo de $s = k^{-1}(e + r\,d)$, demuestra que el punto que calcula el
+verificador es exactamente $R = k\cdot G$. Explica en una línea por qué eso lo
+convence de que quien firmó conocía $d$.
+
+\item\label{e:nonce} \textbf{El nonce repetido.}
+Deduce la fórmula que recupera $k$ a partir de dos firmas que lo comparten, y
+luego la que recupera $d$. Explica por qué el tamaño de la curva no influye en la
+dificultad del ataque.
+
+\item\label{e:agregar} \textbf{Por qué ECDSA no se puede agregar.}
+Escribe $s_1 + s_2$ en ECDSA y explica qué término impide que el resultado tenga
+la forma de una firma ECDSA válida.
+
+\item\label{e:rogue} \textbf{La clave deshonesta.}
+Verifica que si Beto publica $Q_2 = d\cdot G - Q_1$, la clave agregada es
+exactamente $d\cdot G$. ¿Qué tendría que impedir un protocolo para evitarlo?
+
+\item\label{e:mac} \textbf{Firma contra MAC.}
+Un MAC da autenticidad e integridad y es mucho más barato que una firma. Explica
+por qué Bitcoin no puede usar MAC en lugar de firmas.
+
+\item\label{e:colision} \textbf{Colisión y falsificación.}
+Describe un ataque concreto contra un esquema \emph{hash-then-sign} cuyo hash
+admite colisiones, sin tocar en ningún momento la clave privada.
+
+\item\label{e:gossip} \textbf{Sin firmas no hay gossip.}
+Explica qué le pasaría a una red P2P que propagara transacciones sin verificar
+firmas, y por qué el problema no se arregla poniendo un nodo de confianza que las
+revise.
+
+\end{enumerate}
+
+% ===========================================================================
+\appendix
+\section{Soluciones}\label{app:sol}
+% ===========================================================================
+
+\subsection*{Ejercicio \ref{e:verif}}
+Sustituyendo $Q = d\cdot G$ y factorizando,
+$P = (e\,w)G + (r\,w)(dG) = \bigl(w(e+rd)\bigr)G$. Como
+$w = s^{-1} = k(e+rd)^{-1}$, queda $P = kG = R$, y por eso $P_x \bmod n = r$.
+
+Lo convence porque la igualdad solo puede cumplirse si quien construyó $s$
+conocía el $d$ que satisface $Q = dG$; producir una $s$ que cuadre sin saber $d$
+equivale a resolver el logaritmo discreto.
+
+\subsection*{Ejercicio \ref{e:nonce}}
+De $s_1 = k^{-1}(e_1 + rd)$ y $s_2 = k^{-1}(e_2 + rd)$, restando se cancela $d$:
+$s_1 - s_2 = k^{-1}(e_1-e_2)$, de donde $k = (e_1-e_2)(s_1-s_2)^{-1}$. Despejando
+de la primera, $d = (s_1 k - e_1)\,r^{-1}$.
+
+El tamaño de la curva no influye porque no se resuelve ningún logaritmo discreto:
+son dos ecuaciones lineales en $\mathbb{Z}_n$, y resolverlas cuesta un par de
+inversos modulares. La seguridad de la curva protege contra el problema difícil,
+no contra un error de implementación que regala la información.
+
+\subsection*{Ejercicio \ref{e:agregar}}
+En Schnorr, $s_1+s_2 = (k_1+k_2) + e(d_1+d_2)$, que tiene la forma de una firma
+con clave y nonce agregados. En ECDSA,
+\[
+  s_1 + s_2 = k_1^{-1}(e + r_1 d_1) + k_2^{-1}(e + r_2 d_2),
+\]
+y el estorbo es el \textbf{inverso del nonce}: no hay forma de factorizar un
+$k^{-1}$ común porque $k_1^{-1} + k_2^{-1} \ne (k_1+k_2)^{-1}$. Además cada firma
+tiene su propia $r$, mientras que una agregada necesitaría una sola.
+
+\subsection*{Ejercicio \ref{e:rogue}}
+Por construcción $Q_1 + Q_2 = Q_1 + (dG - Q_1) = dG$. La suma de puntos es
+conmutativa y $Q_1$ se cancela con su inverso. Beto conoce $d$, así que firma
+solo y la verificación $sG = R + eQ$ se cumple.
+
+Un protocolo lo evita obligando a cada firmante a \textbf{comprometerse con su
+clave y su nonce antes de ver los ajenos}, y ponderando cada clave con un
+coeficiente derivado del conjunto completo, de modo que nadie pueda elegir la
+suya en función de las demás. Eso es MuSig2.
+
+\subsection*{Ejercicio \ref{e:mac}}
+Un MAC usa una clave \emph{compartida}: quien verifica también puede generar. En
+una red abierta eso significa que cada nodo que valide tu transacción podría
+fabricar otras a tu nombre, y además no habría no repudio, porque no se podría
+distinguir quién de los dos la creó. La firma digital separa generar de
+verificar, y esa separación es justo lo que la red necesita.
+
+\subsection*{Ejercicio \ref{e:colision}}
+El atacante construye $m_1$ inocuo y $m_2$ fraudulento con $H(m_1) = H(m_2)$. Te
+pide que firmes $m_1$; tú lo lees, te parece inofensivo y lo firmas, produciendo
+$\sigma$. Como la firma se calculó sobre $H(m_1) = H(m_2)$, el par $(m_2,\sigma)$
+verifica igual de bien. La clave privada nunca salió de tu poder.
+
+\subsection*{Ejercicio \ref{e:gossip}}
+Sin verificación, cualquiera podría inundar la red con transacciones falsas a
+nombre ajeno, y los nodos las repartirían obedientemente hasta agotar ancho de
+banda y memoria. Es una denegación de servicio gratuita para el atacante.
+
+Un nodo de confianza que las revise no arregla el problema: reintroduce un punto
+central que puede censurar, equivocarse o caerse, y obliga a todos los demás a
+confiar en él. La gracia de la firma es que \emph{cada} nodo puede filtrar por su
+cuenta sin confiar en nadie.
+
+% ===========================================================================
+\section{Referencias}
+% ===========================================================================
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Goldwasser, S., Micali, S. y Rivest, R. \emph{A Digital Signature Scheme
+        Secure Against Adaptive Chosen-Message Attacks}, SIAM J. Comput., 1988.
+        Define EUF-CMA.
+  \item Johnson, D., Menezes, A. y Vanstone, S. \emph{The Elliptic Curve Digital
+        Signature Algorithm (ECDSA)}, IJIS, 2001.
+  \item Schnorr, C.~P. \emph{Efficient Signature Generation by Smart Cards},
+        Journal of Cryptology, 1991.
+  \item NIST, \emph{FIPS 186-5: Digital Signature Standard}, 2023.
+  \item Pornin, T. \emph{RFC 6979: Deterministic Usage of DSA and ECDSA}, 2013.
+  \item BIP-340 (Schnorr para secp256k1) y BIP-341 (Taproot), activados en
+        noviembre de 2021.
+  \item Nick, J., Ruffing, T. y Seurin, Y. \emph{MuSig2: Simple Two-Round Schnorr
+        Multi-Signatures}, CRYPTO 2021.
+  \item fail0verflow, \emph{Console Hacking 2010}, 27C3. La clave de la PS3.
+  \item Nakamoto, S. \emph{Bitcoin: A Peer-to-Peer Electronic Cash System}, 2008,
+        secciones 5 y 8.
+\end{itemize}
+
+\end{document}
