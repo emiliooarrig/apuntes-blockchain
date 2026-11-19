@@ -1,6 +1,6 @@
 /* ==========================================================
    ChainNotes · datos del quiz de la página "Modelo UTXO y minería"
-   (temas/timestamping.html). Lo consume assets/js/quiz.js, que
+   (temas/utxo-y-mineria.html). Lo consume assets/js/quiz.js, que
    debe cargarse DESPUÉS de este archivo.
    ========================================================== */
 (function () {

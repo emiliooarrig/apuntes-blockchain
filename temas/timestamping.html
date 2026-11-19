@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time stamping — ChainNotes</title>
+<meta name="description" content="Apunte en lenguaje sencillo sobre el sellado de tiempo: cómo demostrar que un documento existía en cierta fecha sin confiar ciegamente en nadie. Huellas digitales, autoridades de sellado, los sellos encadenados de Haber y Stornetta, árboles de Merkle, Bitcoin como notario y los límites de su reloj. Con dos laboratorios y quiz final.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=7 rompe la caché: la página usa .miniblock, .merkle, .phases y el quiz -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=7">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-defi" viewBox="0 0 24 24"><path d="M3.5 19.5h17M6 19.5v-6M11 19.5V8M16 19.5v-9"/><path d="m5 10 5.6-5.2 4 2.6 4.6-4.1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#problema">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#problema">El problema</a></li>
+        <li><a class="nav__link" href="#encadenar">Encadenar</a></li>
+        <li><a class="nav__link" href="#bitcoin">Bitcoin</a></li>
+        <li><a class="nav__link" href="#reloj">El reloj</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#problema">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>05 · Time stamping</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 05 · Sellado de tiempo
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        <span class="grad">Time</span><br>
+        <span class="underlined">stamping</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Cambiar la fecha de un archivo toma dos clics. Entonces, ¿cómo demuestras que tu
+        tarea, tu contrato o tu idea ya existían el martes pasado? Este apunte cuenta cómo se
+        resolvió ese problema: primero con un notario digital, luego con sellos encadenados y,
+        al final, sin tener que confiar en nadie, gracias a Bitcoin.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> Huella digital</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Sellos encadenados</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-clock"/></svg> El reloj de Bitcoin</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> 2 laboratorios + quiz</li>
+      </ul>
+    </div>
+
+    <!-- LAB 1: la huella de un documento -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> Laboratorio 1 — La huella</h2>
+        <span class="lab__tag">SHA-256 en vivo</span>
+      </div>
+      <p class="lab__intro">
+        Escribe tu «documento» y guarda su huella. Después cambia aunque sea una coma: la
+        huella ya no coincide.
+      </p>
+
+      <div class="field field--wide">
+        <label class="field__label" for="hfInput">Tu documento</label>
+        <input type="text" id="hfInput" value="Mi idea: una app para dividir la cuenta del café." autocomplete="off" spellcheck="false">
+      </div>
+
+      <p class="lab__note" style="margin:.9rem 0 .3rem">Huella actual (64 caracteres):</p>
+      <div class="hashout hashout--sm" id="hfOut" aria-live="polite">—</div>
+
+      <div class="controls" style="margin:1rem 0 0">
+        <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="hfSave" type="button">Guardar huella</button></div>
+      </div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="hfSaved" style="font-size:.95rem">—</span><span class="metric__label">Huella guardada</span></div>
+        <div class="metric"><span class="metric__num" id="hfMatch">—</span><span class="metric__label">¿Coincide?</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#problema"><span class="toc__n">01</span> El problema de la fecha</a></li>
+        <li><a href="#huella"><span class="toc__n">02</span> Sellar la huella, no el documento</a></li>
+        <li><a href="#autoridad"><span class="toc__n">03</span> El notario digital</a></li>
+        <li><a href="#encadenar"><span class="toc__n">04</span> Sellos encadenados</a></li>
+        <li><a href="#arbol"><span class="toc__n">05</span> Millones de sellos a la vez</a></li>
+        <li><a href="#bitcoin"><span class="toc__n">06</span> Bitcoin como notario</a></li>
+        <li><a href="#reloj"><span class="toc__n">07</span> Qué tan preciso es el reloj</a></li>
+        <li><a href="#ventana"><span class="toc__n">08</span> Antes y después</a></li>
+        <li><a href="#sintesis"><span class="toc__n">09</span> Síntesis</a></li>
+        <li><a href="#quiz"><span class="toc__n">10</span> Quiz</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · EL PROBLEMA ============ -->
+<section class="section note" id="problema">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">El problema de la fecha</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender por qué demostrar
+        <em>cuándo</em> existía un archivo es difícil en el mundo digital, y qué tendría que
+        cumplir una buena solución.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Muchas situaciones dependen de una fecha: quién registró primero un invento, si una
+          tarea se entregó antes del límite, cuándo se firmó un contrato o si una foto ya
+          existía antes de un suceso. En papel había soluciones conocidas: ir con un notario,
+          llevar un cuaderno de laboratorio con páginas numeradas o enviarte a ti mismo una
+          carta cerrada con matasellos.
+        </p>
+        <p>
+          En lo digital, ninguna de esas pistas sirve. La fecha de «creado» o «modificado» de
+          un archivo la escribe tu propia computadora, y se cambia en segundos. Un archivo
+          editado ayer y uno editado hace diez años son, bit por bit, indistinguibles.
+        </p>
+        <p>
+          A la técnica que resuelve esto se le llama <strong>sellado de tiempo</strong>
+          (<em>time stamping</em>): ponerle a un documento digital una marca que demuestre que
+          ya existía en cierto momento, de forma que nadie, ni siquiera tú, pueda falsificarla
+          después.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">La pregunta exacta</span>
+          Un sello de tiempo responde: «¿este documento, tal como está hoy, ya existía en tal
+          fecha?». No dice quién lo escribió ni si es verdad lo que contiene. Sólo habla de
+          <em>cuándo</em>.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Lo que pedimos a un buen sello</span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li><strong>No se puede antedatar:</strong> nadie puede sellar hoy algo con fecha de la semana pasada.</li>
+          <li style="--accent:var(--mint)"><strong>No se puede alterar:</strong> si el documento cambia, el sello deja de valer.</li>
+          <li style="--accent:var(--amber)"><strong>Es privado:</strong> sellar no debería obligarte a mostrar el contenido.</li>
+          <li style="--accent:var(--coral)"><strong>Cualquiera lo verifica:</strong> años después, sin pedir permiso a nadie.</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · LA HUELLA ============ -->
+<section class="section note" id="huella">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Sellar la huella, no el documento</h2>
+      <p class="section__lead">
+        El primer truco es no sellar el documento en sí, sino algo mucho más pequeño que lo
+        representa sin revelarlo.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Una <strong>función hash</strong> como SHA-256 funciona como una máquina de huellas
+          digitales: le das cualquier archivo (un texto, una foto, un video de 2 GB) y te
+          devuelve siempre 64 caracteres. Tiene tres propiedades que la hacen perfecta para
+          sellar:
+        </p>
+        <ul class="plain-list">
+          <li><strong>Siempre da lo mismo.</strong> El mismo archivo produce siempre la misma huella, hoy y dentro de veinte años.</li>
+          <li style="--accent:var(--mint)"><strong>Cualquier cambio la transforma.</strong> Cambiar una coma produce una huella completamente distinta. Pruébalo en el laboratorio 1.</li>
+          <li style="--accent:var(--coral)"><strong>No se puede ir hacia atrás.</strong> A partir de la huella no hay forma de reconstruir el documento.</li>
+        </ul>
+        <p>
+          Gracias a eso, basta con sellar la huella. Si dentro de un año alguien duda,
+          vuelves a calcular la huella de tu archivo: si coincide con la sellada, el archivo
+          es exactamente el mismo que existía en esa fecha.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">Guarda el original</span>
+          El sello sólo protege la huella. Si pierdes el archivo original o cambias aunque sea
+          un espacio, ya no podrás demostrar nada: la huella nueva no coincidirá con la sellada.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Por qué conviene</span>
+        <p><strong>Privacidad.</strong> Quien sella sólo ve 64 caracteres sin significado.
+          Tu tesis o tu contrato nunca salen de tu computadora.</p>
+        <p><strong>Tamaño.</strong> Sellar una película o un correo cuesta lo mismo: la huella
+          siempre mide 256 bits.</p>
+        <span class="eq">
+          documento → SHA-256 → huella
+          <small>se sella la huella; el documento se queda contigo</small>
+        </span>
+        <p class="lab__note">
+          Las propiedades de las funciones hash se estudian a fondo en el apunte de
+          <a href="hash.html">funciones hash</a>.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · EL NOTARIO DIGITAL ============ -->
+<section class="section note" id="autoridad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">El notario digital</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> conocer la solución más directa (una
+        autoridad que firma la huella con la hora) y entender su punto débil: hay que
+        confiar en ella.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          La idea más sencilla es copiar al notario de toda la vida. Existe una
+          <strong>autoridad de sellado de tiempo</strong> (TSA, por sus siglas en inglés): un
+          servicio con un reloj confiable y una llave para firmar. El proceso es así:
+        </p>
+        <div class="phases">
+          <div class="phase"><div><h4>Calculas la huella</h4><p>En tu computadora, sin enviar el documento a nadie.</p></div></div>
+          <div class="phase"><div><h4>Envías sólo la huella</h4><p>La autoridad recibe 64 caracteres y no sabe qué representan.</p></div></div>
+          <div class="phase"><div><h4>La autoridad firma «huella + hora»</h4><p>Junta la huella con la fecha y hora actuales y lo firma digitalmente. Eso es el sello.</p></div></div>
+          <div class="phase"><div><h4>Cualquiera lo verifica</h4><p>Con la llave pública de la autoridad, cualquiera comprueba que la firma es auténtica y que la huella coincide con el archivo.</p></div></div>
+        </div>
+        <p style="margin-top:1.4rem">
+          Este esquema está estandarizado desde 2001 (se le conoce como RFC 3161) y se usa
+          todos los días: en la firma electrónica de PDF, en la firma de programas y en
+          trámites legales. En México, la norma NOM-151 aplica una idea parecida para
+          conservar documentos electrónicos con valor legal.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> El punto débil</span>
+        <p>Todo depende de que la autoridad sea honesta y cuidadosa:</p>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Si alguien la soborna, podría firmar una huella con una <strong>fecha falsa</strong> del pasado.</li>
+          <li style="--accent:var(--amber)">Si le roban la llave, el ladrón puede fabricar <strong>sellos con cualquier fecha</strong>.</li>
+          <li style="--accent:var(--coral)">Si la empresa desaparece, verificar sellos viejos puede volverse <strong>complicado</strong>.</li>
+        </ul>
+        <p class="lab__note" style="margin-top:1.1rem">
+          La pregunta que motivó lo que sigue: ¿se puede sellar sin tener que confiar
+          ciegamente en una sola entidad?
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · SELLOS ENCADENADOS ============ -->
+<section class="section note" id="encadenar">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Sellos encadenados</h2>
+      <p class="section__lead">
+        En 1991, Stuart Haber y Scott Stornetta propusieron una idea que, casi veinte años
+        después, se convertiría en la columna vertebral de Bitcoin.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Su propuesta: que cada sello nuevo incluya <strong>la huella del sello
+          anterior</strong>. Así, los sellos dejan de ser hojas sueltas y forman una cadena.
+          Cada eslabón depende de todos los que vinieron antes.
+        </p>
+        <p>
+          ¿Por qué ayuda? Imagina que la autoridad quiere meter hoy un documento con fecha de
+          hace un mes. Tendría que insertarlo en medio de la cadena, y eso cambiaría la huella
+          de ese eslabón, que cambiaría la del siguiente, y la del siguiente… hasta hoy. Todos
+          los sellos que ya repartió a otras personas dejarían de coincidir y el fraude se
+          notaría.
+        </p>
+        <p>
+          Para que ni siquiera la autoridad pueda reescribir la cadena completa en secreto, la
+          huella del último eslabón se publica periódicamente en un lugar que nadie controla y
+          del que existen miles de copias. Desde 1995, la empresa Surety publica cada semana
+          una huella así en los anuncios clasificados del <em>New York Times</em>.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Ya no es «confía en mí»</span>
+          Con la cadena, falsificar una fecha no basta con mentir una vez: hay que reescribir
+          todo lo posterior y, además, cambiar ejemplares de un periódico ya impreso y
+          repartido. La confianza pasa de una persona a algo público y difícil de alterar.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Cómo se calcula un eslabón</span>
+        <span class="eq">
+          sello nuevo = huella( sello anterior + huella del documento + hora )
+          <small>cada sello «abraza» al anterior</small>
+        </span>
+        <p>
+          Si cambias el documento del eslabón 2, cambia el sello 2. Como el sello 3 se
+          calculó con el sello 2 original, ya no cuadra. Y así hasta el final.
+        </p>
+        <p class="lab__note">
+          Es exactamente la misma estructura que une los bloques de una blockchain. Puedes
+          verla desde ese ángulo en el apunte de <a href="encadenamiento.html">encadenamiento</a>.
+        </p>
+      </aside>
+    </div>
+
+    <!-- LAB 2: la libreta encadenada -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 2 — La libreta encadenada</h2>
+        <span class="lab__tag">edita un sello viejo</span>
+      </div>
+      <p class="lab__intro">
+        Cada tarjeta es un sello. Cambia el texto de un documento antiguo y mira cómo esa
+        tarjeta y todas las posteriores se marcan como rotas. También puedes sellar documentos
+        nuevos al final.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="tsDoc">Documento nuevo</label>
+          <input type="text" id="tsDoc" value="Acta de la reunión del club de ajedrez" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field field--auto"><button class="clay-btn clay-btn--primary" id="tsAdd" type="button">Sellar al final</button></div>
+        <div class="field field--auto"><button class="clay-btn" id="tsReset" type="button">Restaurar</button></div>
+      </div>
+
+      <div class="chainlab" id="tsChain" style="margin-top:1.2rem"></div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="tsCount">0</span><span class="metric__label">Sellos</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="tsBroken">0</span><span class="metric__label">Sellos rotos</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="tsStatus">—</span><span class="metric__label">Estado de la libreta</span></div>
+      </div>
+      <p class="lab__note" id="tsMsg" aria-live="polite">Todos los sellos cuadran: la libreta está intacta.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · ÁRBOL DE MERKLE ============ -->
+<section class="section note" id="arbol">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Millones de sellos a la vez</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender cómo se juntan muchísimas
+        huellas en una sola, para sellarlas todas de golpe sin perder la capacidad de
+        demostrar cada una por separado.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Publicar una huella por documento en el periódico sería carísimo. En 1993, Haber y
+          Stornetta, junto con Dave Bayer, propusieron usar un <strong>árbol de Merkle</strong>:
+          una forma de resumir muchas huellas en una sola, como en un torneo de eliminación.
+        </p>
+        <ul class="plain-list">
+          <li>Las huellas de los documentos se juntan de dos en dos y se calcula la huella de cada pareja.</li>
+          <li style="--accent:var(--mint)">Esas huellas se vuelven a juntar de dos en dos, y así sucesivamente.</li>
+          <li style="--accent:var(--amber)">Al final queda una sola huella, la <strong>raíz</strong>, que depende de todos los documentos. Sólo esa se sella.</li>
+        </ul>
+        <p>
+          Para demostrar que tu documento estaba en el árbol no necesitas todos los demás:
+          basta con las huellas «hermanas» de tu camino hacia la raíz. Con un millón de
+          documentos, eso son apenas unas <strong>20 huellas</strong>.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-nodes"/></svg> Demostrar el documento C</span>
+        <div class="merkle" role="img" aria-label="Árbol de Merkle con cuatro documentos. Para demostrar C se usan la huella de D y la huella de A con B.">
+          <div class="merkle__level"><span class="merkle__node merkle__node--root">raíz</span></div>
+          <div class="merkle__level">
+            <span class="merkle__node merkle__node--sib">H(A+B)</span>
+            <span class="merkle__node merkle__node--path">H(C+D)</span>
+          </div>
+          <div class="merkle__level">
+            <span class="merkle__node">H(A)</span>
+            <span class="merkle__node">H(B)</span>
+            <span class="merkle__node merkle__node--path">H(C)</span>
+            <span class="merkle__node merkle__node--sib">H(D)</span>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:color-mix(in srgb,var(--mint) 32%,transparent)"></i> camino que recalculas</span>
+          <span><i style="background:color-mix(in srgb,var(--amber) 38%,transparent)"></i> huellas que te dan</span>
+        </div>
+        <p class="lab__note" style="margin-top:1rem">
+          Con tu documento C, la huella de D y la de A+B, recalculas la raíz. Si coincide con
+          la sellada, C estaba ahí.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · BITCOIN COMO NOTARIO ============ -->
+<section class="section note" id="bitcoin">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Bitcoin como notario</h2>
+      <p class="section__lead">
+        Si los sellos encadenados se publican en un lugar que nadie controla, ¿qué mejor lugar
+        que una cadena de bloques copiada en miles de computadoras?
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          El documento original de Bitcoin (2008) dedica su sección 3 a un
+          <strong>«servidor de sellos de tiempo»</strong> y cita tres trabajos de Haber y
+          Stornetta. Cada bloque guarda la huella del bloque anterior y la raíz de Merkle de sus
+          transacciones: es, literalmente, una cadena de sellos de tiempo. La diferencia es que
+          ya no la lleva una empresa, sino una red abierta protegida por la prueba de trabajo.
+        </p>
+        <p>
+          Eso permite usar Bitcoin como notario para cualquier documento. El servicio gratuito
+          <strong>OpenTimestamps</strong> (2016) lo hace así:
+        </p>
+        <div class="phases">
+          <div class="phase"><div><h4>Juntar huellas</h4><p>Recibe huellas de miles de personas y las resume en un árbol de Merkle.</p></div></div>
+          <div class="phase"><div><h4>Anclar la raíz</h4><p>Mete esa única raíz en una transacción de Bitcoin. Un solo pago sella miles de documentos.</p></div></div>
+          <div class="phase"><div><h4>Esperar el bloque</h4><p>Cuando la transacción queda en un bloque, el sello está listo. Puede tardar unas horas.</p></div></div>
+          <div class="phase"><div><h4>Guardar la prueba</h4><p>Recibes un archivo pequeño con el camino desde tu huella hasta el bloque. Con él, cualquiera verifica sin preguntarle a OpenTimestamps.</p></div></div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> Por qué es difícil falsificarlo</span>
+        <p>
+          Para antedatar un documento habría que meter su huella en un bloque viejo. Eso
+          obliga a rehacer la prueba de trabajo de ese bloque y de todos los posteriores, más
+          rápido que el resto de la red junta.
+        </p>
+        <p>
+          No hay llave que robar ni empresa que sobornar. La seguridad del sello es la misma
+          que protege los pagos de Bitcoin.
+        </p>
+        <p class="lab__note">
+          Por qué reescribir bloques es tan caro se explica en el apunte de
+          <a href="prueba-de-trabajo.html">prueba de trabajo</a>.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · EL RELOJ DE BITCOIN ============ -->
+<section class="section note" id="reloj">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Qué tan preciso es el reloj</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> saber qué tan exacta es la hora que
+        Bitcoin le pone a un bloque, para no prometer más precisión de la que el sello puede
+        dar.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cada bloque trae una hora escrita por el minero que lo encontró. No hay un reloj
+          central, así que la red no puede exigir una hora exacta. En su lugar, pone dos
+          límites razonables:
+        </p>
+        <ul class="plain-list">
+          <li><strong>No demasiado en el pasado:</strong> la hora debe ser posterior a la mediana de los 11 bloques anteriores.</li>
+          <li style="--accent:var(--coral)"><strong>No demasiado en el futuro:</strong> no puede adelantarse más de 2 horas respecto a la hora que ven los nodos.</li>
+        </ul>
+        <p>
+          Esto significa que un bloque puede llevar una hora unos minutos (incluso un par de
+          horas) distinta de la real, y que a veces un bloque marca una hora anterior a la del
+          bloque previo. Para casi todos los usos da igual, pero importa saberlo.
+        </p>
+        <div class="callout callout--warn">
+          <span class="callout__title">Precisión de horas, no de segundos</span>
+          Un sello en Bitcoin demuestra muy bien el <em>día</em> en que existía un documento y,
+          con cierto margen, la <em>hora</em>. No sirve para decidir quién llegó primero por
+          diferencia de segundos. Para eso se necesita una autoridad con reloj preciso.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> Notario digital frente a Bitcoin</span>
+        <div class="table-wrap" style="margin-top:0">
+          <table class="nb">
+            <thead><tr><th scope="col"></th><th scope="col">Autoridad (TSA)</th><th scope="col">Bitcoin</th></tr></thead>
+            <tbody>
+              <tr><td>Precisión</td><td>Segundos</td><td>Horas</td></tr>
+              <tr><td>Confianza</td><td>En la empresa</td><td>En la red</td></tr>
+              <tr><td>Rapidez</td><td>Inmediato</td><td>Horas</td></tr>
+              <tr><td>Costo</td><td>Suele cobrar</td><td>Casi gratis si se agrupa</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lab__note" style="margin-top:1rem">
+          No compiten: muchos sistemas usan ambos, la autoridad para la precisión y Bitcoin
+          como respaldo que no depende de nadie.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · ANTES Y DESPUÉS ============ -->
+<section class="section note" id="ventana">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Antes y después</h2>
+      <p class="section__lead">
+        Un sello demuestra que algo existía <em>a más tardar</em> en una fecha. Demostrar que
+        no existía <em>antes</em> requiere otro truco.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Si sellas tu documento el 10 de marzo, sabemos que existía a más tardar ese día.
+          Pero pudiste haberlo escrito años antes. A veces eso no importa; otras veces sí
+          interesa probar lo contrario: que algo se hizo <em>después</em> de cierto momento
+          (por ejemplo, que una foto no se preparó con anticipación).
+        </p>
+        <p>
+          La solución es incluir en el documento algo que <strong>nadie podía conocer
+          antes</strong> de esa fecha: el titular del periódico del día o la huella del bloque
+          de Bitcoin más reciente. Nadie puede adivinar esa huella antes de que el bloque
+          exista.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">El ejemplo más famoso</span>
+          El primer bloque de Bitcoin, minado el 3 de enero de 2009, lleva escrito el titular
+          de ese día del periódico británico <em>The Times</em> sobre un segundo rescate a los
+          bancos. Es una prueba de que ese bloque no se minó antes de esa fecha.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> La ventana de tiempo</span>
+        <span class="eq">
+          dato impredecible del día X → documento → sello del día Y
+          <small>el documento nació entre X y Y</small>
+        </span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li><strong>Límite inferior:</strong> el dato impredecible que incluiste (no existía antes de X).</li>
+          <li style="--accent:var(--mint)"><strong>Límite superior:</strong> el sello (ya existía en Y).</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Síntesis</h2>
+      <p class="section__lead">Lo que conviene llevarse de este apunte, en una lista.</p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> La idea</span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Un sello de tiempo demuestra que un documento ya existía <strong>a más tardar</strong> en cierta fecha.</li>
+          <li style="--accent:var(--mint)">Se sella la <strong>huella</strong> (hash), no el documento: es privado y siempre del mismo tamaño.</li>
+          <li style="--accent:var(--amber)">Una <strong>autoridad de sellado</strong> firma «huella + hora», pero hay que confiar en ella.</li>
+          <li style="--accent:var(--coral)">Los <strong>sellos encadenados</strong> de Haber y Stornetta hacen que falsificar uno obligue a rehacer todos los posteriores.</li>
+        </ul>
+      </div>
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> En la práctica</span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Un <strong>árbol de Merkle</strong> permite sellar millones de huellas con una sola raíz.</li>
+          <li style="--accent:var(--mint)">Bitcoin es una <strong>cadena de sellos de tiempo</strong>; OpenTimestamps la usa como notario gratuito.</li>
+          <li style="--accent:var(--amber)">La hora de un bloque tiene margen de <strong>horas</strong>, no de segundos.</li>
+          <li style="--accent:var(--coral)">Para probar que algo es <strong>posterior</strong> a una fecha, se incluye un dato impredecible de ese día.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · QUIZ ============ -->
+<section class="section note" id="quiz">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
+    </header>
+
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
+
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Seguir por aquí</h2>
+        <p>Los sellos encadenados son la base de Bitcoin. El siguiente apunte explica cómo guarda el dinero y quién añade los bloques.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="utxo-y-mineria.html">
+          UTXO y minería <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="encadenamiento.html">Repasar encadenamiento</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="encadenamiento.html">Encadenamiento</a></li>
+          <li><a href="utxo-y-mineria.html">UTXO y minería</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">Whitepaper de Bitcoin</a></li>
+          <li><a href="https://opentimestamps.org" rel="noopener">OpenTimestamps</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/timestamping.js" defer></script>
+<script src="../assets/js/quiz-timestamping.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
+</body>
+</html>
