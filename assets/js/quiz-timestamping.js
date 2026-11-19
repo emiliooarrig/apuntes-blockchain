@@ -7,152 +7,152 @@
   'use strict';
 
   window.CN_QUIZ = {
-    perfecto: '¡Perfecto! Tienes claro qué es un UTXO y cómo la minería busca una solución de Proof of Work.',
-    repasa: 'Te conviene empezar por la sección 01 (¿qué es el modelo UTXO?) y seguir con la minería y el Proof of Work.',
+    perfecto: '¡Perfecto! Sabes leer un pago como monedas que entran y salen, y entiendes cómo la minería, la dificultad y el halving mantienen a Bitcoin funcionando.',
+    repasa: 'Te conviene repasar desde la sección 01 (dinero en monedas, no en saldos) y la 03 (anatomía de una transacción): son la base de todo lo demás.',
     preguntas: [
       {
-        q: '¿Qué es un <em>UTXO</em>?',
+        q: 'Tu cartera de Bitcoin te muestra un saldo de 1.45 BTC. ¿Qué hay guardado realmente en la red?',
         o: [
-          'Una salida de transacción que todavía no ha sido gastada',
-          'Un bloque que ya fue minado y aceptado por la red',
-          'Una clave privada con la que se firman las transacciones',
-          'El hash del encabezado de un bloque'
-        ],
-        a: 0,
-        e: 'UTXO significa <em>unspent transaction output</em>: una salida creada por una transacción que aún no se ha usado como entrada de otra. El conjunto de esas salidas representa lo que sigue disponible.',
-        s: ['utxo', '01']
-      },
-      {
-        q: 'Una salida se gasta en una nueva transacción. ¿Qué pasa con ella respecto al conjunto UTXO?',
-        o: [
-          'Permanece en el conjunto, marcada como usada',
-          'Deja de formar parte del conjunto de salidas disponibles',
-          'Se duplica, una copia para cada participante',
-          'Se convierte en un nonce'
-        ],
-        a: 1,
-        e: 'Una salida gastada ya no es una salida no gastada: sale del conjunto UTXO, y las nuevas salidas que produce la transacción pasan a formar parte del nuevo estado.',
-        s: ['utxo', '01']
-      },
-      {
-        q: '¿Cuál de estas cadenas resume mejor el flujo de un UTXO en el apunte?',
-        o: [
-          'Nonce → hash → bloque → salida',
-          'Salida gastada → salida creada → hash → umbral',
-          'Encabezado → double-SHA256 → comparación con la dificultad',
-          'Salida creada → salida disponible → salida gastada → nuevas salidas disponibles'
-        ],
-        a: 3,
-        e: 'La opción correcta es el ciclo de vida de una salida. Las otras mezclan conceptos de la minería (nonce, hash, umbral) o invierten el orden de creación y gasto.',
-        s: ['utxo', '01']
-      },
-      {
-        q: 'Ana tiene dos UTXO, de 0.8 BTC y 0.5 BTC, y quiere enviar 1 BTC (sin comisiones). ¿Qué ocurre?',
-        o: [
-          'Se usa solo el UTXO de 0.8 BTC y se pierde el resto',
-          'Ambos UTXO se gastan como entradas y se crean una salida de 1 BTC y otra de 0.3 BTC de cambio',
-          'Se divide cada UTXO en dos, sin gastar ninguno',
-          'Ambos UTXO permanecen en el conjunto y se crea una salida de 1 BTC'
-        ],
-        a: 1,
-        e: 'Los dos UTXO suman 1.3 BTC. Se consumen completos como entradas, y la transacción crea 1 BTC para el destinatario y 0.3 BTC de cambio para Ana. Los UTXO originales dejan de formar parte del conjunto.',
-        s: ['ejercicios', '07']
-      },
-      {
-        q: 'Una transacción crea tres salidas (A, B y C). Después se gastan A y C. ¿Qué queda en el conjunto UTXO?',
-        o: [
-          'Solo la salida B',
-          'Solo las salidas A y C',
-          'Las tres salidas',
-          'Ninguna, porque la transacción original ya terminó'
-        ],
-        a: 0,
-        e: 'Solo la salida B sigue sin gastar, así que es la única que continúa en el conjunto UTXO. A y C ya se consumieron.',
-        s: ['ejercicios', '07']
-      },
-      {
-        q: '¿Por qué importa el conjunto UTXO, según el apunte (tomando Mimblewimble como ejemplo)?',
-        o: [
-          'Porque permite que el minero elija el nonce más rápido',
-          'Porque elimina la necesidad de verificar las transacciones',
-          'Porque el tamaño de la cadena puede relacionarse con el estado actual y no solo con conservar todo el historial',
-          'Porque garantiza que ningún bloque tenga que contener firmas'
+          'Una fila con tu nombre y el número 1.45, que se reescribe con cada pago.',
+          'Un archivo en tu teléfono que contiene los bitcoins.',
+          'Varias monedas sueltas (UTXO) que sólo tus llaves pueden abrir; tu cartera las suma.',
+          'Un registro en el servidor de la empresa que creó tu cartera.'
         ],
         a: 2,
-        e: 'Si las salidas creadas y luego gastadas pueden cancelarse, sobreviven principalmente las salidas sin gastar y lo necesario para verificar la validez. El estado actual, y no todo el historial, domina el tamaño.',
-        s: ['utxo-importancia', '02']
+        e: 'Bitcoin no guarda saldos. Guarda monedas sin gastar, cada una con su candado. El «saldo» es una suma que calcula tu cartera, igual que sumas los billetes que traes en la bolsa.',
+        s: ['monedas', '01']
       },
       {
-        q: '¿Qué función hash usa Bitcoin en su mecanismo de Proof of Work?',
+        q: '¿Qué significa <em>UTXO</em>?',
         o: [
-          'SHA-256 aplicado una sola vez',
-          'MD5 aplicado dos veces',
-          'SHA-256 aplicado dos veces (double-SHA256)',
-          'Una firma de anillo sobre el bloque'
-        ],
-        a: 2,
-        e: 'Bitcoin aplica <em>double-SHA256</em>, tanto en la estructura de bloques como en el Proof of Work.',
-        s: ['mineria', '03']
-      },
-      {
-        q: '¿Qué busca el minero al variar el <em>nonce</em>?',
-        o: [
-          'Que el hash del encabezado del bloque quede por debajo del umbral de dificultad',
-          'Que el hash del encabezado sea idéntico al del bloque anterior',
-          'Que el bloque contenga el mayor número posible de UTXO',
-          'Que el hash tenga la mayor cantidad de ceros posibles al final'
+          'Salida de transacción no gastada: una moneda que nació en un pago y nadie ha usado todavía.',
+          'Unidad de transferencia entre exchanges.',
+          'Un tipo de cuenta bancaria compatible con Bitcoin.',
+          'El nombre del bloque donde se guardan las comisiones.'
         ],
         a: 0,
-        e: 'Cada nonce distinto produce un hash distinto del encabezado. La condición de Proof of Work es encontrar uno cuyo hash quede <em>por debajo</em> del umbral definido por la dificultad.',
-        s: ['mineria', '03']
+        e: 'Son las siglas de <em>Unspent Transaction Output</em>. «Salida» porque nace como resultado de un pago; «no gastada» porque sigue disponible.',
+        s: ['utxo', '02']
       },
       {
-        q: 'Un minero calcula el double-SHA256 del encabezado y el hash NO cumple el umbral. ¿Qué hace?',
+        q: 'Tienes una sola moneda de 0.5 BTC y quieres pagar 0.2 BTC. ¿Qué pasa con tu moneda?',
         o: [
-          'Acepta el bloque de todos modos, porque hizo el trabajo',
-          'Elimina el bloque candidato y la cadena se detiene',
-          'Cambia el umbral de dificultad hasta que el hash lo cumpla',
-          'Modifica valores del encabezado, como el nonce, y vuelve a calcular el hash'
+          'Se le restan 0.2 BTC y la misma moneda queda valiendo 0.3 BTC.',
+          'Se gasta completa: salen 0.2 BTC para el destinatario y lo demás regresa a ti como una moneda nueva de cambio (menos la comisión).',
+          'No puedes pagar: necesitas una moneda de exactamente 0.2 BTC.',
+          'Se divide en dos mitades de 0.25 BTC.'
+        ],
+        a: 1,
+        e: 'Las monedas no se editan ni se gastan a medias. Se consumen enteras y en su lugar se crean salidas nuevas: el pago y tu cambio.',
+        s: ['utxo', '02']
+      },
+      {
+        q: 'Ana gasta monedas de 0.8 y 0.5 BTC. Crea una salida de 1 BTC para Beto y otra de 0.29 BTC de cambio para ella. ¿Cuánto cobra el minero de comisión?',
+        o: [
+          'Nada, porque no hay ninguna salida para el minero.',
+          '0.29 BTC.',
+          '0.3 BTC.',
+          '0.01 BTC.'
         ],
         a: 3,
-        e: 'El proceso se repite: se cambia el nonce (u otros valores del encabezado), se vuelve a aplicar double-SHA256 y se compara de nuevo. El umbral lo fija la red, el minero no lo cambia.',
-        s: ['proceso-mineria', '04']
+        e: 'Comisión = entradas − salidas = (0.8 + 0.5) − (1 + 0.29) = 1.3 − 1.29 = 0.01 BTC. No hace falta escribirla: es lo que sobra.',
+        s: ['transaccion', '03']
       },
       {
-        q: 'Con un umbral simplificado de <code>0000FFFF...</code>, ¿cumple el hash <code>00001234...</code>?',
+        q: 'Ana gasta una moneda de 1.3 BTC para pagarle 1 BTC a Beto, pero se le olvida crear la salida de cambio. ¿Qué ocurre?',
         o: [
-          'No, porque tiene más ceros que el umbral',
-          'Sí, porque es numéricamente menor que el umbral',
-          'No, porque el hash debe ser siempre mayor que el umbral',
-          'No se puede saber sin conocer el nonce'
+          'La red detecta el error y le devuelve automáticamente los 0.3 BTC.',
+          'Los 0.3 BTC que sobran se van completos al minero como comisión.',
+          'La transacción es inválida y se rechaza.',
+          'Los 0.3 BTC se quedan congelados en la moneda original.'
         ],
         a: 1,
-        e: 'La condición es hash menor que el umbral, y <code>00001234...</code> es numéricamente menor que <code>0000FFFF...</code>. Tener más ceros al inicio hace al número más pequeño, no menos válido.',
-        s: ['ejercicios', '07']
+        e: 'Todo lo que no se asigna a una salida es comisión. Por eso el cambio es tan importante: olvidarlo equivale a regalarle la diferencia al minero.',
+        s: ['transaccion', '03']
       },
       {
-        q: 'El ejemplo de blockchain artesanal del material se presenta sin minería, sin consenso distribuido y sin red P2P. ¿Qué hace falta para llegar a una blockchain real con varios participantes?',
+        q: 'Las monedas de Bitcoin están en una lista que todos pueden ver. ¿Qué impide que alguien gaste una moneda que no es suya?',
         o: [
-          'Solo agregar más bloques encadenados con hash',
-          'Mecanismos de consenso como Proof of Work y una red que comparta los nuevos bloques',
-          'Eliminar las funciones hash y las firmas digitales',
-          'Que un único participante firme todos los bloques'
-        ],
-        a: 1,
-        e: 'El encadenamiento criptográfico explica cómo se relacionan los bloques, pero un sistema distribuido necesita además consenso (aquí, Proof of Work) y una red P2P para propagar los bloques.',
-        s: ['blockchain-real', '05']
-      },
-      {
-        q: 'Resume el apunte: ¿cuál es la relación entre UTXO y minería?',
-        o: [
-          'UTXO identifica las salidas disponibles; la minería busca una solución válida de Proof of Work',
-          'UTXO es el resultado de la minería y no existe sin ella',
-          'La minería elimina el conjunto UTXO en cada bloque',
-          'Son dos nombres para el mismo concepto'
+          'Cada moneda tiene un candado (Script) que sólo se abre con una firma hecha con la llave privada del dueño.',
+          'Las monedas están ocultas y nadie más sabe que existen.',
+          'Un banco revisa cada pago y bloquea los sospechosos.',
+          'Nada: en Bitcoin se confía en que nadie lo intente.'
         ],
         a: 0,
-        e: 'Son ideas distintas: el modelo UTXO describe el estado (qué salidas siguen disponibles) y la minería es el proceso que, mediante Proof of Work, produce bloques válidos en una red distribuida.',
-        s: ['resumen', '06']
+        e: 'Cada salida lleva una condición de gasto. Para usarla, la entrada debe traer una firma válida. Cualquier nodo puede comprobarla sin conocer la llave privada.',
+        s: ['candados', '04']
+      },
+      {
+        q: 'Ana intenta usar la misma moneda para pagarle a Beto y, después, a Carla. El pago a Beto ya está en un bloque. ¿Qué pasa con el de Carla?',
+        o: [
+          'Se aceptan los dos y la moneda queda con saldo negativo.',
+          'Se acepta el de Carla y se cancela el de Beto, porque es más reciente.',
+          'Se rechaza: esa moneda ya salió del conjunto UTXO y cualquier nodo ve que ya no existe.',
+          'Se envía a revisión manual.'
+        ],
+        a: 2,
+        e: 'Así se evita el doble gasto: una moneda gastada desaparece de la lista de monedas vivas, y un pago que intente usarla de nuevo es inválido.',
+        s: ['candados', '04']
+      },
+      {
+        q: 'La red está congestionada y tu pago lleva horas en espera. ¿Qué lo haría entrar antes a un bloque?',
+        o: [
+          'Enviarlo varias veces seguidas.',
+          'Pagar una comisión más alta por el espacio que ocupa, porque los mineros eligen primero los pagos que más dejan.',
+          'Enviar un monto más grande.',
+          'Esperar a que baje la dificultad.'
+        ],
+        a: 1,
+        e: 'Los bloques tienen espacio limitado y el minero los llena con los pagos del mempool que dejan más comisión por byte.',
+        s: ['mineria', '05']
+      },
+      {
+        q: '¿De dónde salen los bitcoins nuevos?',
+        o: [
+          'Los imprime una fundación cada año.',
+          'Se crean cuando alguien compra bitcoin en un exchange.',
+          'Aparecen cuando dos monedas pequeñas se combinan.',
+          'De la transacción coinbase: la primera de cada bloque, con la que el minero cobra la recompensa.'
+        ],
+        a: 3,
+        e: 'La coinbase no tiene entradas y es la única forma de emitir bitcoins nuevos. Paga al minero la recompensa del bloque más las comisiones.',
+        s: ['mineria', '05']
+      },
+      {
+        q: 'En la prueba de trabajo, ¿para qué cambia el minero el <em>nonce</em> una y otra vez?',
+        o: [
+          'Para cifrar los pagos del bloque.',
+          'Para que la huella (hash) del encabezado cambie, hasta encontrar una que quede por debajo del objetivo.',
+          'Para registrar la hora exacta del bloque.',
+          'Para elegir qué pagos entran al bloque.'
+        ],
+        a: 1,
+        e: 'El hash es impredecible, así que la única estrategia es probar. Cada nonce produce una huella nueva; casi todas fallan, y gana quien encuentre una bajo el objetivo.',
+        s: ['loteria', '06']
+      },
+      {
+        q: 'Los últimos 2016 bloques salieron en una semana en lugar de dos. ¿Qué hace la red?',
+        o: [
+          'Duplica la dificultad, para que los bloques vuelvan a salir cada 10 minutos.',
+          'Reduce la dificultad a la mitad.',
+          'Nada: la dificultad es fija desde 2009.',
+          'Duplica la recompensa del minero.'
+        ],
+        a: 0,
+        e: 'Nueva dificultad = vieja × (2 semanas ÷ 1 semana) = el doble. El ajuste es automático: cada nodo hace la misma cuenta cada 2016 bloques.',
+        s: ['dificultad', '07']
+      },
+      {
+        q: 'Desde el halving de 2024 la recompensa es de 3.125 BTC por bloque. ¿Cuál será después del siguiente halving (hacia 2028)?',
+        o: [
+          '6.25 BTC.',
+          '3.125 BTC; ya no habrá más halvings.',
+          '1.5625 BTC.',
+          '0 BTC; a partir de ahí sólo habrá comisiones.'
+        ],
+        a: 2,
+        e: 'Cada 210 000 bloques (unos cuatro años) la recompensa se parte a la mitad: 3.125 ÷ 2 = 1.5625. Así la emisión total se acerca a 21 millones sin superarlos.',
+        s: ['halving', '08']
       }
     ]
   };

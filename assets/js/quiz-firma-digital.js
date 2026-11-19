@@ -115,7 +115,67 @@
           'Otros nodos lo conocen → se obtiene un Proof of Work válido → se produce el bloque → se propaga por la red P2P'],
         a: 0,
         e: 'Primero se consigue la solución de Proof of Work, con ella se produce el bloque válido, luego se propaga por la red P2P y finalmente otros nodos lo conocen.',
-        s: ['ejercicios', '07']
+        s: ['mineria-red', '03']
+      },
+      {
+        q: 'En ECDSA el verificador calcula P = (e·w)·G + (r·w)·Q con w = s⁻¹. ¿Por qué P resulta ser exactamente R = k·G?',
+        o: ['Porque Q = d·G y, al sustituir s = k⁻¹(e + r·d), el factor (e + r·d) se cancela y queda k·G',
+          'Porque el verificador conoce el nonce k y lo usa directamente',
+          'Porque w = s⁻¹ es siempre igual a k',
+          'Porque r y e se anulan entre sí al sumarlos'],
+        a: 0,
+        e: 'Con Q = d·G, P = w·(e + r·d)·G; como w = k·(e + r·d)⁻¹, el paréntesis se cancela y queda k·G = R. El verificador nunca ve k ni d: la igualdad solo cuadra si quien firmó conocía d.',
+        s: ['ecdsa', '05']
+      },
+      {
+        q: 'Si alguien produce una s que hace cuadrar la verificación ECDSA sin conocer d, ¿qué habría logrado en la práctica?',
+        o: ['Nada: la verificación no depende de d',
+          'Resolver el logaritmo discreto de la curva',
+          'Adivinar la función hash del mensaje',
+          'Duplicar el nonce de otra firma'],
+        a: 1,
+        e: 'La igualdad P = R solo puede cumplirse si s fue construida con el d que satisface Q = d·G. Falsificar una firma sin d equivale a resolver el logaritmo discreto.',
+        s: ['ecdsa', '05']
+      },
+      {
+        q: 'Dos firmas ECDSA con la misma clave y el mismo nonce k (misma r) sobre mensajes distintos. ¿Cómo se recupera k?',
+        o: ['k = (s₁ + s₂)·(e₁ + e₂)⁻¹ mod n',
+          'k = r·(s₁ − s₂)⁻¹ mod n',
+          'k = (e₁ − e₂)·(s₁ − s₂)⁻¹ mod n',
+          'k = (e₁ − e₂)·(r₁ − r₂)⁻¹ mod n'],
+        a: 2,
+        e: 'Al restar s₁ = k⁻¹(e₁ + r·d) y s₂ = k⁻¹(e₂ + r·d) el término con d se cancela: s₁ − s₂ = k⁻¹(e₁ − e₂), de donde k = (e₁ − e₂)·(s₁ − s₂)⁻¹ mod n.',
+        s: ['nonce-k', '06']
+      },
+      {
+        q: 'Una vez conocido el nonce k repetido, ¿cómo se obtiene la clave privada d?',
+        o: ['d = (s₁·k − e₁)·r⁻¹ mod n',
+          'd = (s₁ + k)·r mod n',
+          'd = k·G',
+          'No se puede: hace falta resolver un logaritmo discreto'],
+        a: 0,
+        e: 'De s₁ = k⁻¹(e₁ + r·d) se despeja d = (s₁·k − e₁)·r⁻¹ mod n. Es álgebra lineal en ℤn, sin logaritmos discretos.',
+        s: ['nonce-k', '06']
+      },
+      {
+        q: '¿Por qué el ataque del nonce repetido es igual de instantáneo con secp256k1 que con una curva pequeña de juguete?',
+        o: ['Porque secp256k1 tiene una puerta trasera conocida',
+          'Porque el ataque usa fuerza bruta paralelizable',
+          'Porque el ataque factoriza n con un algoritmo rápido',
+          'Porque solo requiere resolver dos ecuaciones lineales en ℤn, con un par de inversos modulares'],
+        a: 3,
+        e: 'No se resuelve ningún logaritmo discreto: la seguridad de la curva protege contra el problema difícil, no contra un error de implementación que regala la información.',
+        s: ['nonce-k', '06']
+      },
+      {
+        q: 'En Schnorr, s₁ + s₂ da una firma válida para la suma de las claves; en ECDSA no. ¿Qué lo impide?',
+        o: ['Cada sumando lleva su propio inverso del nonce (k⁻¹) y k₁⁻¹ + k₂⁻¹ ≠ (k₁ + k₂)⁻¹',
+          'ECDSA usa una función hash distinta',
+          'ECDSA no usa curvas elípticas',
+          'La r de ECDSA es siempre cero'],
+        a: 0,
+        e: 'En Schnorr s = k + e·d es lineal y las sumas se agregan. En ECDSA cada firma lleva su k⁻¹ y su propia r, así que s₁ + s₂ no tiene forma de firma ECDSA; por eso Taproot adoptó Schnorr.',
+        s: ['schnorr', '07']
       }
     ]
   };

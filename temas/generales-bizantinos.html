@@ -54,7 +54,7 @@
         <li><a class="nav__link" href="#cota">Cota</a></li>
         <li><a class="nav__link" href="#om">OM</a></li>
         <li><a class="nav__link" href="#sybil">Sybil</a></li>
-        <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
       </ul>
     </nav>
 
@@ -149,7 +149,7 @@
         <li><a href="#nakamoto"><span class="toc__n">06</span> La respuesta de Nakamoto</a></li>
         <li><a href="#flp"><span class="toc__n">07</span> La imposibilidad de FLP</a></li>
         <li><a href="#sintesis"><span class="toc__n">08</span> Síntesis</a></li>
-        <li><a href="#ejercicios"><span class="toc__n">09</span> Ejercicios</a></li>
+        <li><a href="#quiz"><span class="toc__n">09</span> Quiz</a></li>
         <li><a href="#referencias"><span class="toc__n">10</span> Referencias</a></li>
       </ul>
     </nav>
@@ -821,192 +821,38 @@
 </section>
 
 
-<!-- ============ 09 · EJERCICIOS ============ -->
-<section class="section note" id="ejercicios">
+<!-- ============ 09 · QUIZ ============ -->
+<section class="section note" id="quiz">
   <div class="container">
     <header class="note__head reveal">
       <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
-      <h2 class="section__title">Ejercicios</h2>
-      <p class="section__lead">
-        Seis problemas para trabajar a mano. Intenta resolverlos antes de abrir la respuesta;
-        los laboratorios de arriba sirven para comprobar los resultados.
-      </p>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>11 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
     </header>
 
-    <div class="note__body exlist reveal" style="max-width:80ch">
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
 
-      <!-- EJERCICIO 1 -->
-      <h3>Ejercicio 1 · La demostración de la portada</h3>
-      <p>
-        Reconstruye por escrito el argumento de la portada. Enuncia con precisión los tres
-        escenarios y explica en qué momento se usa IC2 y en cuál IC1. Después generaliza: ¿por
-        qué el mismo razonamiento se traslada de 3 generales a 3<var>f</var>?
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <ul class="plain-list">
-          <li><strong>A:</strong> el comandante es traidor; manda «atacar» a L1 y «retirarse» a L2. Los tenientes, leales, se reenvían lo que recibieron.</li>
-          <li style="--accent:var(--sky)"><strong>B:</strong> el comandante es leal y ordena «atacar»; L2 es traidor y le dice a L1 «me dijo retirarse». Por <strong>IC2</strong>, L1 debe atacar. Su bandeja es idéntica a la de A, así que en A también ataca.</li>
-          <li style="--accent:var(--mint)"><strong>C:</strong> el comandante es leal y ordena «retirarse»; L1 es traidor y le dice a L2 «me dijo atacar». Por <strong>IC2</strong>, L2 debe retirarse, y como su bandeja es la de A, en A también se retira.</li>
-          <li style="--accent:var(--coral)">En A, dos leales deciden distinto: se viola <strong>IC1</strong>. IC2 se usó en B y C; IC1 falla en A.</li>
-        </ul>
-        <p>
-          <strong>Generalización:</strong> supón que existiera un algoritmo para <var>n</var> ≤ 3<var>f</var>
-          generales con <var>f</var> traidores. Reparte a los <var>n</var> generales en tres grupos
-          de a lo más <var>f</var> cada uno, con el comandante en el primero. Tres generales podrían
-          entonces simular el algoritmo, cada uno ejecutando a todo su grupo. Un traidor entre los
-          tres equivale a un grupo entero de traidores, es decir, a lo más <var>f</var>, que el
-          algoritmo supuestamente tolera. Se obtendría una solución para tres generales con un
-          traidor, lo que contradice lo que acabamos de demostrar.
-        </p>
-      </details>
-
-      <hr>
-
-      <!-- EJERCICIO 2 -->
-      <h3>Ejercicio 2 · OM(1) a mano</h3>
-      <p>
-        Ejecuta OM(1) con cuatro generales a mano, con el comandante traidor enviando «atacar»,
-        «retirarse» y «atacar». Escribe el vector de cada teniente leal y verifica que la mayoría
-        coincide. Repite cambiando la estrategia del traidor y explica por qué el resultado no
-        depende de ella.
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Ronda 1: L1 recibe A, L2 recibe R y L3 recibe A. En la ronda 2 los tres son leales y reportan la verdad.</p>
-        <ul class="plain-list">
-          <li>L1: (del comandante A, de L2 R, de L3 A) = {A, R, A} → <strong>atacar</strong></li>
-          <li style="--accent:var(--sky)">L2: (del comandante R, de L1 A, de L3 A) = {R, A, A} → <strong>atacar</strong></li>
-          <li style="--accent:var(--mint)">L3: (del comandante A, de L1 A, de L2 R) = {A, A, R} → <strong>atacar</strong></li>
-        </ul>
-        <p>
-          Sea cual sea la terna (<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>)
-          que envíe el comandante, cada teniente termina con exactamente esos tres valores: el suyo
-          lo recibió directo y los otros dos se los contaron honestamente sus pares. Los tres tienen
-          el <strong>mismo multiconjunto</strong>, y la misma regla de mayoría da el mismo
-          resultado. Con dos valores posibles y tres votos siempre hay mayoría; con más valores se
-          necesita una regla por defecto común (por ejemplo, «retirarse»).
-        </p>
-      </details>
-
-      <hr>
-
-      <!-- EJERCICIO 3 -->
-      <h3>Ejercicio 3 · El costo de OM(m)</h3>
-      <p>
-        Cuenta el número exacto de mensajes que envía OM(<var>m</var>) con <var>n</var> = 3<var>m</var> + 1,
-        para <var>m</var> = 1, 2 y 3. Justifica por qué el algoritmo es inaplicable en una red
-        grande y qué hacen PBFT o HotStuff para bajar ese costo.
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>
-          En OM(<var>m</var>) el comandante envía <var>n</var> − 1 mensajes y luego cada uno de los
-          <var>n</var> − 1 tenientes actúa como comandante de OM(<var>m</var> − 1) con
-          <var>n</var> − 1 generales:
-        </p>
-        <span class="eq">
-          <var>M</var>(<var>n</var>, 0) = <var>n</var> − 1, &nbsp; <var>M</var>(<var>n</var>, <var>m</var>) = (<var>n</var> − 1) + (<var>n</var> − 1)·<var>M</var>(<var>n</var> − 1, <var>m</var> − 1)
-        </span>
-        <ul class="plain-list">
-          <li><var>m</var> = 1, <var>n</var> = 4: 3 + 3·2 = <strong>9</strong></li>
-          <li style="--accent:var(--sky)"><var>m</var> = 2, <var>n</var> = 7: 6 + 6·<var>M</var>(6, 1) = 6 + 6·25 = <strong>156</strong></li>
-          <li style="--accent:var(--mint)"><var>m</var> = 3, <var>n</var> = 10: 9 + 9·<var>M</var>(9, 2) = 9 + 9·400 = <strong>3 609</strong></li>
-        </ul>
-        <p>
-          El conteo crece como <var>n</var><sup><var>m</var>+1</sup> y, como para tolerar una
-          fracción fija de traidores <var>m</var> crece con <var>n</var>, el costo es en la práctica
-          exponencial. Además exige <var>m</var> + 1 rondas síncronas. <strong>PBFT</strong> evita
-          la recursión: un líder propone y las réplicas pasan por tres fases (pre-prepare, prepare,
-          commit) con quórums de 2<var>f</var> + 1 mensajes autenticados, O(<var>n</var>²) mensajes
-          por decisión. <strong>HotStuff</strong> hace que el líder agregue los votos en un
-          certificado de quórum (firmas umbral o agregadas) y lo reenvíe, con lo que cada fase
-          cuesta O(<var>n</var>) y cambiar de líder es igual de barato.
-        </p>
-      </details>
-
-      <hr>
-
-      <!-- EJERCICIO 4 -->
-      <h3>Ejercicio 4 · Quórums bizantinos frente a quórums de caída</h3>
-      <p>
-        Demuestra que dos quórums de tamaño <var>n</var> − <var>f</var> en un conjunto de
-        <var>n</var> participantes se intersecan en al menos <var>n</var> − 2<var>f</var>
-        elementos, y deduce la condición <var>n</var> &gt; 3<var>f</var>. Compara con el caso de
-        fallas por caída, donde basta <var>n</var> &gt; 2<var>f</var>, y explica de dónde sale la diferencia.
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>
-          Por inclusión–exclusión, |<var>Q</var><sub>1</sub> ∩ <var>Q</var><sub>2</sub>| =
-          |<var>Q</var><sub>1</sub>| + |<var>Q</var><sub>2</sub>| − |<var>Q</var><sub>1</sub> ∪ <var>Q</var><sub>2</sub>|
-          ≥ 2(<var>n</var> − <var>f</var>) − <var>n</var> = <var>n</var> − 2<var>f</var>, porque la
-          unión no puede tener más de <var>n</var> elementos.
-        </p>
-        <p>
-          <strong>Bizantino:</strong> hasta <var>f</var> traidores pueden estar en la intersección y
-          «votar» en los dos quórums de forma contradictoria. Para que quede al menos un leal, que
-          dice lo mismo a ambos: <var>n</var> − 2<var>f</var> ≥ <var>f</var> + 1, es decir,
-          <var>n</var> ≥ 3<var>f</var> + 1.
-        </p>
-        <p>
-          <strong>Caída:</strong> un proceso caído no miente; si respondió, respondió lo mismo a
-          todos. Basta que la intersección no sea vacía: <var>n</var> − 2<var>f</var> ≥ 1, es decir,
-          <var>n</var> ≥ 2<var>f</var> + 1. La diferencia de un <var>f</var> completo es el precio de
-          que los traidores puedan estar en ambos lados a la vez.
-        </p>
-      </details>
-
-      <hr>
-
-      <!-- EJERCICIO 5 -->
-      <h3>Ejercicio 5 · Diseña tu propio protocolo abierto</h3>
-      <p>
-        Diseña un protocolo de votación para una red abierta que no use prueba de trabajo ni
-        prueba de participación, y encuentra tú mismo el ataque Sybil que lo rompe. El objetivo
-        del ejercicio es convencerte de que el recurso escaso no es opcional.
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Algunos diseños típicos y su ataque:</p>
-        <ul class="plain-list">
-          <li><strong>Un voto por llave pública registrada:</strong> generar un millón de llaves cuesta segundos.</li>
-          <li style="--accent:var(--sky)"><strong>Un voto por dirección IP:</strong> las IP se alquilan por miles en la nube, en redes de bots o con bloques IPv6.</li>
-          <li style="--accent:var(--mint)"><strong>Un voto por quien resuelva un captcha:</strong> hay granjas que los resuelven por centavos, y modelos que lo hacen solos.</li>
-          <li style="--accent:var(--coral)"><strong>Reputación o invitaciones:</strong> el atacante cultiva muchas identidades con paciencia o se invita a sí mismo.</li>
-        </ul>
-        <p>
-          En todos los casos el costo de una identidad más es casi nulo o crece menos que el poder
-          de voto que da. Sin un recurso cuyo costo crezca con la influencia (cómputo, capital
-          bloqueado o una autoridad que certifique identidades, como en las redes permisionadas),
-          el atacante compra la mayoría por casi nada.
-        </p>
-      </details>
-
-      <hr>
-
-      <!-- EJERCICIO 6 -->
-      <h3>Ejercicio 6 · ¿Bastan seis confirmaciones?</h3>
-      <p>
-        Con la fórmula de la sección 11, calcula cuántas confirmaciones se necesitan para que la
-        probabilidad de reversión quede por debajo de 0.1 % con <var>q</var> = 0.25 y con
-        <var>q</var> = 0.40. Comenta si la convención de seis confirmaciones es prudente en ambos casos.
-      </p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <ul class="plain-list">
-          <li><var>q</var> = 0.25: hacen falta <strong><var>z</var> = 15</strong> (<var>P</var> ≈ 0.094 %). Con <var>z</var> = 6, <var>P</var> ≈ 5.0 %.</li>
-          <li style="--accent:var(--coral)"><var>q</var> = 0.40: hacen falta <strong><var>z</var> = 89</strong> (<var>P</var> ≈ 0.099 %). Con <var>z</var> = 6, <var>P</var> ≈ 50.4 %.</li>
-        </ul>
-        <p>
-          Ambos valores coinciden con la tabla del artículo de Nakamoto y se comprueban en el
-          laboratorio 4. Seis confirmaciones son prudentes contra un atacante pequeño
-          (<var>q</var> = 0.10 da 0.024 %), pero no contra uno con un cuarto del cómputo (1 de cada
-          20 ataques triunfa) y son casi inútiles contra uno con el 40 %: es tirar una moneda.
-          Además la fórmula de Poisson subestima el riesgo; con la binomial negativa del
-          <a href="prueba-de-trabajo.html#ataque">módulo 07</a> las cifras empeoran.
-        </p>
-      </details>
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 11</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1121,5 +967,7 @@
 
 <script src="../assets/js/main.js" defer></script>
 <script src="../assets/js/generales-bizantinos.js" defer></script>
+<script src="../assets/js/quiz-generales-bizantinos.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
 </body>
 </html>
