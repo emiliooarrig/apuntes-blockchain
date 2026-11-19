@@ -3,3 +3,6 @@ http://www.math.com.mx/g_b.html (HECHO)
 http://math.com.mx/pt.html (HECHO)
 http://math.com.mx/laboratorio_conocimiento_cero.html (HECHO)
 http://math.com.mx/anillo_de_firmas.html (HECHO)
+
+Apuntes a partir de documentos del curso (PDF), sin página web asociada:
+consenso_blockchain.pdf — Mecanismos de consenso en blockchain (HECHO)

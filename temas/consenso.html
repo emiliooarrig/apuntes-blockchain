@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mecanismos de consenso en blockchain — ChainNotes</title>
+<meta name="description" content="Apunte: los diez mecanismos de consenso. El trilema entre seguridad, velocidad y descentralización; PoW, PoS, DPoS, PBFT y PoA; y cinco diseños con ingenio matemático: Algorand, Avalanche, Chia, Proof of History y Hashgraph. Con seis laboratorios interactivos.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- Este apunte no añade reglas nuevas: reutiliza los componentes existentes de apuntes.css -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=7">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 24 24"><path d="M15.13 5.07A7.6 7.6 0 0 1 17.62 6.88M19.55 12.83A7.6 7.6 0 0 1 18.60 15.76M13.54 19.44A7.6 7.6 0 0 1 10.46 19.44M5.40 15.76A7.6 7.6 0 0 1 4.45 12.83M6.38 6.88A7.6 7.6 0 0 1 8.87 5.07"/><circle cx="12.0" cy="4.4" r="2.3"/><circle cx="19.2" cy="9.7" r="2.3"/><circle cx="16.5" cy="18.1" r="2.3"/><circle cx="7.5" cy="18.1" r="2.3"/><circle cx="4.8" cy="9.7" r="2.3"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#que-es">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#que-es">Qué es</a></li>
+        <li><a class="nav__link" href="#pow">PoW</a></li>
+        <li><a class="nav__link" href="#pos">PoS</a></li>
+        <li><a class="nav__link" href="#modernos">Modernos</a></li>
+        <li><a class="nav__link" href="#comparativa">Comparativa</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#que-es">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>12 · Mecanismos de consenso</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 12 · Consenso distribuido
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Mecanismos de <span class="grad">consenso</span><br>
+        en <span class="underlined">blockchain</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Una blockchain es un libro de cuentas compartido que mantienen al mismo tiempo
+        muchas personas, sin que exista un banco ni una oficina central que lo administre.
+        Eso plantea una pregunta incómoda: <em>si nadie manda, ¿cómo se ponen de acuerdo
+        todos sobre cuál es la versión oficial del libro?</em> Hay diez respuestas serias,
+        y cada una sacrifica algo distinto.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> El trilema</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> PoW y PoS</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> 10 mecanismos</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-code"/></svg> 6 laboratorios</li>
+      </ul>
+    </div>
+
+    <!-- LAB 0: el trilema -->
+    <div class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-scale"/></svg> Elegir es sacrificar</h2>
+        <span class="lab__tag">el trilema</span>
+      </div>
+      <p class="lab__intro">
+        Dime qué red quieres y qué te importa más. No existe la opción que gane en las tres
+        cosas a la vez; si la hubiera, este apunte tendría una sección.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="trRed" role="group" aria-label="Tipo de red">
+            <button type="button" data-red="abierta" aria-pressed="true">Abierta</button>
+            <button type="button" data-red="cerrada" aria-pressed="false">Con permiso</button>
+            <button type="button" data-red="cualquiera" aria-pressed="false">Cualquiera</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="trPri">Lo que más importa</label>
+          <select id="trPri">
+            <option value="seg">Seguridad</option>
+            <option value="vel">Velocidad</option>
+            <option value="desc">Descentralización</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="decay" id="trBars"></div>
+
+      <div class="readout">
+        <div class="metric">
+          <span class="metric__num metric__num--violet" id="trPick">—</span>
+          <span class="metric__label">Mecanismo</span>
+        </div>
+        <div class="metric">
+          <span class="metric__num" id="trEj">—</span>
+          <span class="metric__label">Ejemplo real</span>
+        </div>
+      </div>
+      <div class="log" id="trLog" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#que-es"><span class="toc__n">01</span> Qué es un mecanismo de consenso</a></li>
+        <li><a href="#pow"><span class="toc__n">02</span> Proof of Work</a></li>
+        <li><a href="#pos"><span class="toc__n">03</span> Proof of Stake</a></li>
+        <li><a href="#pos-juguete"><span class="toc__n">04</span> PoS de juguete: ocho slots</a></li>
+        <li><a href="#dpos"><span class="toc__n">05</span> Participación delegada</a></li>
+        <li><a href="#bft"><span class="toc__n">06</span> Tolerancia a fallos bizantinos</a></li>
+        <li><a href="#poa"><span class="toc__n">07</span> Proof of Authority</a></li>
+        <li><a href="#modernos"><span class="toc__n">08</span> Cinco con ingenio matemático</a></li>
+        <li><a href="#comparativa"><span class="toc__n">09</span> Vista comparativa</a></li>
+        <li><a href="#aplicaciones"><span class="toc__n">10</span> Dónde conviene cada uno</a></li>
+        <li><a href="#sintesis"><span class="toc__n">11</span> Síntesis</a></li>
+        <li><a href="#ejercicios"><span class="toc__n">12</span> Ejercicios</a></li>
+        <li><a href="#fuentes"><span class="toc__n">13</span> Fuentes</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · QUÉ ES ============ -->
+<section class="section note" id="que-es">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">Qué es un mecanismo de consenso</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender que un mecanismo de consenso
+        es un conjunto de reglas sobre quién escribe, cómo se verifica y qué pasa con el
+        tramposo, y que la configuración de la red —abierta o con permiso— decide de entrada
+        qué mecanismos tienen sentido.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Un mecanismo de consenso responde tres preguntas a la vez: <strong>quién</strong>
+          puede añadir la siguiente página al libro, <strong>cómo</strong> se verifica que esa
+          página sea honesta, y <strong>qué pasa</strong> con quien intenta hacer trampa.
+        </p>
+        <p>
+          Cada mecanismo hace una apuesta distinta entre tres cosas que rara vez se consiguen
+          juntas: <strong>seguridad</strong>, <strong>velocidad</strong> y
+          <strong>descentralización</strong>. El laboratorio de arriba no tiene truco: por más
+          que cambies las opciones, nunca verás las tres barras llenas.
+        </p>
+        <h3>Abierta o con permiso</h3>
+        <p>
+          Antes de elegir mecanismo hay que saber con quién se juega, y hay dos configuraciones:
+        </p>
+        <div class="quad">
+          <div class="quad__cell" style="--accent:var(--mint)">
+            <h4>Pública y abierta</h4>
+            <p>Sin permiso: cualquiera puede participar y leer el libro, como Bitcoin o
+            Ethereum. Nadie conoce a nadie, así que la confianza hay que fabricarla.</p>
+          </div>
+          <div class="quad__cell" style="--accent:var(--sky)">
+            <h4>Privada o de consorcio</h4>
+            <p>Con permiso: solo participantes conocidos y autorizados, como un grupo de bancos
+            o de empresas. La identidad ya está resuelta y eso abarata todo lo demás.</p>
+          </div>
+        </div>
+        <div class="callout callout--key">
+          <span class="callout__title">La regla que explica todo lo que sigue</span>
+          Cuanto más abierta y sin confianza previa es la red, más costoso resulta el consenso.
+          PoW y PoS gastan electricidad o capital precisamente porque no pueden preguntarle a
+          nadie quién es quién. Cuanto más se conocen los participantes, más rápido y barato
+          puede ser el acuerdo, como en BFT o PoA, pero a cambio de depender de que esa lista
+          de conocidos sea honesta.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Las tres dimensiones</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div>
+            <dt>Seguridad</dt>
+            <dd>Qué tan caro le sale a un atacante reescribir el libro o detenerlo.</dd>
+          </div>
+          <div>
+            <dt>Velocidad</dt>
+            <dd>Cuántas operaciones por segundo soporta y cuánto tarda en confirmarse una.</dd>
+          </div>
+          <div>
+            <dt>Descentralización</dt>
+            <dd>Cuántas manos distintas deciden, y qué tan fácil es entrar a decidir.</dd>
+          </div>
+        </dl>
+        <p style="margin-top:1.1em">
+          No es un teorema demostrado como la cota de los generales bizantinos, sino una
+          observación empírica robusta: los diseños que mejoran mucho en una dimensión suelen
+          pagarlo en otra.
+        </p>
+        <p class="lab__note" style="margin-top:1.1rem">
+          Los cinco mecanismos del módulo 08 son interesantes precisamente porque usan
+          matemáticas para mover esas fronteras sin romperlas.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · POW ============ -->
+<section class="section note" id="pow">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Proof of Work · prueba de trabajo</h2>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">En una imagen</span>
+      Imagine un concurso en el que miles de personas intentan resolver un acertijo que solo se
+      resuelve a fuerza de probar y probar. Quien lo resuelve primero gana el derecho a escribir
+      la siguiente página, y su esfuerzo es la prueba de que no está haciendo trampa.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(22px,2.8vw,32px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">La condición de minado</h3>
+        <p>
+          Sea <var>B</var> = (<var>v</var>, <var>h</var><sub>prev</sub>,
+          <var>r</var><sub>Merkle</sub>, <var>t</var>, <var>T</var>, <var>η</var>) el encabezado
+          del bloque: versión, hash del bloque anterior, raíz de Merkle de las transacciones,
+          marca de tiempo, objetivo y <em>nonce</em>. El bloque es válido si su doble hash cae
+          por debajo del objetivo.
+        </p>
+        <p>
+          Como el hash se comporta como un número uniforme en [0, 2<sup>256</sup>), cada intento
+          acierta con probabilidad <var>θ</var>, y el número esperado de intentos resulta ser la
+          dificultad multiplicada por 2<sup>32</sup>. Esa es la cuenta que hace el laboratorio.
+        </p>
+        <p>
+          Si la red calcula <var>Λ</var> hashes por segundo y un minero aporta
+          <var>λ</var><sub>i</sub>, el tiempo entre bloques es exponencial y cada minero gana
+          bloques <strong>en proporción exacta a su potencia</strong>. La proporción es exacta;
+          el tiempo, no: hay rachas largas y bloques casi seguidos sin que nada falle.
+        </p>
+        <h3>El ajuste de dificultad</h3>
+        <p>
+          Bitcoin recalcula el objetivo cada 2016 bloques buscando una media de 600 segundos.
+          El factor se recorta al intervalo [1/4, 4] para que un salto brusco de potencia no
+          desestabilice la red.
+        </p>
+        <h3>Por qué se esperan confirmaciones</h3>
+        <p>
+          La <strong>regla de elección de cadena</strong> dice que se sigue la cadena con mayor
+          trabajo acumulado, no la más larga en número de bloques. Y la cota de Nakamoto acota el
+          riesgo: si un atacante controla una fracción <var>q</var> &lt; 1/2 de la potencia, la
+          probabilidad de que alcance a la cadena honesta desde <var>z</var> bloques atrás cae
+          exponencialmente con <var>z</var>. Por eso nadie da por definitiva una transacción
+          recién minada.
+        </p>
+        <p class="lab__note">
+          Este mecanismo tiene apunte propio, con el acertijo minado en vivo y el doble gasto:
+          <a href="prueba-de-trabajo.html">La prueba de trabajo y el doble gasto</a>.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> Formulación</span>
+        <span class="eq">
+          <var>H</var>(<var>B</var>) = SHA256(SHA256(<var>B</var>)) ≤ <var>T</var>,
+          &nbsp; <var>D</var> = <var>T</var><sub>max</sub>/<var>T</var>
+          <small>condición de minado y dificultad</small>
+        </span>
+        <span class="eq">
+          <var>θ</var> = (<var>T</var>+1)/2<sup>256</sup>,
+          &nbsp; 𝔼[intentos] = 1/<var>θ</var> ≈ <var>D</var> · 2<sup>32</sup>
+        </span>
+        <span class="eq">
+          <var>τ</var> ~ Exp(<var>Λθ</var>),
+          &nbsp; 𝔼[<var>τ</var>] = 1/(<var>Λθ</var>),
+          &nbsp; Pr[gana <var>i</var>] = <var>λ</var><sub>i</sub>/<var>Λ</var>
+        </span>
+        <p><strong>Ajuste de dificultad</strong> (cada 2016 bloques, meta de 600 s):</p>
+        <span class="eq">
+          <var>T</var>′ = <var>T</var> · min{4, max{¼, Δ<var>t</var><sub>real</sub> / (2016 · 600 s)}}
+        </span>
+        <p><strong>Elección de cadena</strong> y <strong>seguridad</strong>:</p>
+        <span class="eq">
+          <var>W</var> = Σ<sub>j</sub> 2<sup>256</sup>/(<var>T</var><sub>j</sub>+1)
+          <small>se sigue la cadena con mayor trabajo acumulado</small>
+        </span>
+        <span class="eq">
+          Pr[alcanzar desde <var>z</var>] = (<var>q</var>/<var>p</var>)<sup><var>z</var></sup>,
+          &nbsp; <var>p</var> = 1 − <var>q</var>
+          <small>cota de Nakamoto, en su forma simplificada</small>
+        </span>
+      </aside>
+    </div>
+
+    <!-- LAB 1 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-bitcoin"/></svg> Laboratorio 1 — Dificultad, ritmo y riesgo</h2>
+        <span class="lab__tag">𝔼[intentos] = D · 2³²</span>
+      </div>
+      <p class="lab__intro">
+        Mueve la dificultad y la potencia de la red y mira cómo se acomoda el tiempo entre
+        bloques. Abajo, la cuenta que decide cuántas confirmaciones esperar.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="pwD">Dificultad D</label>
+          <input type="number" id="pwD" class="mono" value="100000000000000" min="1" step="1000000000000">
+        </div>
+        <div class="field">
+          <label class="field__label" for="pwHash">Potencia de la red (EH/s)</label>
+          <input type="number" id="pwHash" class="mono" value="700" min="1" step="50">
+        </div>
+        <div class="field">
+          <label class="field__label" for="pwShare">Tu parte de la potencia (%)</label>
+          <input type="number" id="pwShare" class="mono" value="1" min="0" max="99" step="0.5">
+        </div>
+        <div class="field">
+          <label class="field__label" for="pwQ">Potencia del atacante q (%)</label>
+          <input type="number" id="pwQ" class="mono" value="10" min="1" max="49" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="pwZ">Confirmaciones z</label>
+          <input type="number" id="pwZ" class="mono" value="6" min="0" max="60" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="pwRun" type="button">
+            Recalcular <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="pwTries">—</span><span class="metric__label">Intentos por bloque</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="pwTime">—</span><span class="metric__label">Tiempo entre bloques</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="pwShareOut">—</span><span class="metric__label">Tus bloques</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral" id="pwRisk">—</span><span class="metric__label">Riesgo con z confirmaciones</span></div>
+      </div>
+      <div class="log" id="pwLog" aria-live="polite"></div>
+      <p class="lab__note">
+        Prueba con q = 10 % y z = 1: el riesgo ronda el 11 %. Con z = 6 cae por debajo del
+        0.2 %. Esa curva es la razón de las «seis confirmaciones» que se citan de memoria.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · POS ============ -->
+<section class="section note" id="pos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">Proof of Stake · prueba de participación</h2>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">En una imagen</span>
+      Es como una asamblea en la que se sortea quién escribe la siguiente página, y quienes
+      tienen más dinero puesto en garantía tienen más boletos. Si el elegido hace trampa, pierde
+      parte de su garantía; por eso conviene ser honesto.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(22px,2.8vw,32px)">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Tres ideas, y nada más</h3>
+        <p>
+          Para entender el corazón del PoS bastan tres: <strong>(i)</strong> un sorteo donde cada
+          validador tiene tantos boletos como monedas en garantía, <strong>(ii)</strong> una
+          votación que exige dos tercios de la garantía total, y <strong>(iii)</strong> un pago
+          al proponente si el bloque se acepta. Todo lo demás —generadores, castigos,
+          expulsiones— son añadidos sobre ese esqueleto.
+        </p>
+        <p>
+          Fíjate en una distinción que el laboratorio deja clara y que suele confundirse:
+          <strong>ganar el sorteo solo da el derecho a proponer</strong>. El bloque entra a la
+          cadena cuando los votos lo aprueban. En el slot 4 Ana gana el sorteo y aun así su
+          bloque se descarta.
+        </p>
+        <h3>Por qué dos tercios</h3>
+        <p>
+          Es la misma cota de los generales bizantinos: con menos de dos tercios honestos no hay
+          forma de distinguir dos mundos contradictorios. Escrito sin fracciones, «al menos dos
+          tercios» es 3<var>V</var> ≥ 2<var>S</var>, que es como lo verifica el código.
+        </p>
+        <p class="lab__note">
+          La demostración de esa cota está en
+          <a href="generales-bizantinos.html">El problema de los generales bizantinos</a>.
+        </p>
+        <h3>El castigo</h3>
+        <p>
+          Si un validador firma dos bloques en conflicto, pierde una parte de su garantía y es
+          expulsado. Dos puntos finalizados en conflicto implican que al menos un tercio de la
+          garantía total violó las reglas, y esa garantía es confiscable: la seguridad del PoS
+          no es física como en PoW, es económica.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-token"/></svg> Formulación</span>
+        <p>
+          Sea <var>V</var> = {1, …, <var>N</var>} el conjunto de validadores,
+          <var>b</var><sub>i</sub> la garantía del validador <var>i</var> y
+          <var>S</var> = Σ<sub>j</sub> <var>b</var><sub>j</sub>.
+        </p>
+        <span class="eq">
+          Pr[<var>i</var> propone el bloque del slot <var>t</var>] = <var>b</var><sub>i</sub>/<var>S</var>
+          <small>la regla central: boletos proporcionales a la garantía</small>
+        </span>
+        <p><strong>Finalidad</strong> (estilo Casper FFG): un punto de control queda justificado si</p>
+        <span class="eq">
+          Σ<sub><var>v</var> ∈ votos(<var>A</var>→<var>C</var>)</sub> <var>b</var><sub>v</sub> ≥ ⅔ <var>S</var>
+          <small>en el código: 3V ≥ 2S, sin fracciones</small>
+        </span>
+        <p><strong>Castigo</strong> (<em>slashing</em>): si <var>v</var> firma dos bloques en conflicto,</p>
+        <span class="eq">
+          <var>b</var><sub>v</sub> ← (1 − <var>φ</var>) <var>b</var><sub>v</sub>,
+          &nbsp; y <var>v</var> es expulsado
+        </span>
+        <div class="callout callout--note" style="margin-bottom:0">
+          <span class="callout__title">En Ethereum</span>
+          Slots de 12 s, épocas de 32 slots, finalidad en unas dos épocas. Migró de PoW a PoS en
+          2022.
+        </div>
+      </aside>
+    </div>
+
+    <!-- LAB 2 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Laboratorio 2 — PoS en su mínima expresión</h2>
+        <span class="lab__tag">Ana 3 · Beto 2 · Carla 1</span>
+      </div>
+      <p class="lab__intro">
+        Tres validadores, seis boletos y cuatro slots. Los números del sorteo están dados, así
+        que puedes seguir la cuenta a mano y comprobarla.
+      </p>
+
+      <p class="lab__note" style="margin-top:1.2rem">Los boletos, repartidos en orden fijo:</p>
+      <div class="lanes" id="pmTickets"></div>
+
+      <div class="controls" style="margin-top:1.4rem">
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="pmNext" type="button">
+            Siguiente slot <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="pmAll" type="button">Ver los cuatro</button>
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn" id="pmReset" type="button">Reiniciar</button>
+        </div>
+        <div class="field field--auto">
+          <span class="lab__tag" id="pmStep">0 / 4</span>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="pmTable"></div>
+      <div class="log" id="pmLog" aria-live="polite"></div>
+      <p class="lab__note">
+        El orden en que se recorren los validadores tiene que ser el mismo en todos los nodos.
+        Si cada uno usara el suyo, elegirían proponentes distintos y no habría acuerdo: el
+        sorteo debe ser reproducible, no sorpresivo.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · POS DE JUGUETE ============ -->
+<section class="section note" id="pos-juguete">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">PoS de juguete: ocho slots con todo</h2>
+      <p class="section__lead">
+        La versión mínima más tres añadidos: un generador que produce los números del sorteo, un
+        pago que aumenta la garantía del ganador, y el castigo por doble firma.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Los cuatro desenlaces posibles aparecen en esta traza: bloque final con recompensa,
+          castigo por doble firma, bloque no final por falta de votos, y slot vacío porque el
+          proponente estaba desconectado.
+        </p>
+        <p>
+          El generador no es seguro —es un lineal congruencial— pero cumple lo único que aquí
+          importa: que todos los nodos obtengan exactamente los mismos números. En una red real
+          ese papel lo hace RANDAO, o una función aleatoria verificable como la de Algorand.
+        </p>
+        <div class="callout callout--warn">
+          <span class="callout__title">El efecto que se le critica al PoS</span>
+          Cada recompensa agranda el intervalo de boletos del ganador, así que su probabilidad de
+          proponer sube, y con ella sus recompensas futuras. Ana empieza con 40 monedas y termina
+          con 46. Es el «el rico se hace más rico» que aparece en toda discusión sobre
+          participación.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Parámetros fijos</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Validadores</dt><dd>Ana, Beto, Carla, Dani (en ese orden)</dd></div>
+          <div><dt>Garantías iniciales</dt><dd>40, 30, 20, 10 &nbsp;(S = 100)</dd></div>
+          <div><dt>Generador</dt><dd><var>x</var><sub>t</sub> = (21<var>x</var><sub>t−1</sub> + 7) mod 1000, <var>x</var><sub>0</sub> = 13</dd></div>
+          <div><dt>Número del sorteo</dt><dd><var>r</var><sub>t</sub> = <var>x</var><sub>t</sub> mod <var>S</var><sub>t</sub></dd></div>
+          <div><dt>Proponente</dt><dd>primer <var>i</var> activo con <var>r</var><sub>t</sub> &lt; límite acumulado</dd></div>
+          <div><dt>Finalidad</dt><dd>el bloque es final si 3<var>V</var> ≥ 2<var>S</var></dd></div>
+          <div><dt>Recompensa</dt><dd>2 monedas al proponente si el bloque es final</dd></div>
+          <div><dt>Castigo</dt><dd>doble firma: <var>b</var><sub>p</sub> ← ⌊<var>b</var><sub>p</sub>/2⌋ y expulsión</dd></div>
+          <div><dt>Escenario</dt><dd>slot 2: Carla firma dos bloques · slot 3: Beto desconectado · slot 5: Ana desconectada</dd></div>
+        </dl>
+        <p class="lab__note" style="margin-top:1.1rem">
+          La cruz (†) marca la garantía congelada de un validador expulsado: conserva las monedas
+          bloqueadas, pero sale del sorteo y deja de contar para <var>S</var>.
+        </p>
+      </aside>
+    </div>
+
+    <!-- LAB 3 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 3 — La traza completa</h2>
+        <span class="lab__tag">x = (21x + 7) mod 1000</span>
+      </div>
+      <p class="lab__intro">
+        Cada renglón es un slot. Sigue la columna de límites: cuando un validador es expulsado
+        desaparece de ella y los intervalos de los demás se recorren.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="ptSlots">Slots a simular</label>
+          <input type="number" id="ptSlots" class="mono" value="8" min="1" max="12" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="ptRun" type="button">
+            Simular <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="ptTable"></div>
+      <div class="log log--tall" id="ptLog" aria-live="polite"></div>
+      <p class="lab__note">
+        Un detalle que se aprecia en el slot 3: Beto está desconectado, así que V = 50 y
+        150 &lt; 160. El bloque de Dani es perfectamente válido y aun así no es final, solo
+        porque faltaron votos. Validez y finalidad son cosas distintas.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · DPOS ============ -->
+<section class="section note" id="dpos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Participación delegada · DPoS</h2>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">En una imagen</span>
+      Es una democracia representativa: los poseedores de monedas no validan directamente, sino
+      que votan para elegir a un grupo pequeño de representantes que se turnan para escribir las
+      páginas. Si un representante falla o abusa, puede ser reemplazado en la siguiente votación.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(22px,2.8vw,32px)">
+      <div class="note__body reveal">
+        <p>
+          Cada poseedor aprueba un conjunto de candidatos —en EOS, hasta 30— y el peso de cada
+          candidato es la suma de las participaciones que lo aprueban. Los <var>N</var> mayores
+          forman el consejo: 21 en EOS, 27 en TRON.
+        </p>
+        <p>
+          Los delegados se turnan en un <strong>calendario fijo</strong>, cada uno produciendo
+          <var>m</var> bloques seguidos. En el diseño clásico de EOS son 12 bloques de medio
+          segundo, es decir turnos de seis segundos. Saber de antemano a quién le toca es lo que
+          hace al sistema rápido, y también lo que lo hace atacable si alguien quiere presionar a
+          un productor concreto.
+        </p>
+        <h3>El castigo es político</h3>
+        <p>
+          A diferencia del PoS, aquí no hay confiscación automática. Un delegado que falla con
+          frecuencia pierde votos y sale del consejo en la siguiente elección. Funciona si los
+          votantes están atentos, que es justo la crítica que se le hace.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-nodes"/></svg> Formulación</span>
+        <span class="eq">
+          <var>V</var><sub>k</sub> = Σ<sub><var>i</var> : <var>k</var> ∈ <var>A</var><sub>i</sub></sub> <var>s</var><sub>i</sub>,
+          &nbsp; 𝒟 = top<sub><var>N</var></sub>{<var>V</var><sub>k</sub>}
+          <small>peso de cada candidato y consejo electo</small>
+        </span>
+        <p>Productor del slot <var>t</var>, con turnos de <var>m</var> bloques:</p>
+        <span class="eq">
+          <var>d</var>(<var>t</var>) = 𝒟[⌊<var>t</var>/<var>m</var>⌋ mod <var>N</var>]
+        </span>
+        <p><strong>Irreversibilidad y tolerancia:</strong></p>
+        <span class="eq">
+          #{productores distintos encima} ≥ ⌊2<var>N</var>/3⌋ + 1
+          <small>15 de 21 en EOS</small>
+        </span>
+        <span class="eq">
+          <var>f</var><sub>max</sub> = ⌊(<var>N</var>−1)/3⌋
+          <small>6 de 21: delegados caídos o maliciosos que se toleran</small>
+        </span>
+        <p><strong>Recompensa típica:</strong> una parte fija por producir y otra según los votos.</p>
+        <span class="eq">
+          <var>R</var><sub>k</sub> = <var>α</var> <var>R</var>/<var>N</var>
+          + (1−<var>α</var>) <var>R</var> <var>V</var><sub>k</sub>/Σ<sub>j</sub><var>V</var><sub>j</sub>
+        </span>
+      </aside>
+    </div>
+
+    <!-- LAB 4 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-nodes"/></svg> Laboratorio 4 — Votación, turnos y tolerancia</h2>
+        <span class="lab__tag">cinco poseedores · siete candidatos</span>
+      </div>
+      <p class="lab__intro">
+        Una cooperativa con cinco bloques de socios y siete candidatos. Cambia el tamaño del
+        consejo y mira cómo se mueven el calendario, la tolerancia y la irreversibilidad.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label class="field__label" for="dpN">Delegados N</label>
+          <input type="number" id="dpN" class="mono" value="5" min="3" max="7" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="dpM">Bloques por turno m</label>
+          <input type="number" id="dpM" class="mono" value="3" min="1" max="12" step="1">
+        </div>
+        <div class="field">
+          <label class="field__label" for="dpDown">Delegados caídos</label>
+          <input type="number" id="dpDown" class="mono" value="1" min="0" max="7" step="1">
+        </div>
+        <div class="field field--auto">
+          <button class="clay-btn clay-btn--primary" id="dpRun" type="button">
+            Recalcular <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="metric"><span class="metric__num metric__num--violet" id="dpTol">—</span><span class="metric__label">Tolerancia f<sub>max</sub></span></div>
+        <div class="metric"><span class="metric__num" id="dpIrr">—</span><span class="metric__label">Irreversible tras</span></div>
+        <div class="metric"><span class="metric__num" id="dpVivo">—</span><span class="metric__label">Con los caídos actuales</span></div>
+      </div>
+
+      <div class="table-wrap" id="dpRank"></div>
+
+      <p class="lab__note" style="margin-top:1.3rem">Calendario de una ronda completa:</p>
+      <div class="lanes" id="dpCal"></div>
+
+      <div class="log" id="dpLog" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · BFT ============ -->
+<section class="section note" id="bft">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">Tolerancia a fallos bizantinos · PBFT y variantes</h2>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">En una imagen</span>
+      Piense en un grupo de generales que deben decidir juntos si atacar o no, sabiendo que
+      algunos podrían ser traidores. Se envían mensajes y votan en varias rondas hasta que una
+      mayoría clara coincide; mientras los traidores sean menos de un tercio, el acuerdo se
+      sostiene.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(22px,2.8vw,32px)">
+      <div class="note__body reveal">
+        <p>
+          Este es el mecanismo con más historia formal de todos: su cota de tolerancia está
+          demostrada, no observada. Con <var>f</var> traidores hacen falta al menos
+          3<var>f</var> + 1 participantes, y por debajo de eso <em>ningún</em> algoritmo
+          funciona, por ingenioso que sea.
+        </p>
+        <p>
+          Lo que lo distingue en la práctica es la <strong>finalidad inmediata</strong>: una vez
+          confirmado, un bloque no se revierte. No hay bifurcaciones temporales ni «esperar seis
+          confirmaciones». A cambio, la comunicación entre nodos crece cuadráticamente, y eso es
+          lo que impide llevarlo a miles de participantes.
+        </p>
+        <p>
+          Sus variantes modernas —Tendermint, HotStuff— reducen ese costo y por eso aparecen
+          también en redes públicas basadas en participación, no solo en consorcios.
+        </p>
+        <p class="lab__note">
+          El problema, la cota y el algoritmo OM(1) están desarrollados con laboratorios en
+          <a href="generales-bizantinos.html">El problema de los generales bizantinos</a>.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Ficha rápida</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>¿Cuándo se usa?</dt><dd>Cuando los participantes se conocen y se necesita que las operaciones sean definitivas al instante.</dd></div>
+          <div><dt>¿Qué red lo usa?</dt><dd>Privadas o de consorcio con un número moderado de nodos conocidos.</dd></div>
+          <div><dt>Ejemplos</dt><dd>Redes empresariales de bancos o aseguradoras; Cosmos (Tendermint); trazabilidad en cadenas de suministro.</dd></div>
+          <div><dt>Lo bueno</dt><dd>Rápida y con finalidad inmediata.</dd></div>
+          <div><dt>Lo malo</dt><dd>La comunicación crece tanto que no escala a miles de participantes.</dd></div>
+        </dl>
+        <span class="eq" style="margin-top:1.2rem">
+          <var>n</var> &gt; 3<var>f</var>
+          <small>una imposibilidad demostrada, no una recomendación</small>
+        </span>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · POA ============ -->
+<section class="section note" id="poa">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Proof of Authority · prueba de autoridad</h2>
+    </header>
+
+    <div class="callout callout--key reveal">
+      <span class="callout__title">En una imagen</span>
+      Es como un notario: solo pueden firmar las páginas personas o instituciones previamente
+      autorizadas y con reputación que cuidar. No se compite con dinero ni con esfuerzo; se
+      confía en la identidad de quien firma.
+    </div>
+
+    <div class="note__grid" style="margin-top:clamp(22px,2.8vw,32px)">
+      <div class="note__body reveal">
+        <p>
+          Es el extremo opuesto al PoW. Allá la confianza se fabrica quemando electricidad
+          porque no se sabe quién es quién; aquí se sabe exactamente quién es quién, y lo que
+          está en juego es su reputación y su responsabilidad legal.
+        </p>
+        <p>
+          Eso lo vuelve rapidísimo y de costo mínimo, y a la vez lo saca del espíritu original
+          de no depender de nadie. No es un defecto si el caso de uso lo pide: en una cadena de
+          frío farmacéutica, que los validadores sean el laboratorio, la autoridad sanitaria y
+          los hospitales no es una debilidad, es el diseño.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">Dónde encaja de verdad</span>
+          Cadena de frío de vacunas, receta médica electrónica, registro vehicular y de
+          siniestros: casos donde los validadores son entidades identificadas y reguladas, que
+          arriesgan su licencia si actúan mal. También es lo habitual en redes de prueba para
+          desarrolladores, donde no tiene sentido competir por seguridad económica.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Ficha rápida</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>¿Cuándo se usa?</dt><dd>Cuando importan la eficiencia y el bajo costo, y existe una entidad o grupo en quien confiar y a quien exigir responsabilidad.</dd></div>
+          <div><dt>¿Qué red lo usa?</dt><dd>Privadas, de consorcio o de pruebas, con validadores identificados y aprobados de antemano.</dd></div>
+          <div><dt>Ejemplos</dt><dd>VeChain; redes de prueba; registros internos de una institución o un gobierno.</dd></div>
+          <div><dt>Lo bueno</dt><dd>Muy rápida y de costo mínimo.</dd></div>
+          <div><dt>Lo malo</dt><dd>Fuertemente centralizada: se pierde la idea de no depender de nadie.</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · MODERNOS ============ -->
+<section class="section note" id="modernos">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Cinco con ingenio matemático</h2>
+      <p class="section__lead">
+        Los cinco anteriores son la base histórica. Estos resuelven el mismo problema con una
+        idea matemática distinta: sorteos secretos, muestreo aleatorio, espacio en disco, relojes
+        criptográficos y «chismes» que se convierten en votos.
+      </p>
+    </header>
+
+    <div class="note__body reveal" style="max-width:82ch">
+      <h3 style="margin-top:0">Algorand · sorteo criptográfico secreto</h3>
+      <p>
+        Imagine una lotería en la que cada participante lleva en el bolsillo un boleto secreto y
+        solo él sabe si salió premiado. Los ganadores forman un comité que vota unos segundos y
+        después se disuelve. Como nadie sabe de antemano quién será elegido,
+        <strong>un atacante no sabe a quién sobornar o atacar</strong>.
+      </p>
+      <p>
+        El ingenio son las <em>funciones aleatorias verificables</em> (VRF): cada quien calcula
+        un número pseudoaleatorio con su clave secreta y después puede demostrarle a todos que el
+        resultado fue legítimo. Combinado con un protocolo de acuerdo bizantino, tolera que hasta
+        un tercio de las monedas sean maliciosas.
+      </p>
+
+      <h3>Avalanche · consenso por muestreo aleatorio</h3>
+      <p>
+        Es como preguntar en una fiesta enorme «¿a qué hora empieza el concierto?». Cada persona
+        consulta a un puñado de vecinos al azar y, si la mayoría coincide, adopta esa respuesta y
+        la repite. Tras pocas rondas toda la sala converge, <strong>sin que nadie hable con
+        todos</strong>.
+      </p>
+      <p>
+        Se apoya en muestreo repetido y en sistemas <em>metaestables</em>, como los cristales que
+        se decantan hacia un estado. Con tres parámetros —tamaño de la muestra, umbral de mayoría
+        y número de rondas— se acota la probabilidad de desacuerdo. El precio es que la seguridad
+        es probabilística: altísima, pero no certeza absoluta.
+      </p>
+
+      <h3>Prueba de espacio y tiempo · Chia</h3>
+      <p>
+        En lugar de gastar electricidad resolviendo acertijos, se «reserva» espacio en disco duro:
+        como llenar una bodega con miles de billetes de lotería ya preparados. Cada cierto tiempo
+        se saca un número y quien tenga el billete más cercano gana el turno.
+      </p>
+      <p>
+        Las pruebas de espacio se apoyan en problemas difíciles de calcular en poco espacio, y se
+        añade un retardo secuencial verificable para que el tiempo también cuente. Consume mucha
+        menos energía que el PoW, pero fomenta la compra y el desgaste de discos duros, y las
+        grandes granjas de almacenamiento siguen centralizando.
+      </p>
+
+      <h3>Proof of History · Solana</h3>
+      <p>
+        Es un reloj de arena criptográfico: una cadena de cálculos que <em>no se puede
+        acelerar</em>, donde cada paso depende del anterior. Al insertar un evento entre dos pasos
+        se demuestra que ocurrió antes que los siguientes, <strong>sin preguntarle la hora a
+        nadie</strong>.
+      </p>
+      <p>
+        Calcular esa cadena toma tiempo, pero verificarla se hace en paralelo y rápido, así que el
+        orden de los eventos queda fijado sin comunicación adicional. Por sí sola no es consenso
+        completo: necesita una votación de tipo BFT encima. Y exige hardware exigente a los
+        validadores.
+      </p>
+
+      <h3>Hashgraph · chisme sobre chisme</h3>
+      <p>
+        Cada nodo le cuenta a otro, al azar, todo lo que sabe y <em>también</em> quién le contó
+        qué y cuándo. Con esa red de rumores, cada participante puede deducir por sí mismo cómo
+        habría votado cada uno de los demás, <strong>sin que nadie envíe votos reales</strong>.
+      </p>
+      <p>
+        Combina <em>gossip about gossip</em> con <em>voto virtual</em>: el acuerdo se calcula
+        sobre el grafo de mensajes ya compartidos, sin rondas adicionales de votación. Se
+        demuestra tolerante a fallos bizantinos en un modelo asíncrono. No es una cadena de
+        bloques tradicional sino un grafo dirigido acíclico, su gobierno es más centralizado y la
+        tecnología ha estado sujeta a patentes.
+      </p>
+    </div>
+
+    <div class="quad quad--3 reveal" style="margin-top:clamp(26px,3.4vw,40px)">
+      <div class="quad__cell" style="--accent:var(--violet)">
+        <h4>Qué reducen</h4>
+        <p>Algorand y Hashgraph reducen la <strong>comunicación</strong>; Chia reduce el
+        <strong>gasto energético</strong>; PoH reduce la <strong>coordinación</strong> necesaria
+        para ordenar eventos.</p>
+      </div>
+      <div class="quad__cell" style="--accent:var(--mint)">
+        <h4>Qué conservan</h4>
+        <p>Ninguno renuncia del todo a la seguridad: la cambian de forma. Avalanche la vuelve
+        probabilística; Algorand la apoya en que la mayoría del capital sea honesta.</p>
+      </div>
+      <div class="quad__cell" style="--accent:var(--amber)">
+        <h4>Qué cuestan</h4>
+        <p>Diseños más sofisticados, hardware más exigente o supuestos más finos. La complejidad
+        no desaparece: se traslada.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · COMPARATIVA ============ -->
+<section class="section note" id="comparativa">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Vista comparativa</h2>
+    </header>
+
+    <!-- LAB 5 -->
+    <div class="clay-card lab reveal">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg> Laboratorio 5 — Los diez, filtrables</h2>
+        <span class="lab__tag" id="cmCount">—</span>
+      </div>
+      <p class="lab__intro">
+        Filtra por familia o por tipo de red. La columna que más dice es la segunda: quién
+        decide, en una línea.
+      </p>
+
+      <div class="controls">
+        <div class="field field--auto">
+          <div class="seg" id="cmSeg" role="group" aria-label="Filtro">
+            <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+            <button type="button" data-f="base" aria-pressed="false">Los cinco base</button>
+            <button type="button" data-f="moderno" aria-pressed="false">Los cinco modernos</button>
+            <button type="button" data-f="abierta" aria-pressed="false">Red abierta</button>
+            <button type="button" data-f="cerrada" aria-pressed="false">Con permiso</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="cmTable"></div>
+    </div>
+
+    <div class="callout callout--key reveal" style="margin-top:clamp(22px,2.8vw,32px)">
+      <span class="callout__title">Idea para llevarse</span>
+      No existe un mecanismo «mejor» en abstracto. Cuanto más abierta y sin confianza previa es
+      la red, más costoso resulta el consenso (PoW, PoS); cuanto más se conocen los participantes,
+      más rápido y barato puede ser (BFT, PoA). Elegir un mecanismo es elegir qué se sacrifica.
+      Los cinco últimos muestran que la matemática permite mover esas fronteras: sorteos
+      verificables, muestreo aleatorio, relojes criptográficos y votos virtuales reducen la
+      comunicación o el gasto sin renunciar del todo a la seguridad.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · APLICACIONES ============ -->
+<section class="section note" id="aplicaciones">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Dónde conviene cada uno</h2>
+      <p class="section__lead">
+        Casos donde la elección no es de gusto sino de requisitos. Fíjate en que lo que decide no
+        es la tecnología sino quiénes son los participantes y qué tan definitivo debe ser el
+        registro.
+      </p>
+    </header>
+
+    <div class="table-wrap reveal" style="margin-top:0">
+      <table class="nb">
+        <thead>
+          <tr>
+            <th scope="col">Caso</th>
+            <th scope="col">Mecanismo</th>
+            <th scope="col">Por qué ese y no otro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Certificación de diamantes</strong><br><span class="dim">una piedra, un certificado de laboratorio</span></td>
+            <td>PoW</td>
+            <td>El registro se escribe una vez y se consulta durante décadas. El costo por transacción es irrelevante frente al valor de la piedra, y lo que se compra es que el sello no pueda alterarse.</td>
+          </tr>
+          <tr>
+            <td><strong>Donaciones bajo censura</strong><br><span class="dim">fondos en países con bloqueos bancarios</span></td>
+            <td>PoW</td>
+            <td>Donantes anónimos, riesgo de congelamiento, necesidad de auditoría pública. Una red abierta impide que un tercero bloquee o revierta los donativos.</td>
+          </tr>
+          <tr>
+            <td><strong>Compraventa de autos usados</strong><br><span class="dim">historial ligado al número de serie</span></td>
+            <td>PoS</td>
+            <td>Intervienen agencias, talleres, aseguradoras y particulares. Un contrato inteligente opera como depósito en garantía y libera el pago contra la entrega.</td>
+          </tr>
+          <tr>
+            <td><strong>Tokenización de bienes raíces</strong><br><span class="dim">un edificio en miles de fracciones</span></td>
+            <td>PoS</td>
+            <td>Inversionistas pequeños, pagos periódicos automáticos y mercado secundario. Necesita la liquidez de una red pública a costos accesibles.</td>
+          </tr>
+          <tr>
+            <td><strong>Consulta médica por internet</strong><br><span class="dim">citas, pagos y constancias</span></td>
+            <td>DPoS</td>
+            <td>Los datos clínicos nunca van en la cadena, solo hashes y permisos. El pago debe confirmarse en segundos mientras el paciente espera en línea.</td>
+          </tr>
+          <tr>
+            <td><strong>Propinas y micropagos</strong><br><span class="dim">miles de transacciones diminutas</span></td>
+            <td>DPoS</td>
+            <td>Comisiones casi nulas y confirmación instantánea: un rendimiento que PoW o PoS clásico no ofrecen a ese costo.</td>
+          </tr>
+          <tr>
+            <td><strong>Liquidación interbancaria</strong><br><span class="dim">bancos que compensan transferencias</span></td>
+            <td>BFT</td>
+            <td>No puede haber bifurcaciones ni reversiones, y el conjunto de validadores es pequeño y conocido. Es exactamente la finalidad determinista de PBFT.</td>
+          </tr>
+          <tr>
+            <td><strong>Tequila con denominación de origen</strong><br><span class="dim">agave, destilerías, aduanas</span></td>
+            <td>BFT</td>
+            <td>Cada eslabón tiene incentivos distintos y hay que evitar la adulteración. La finalidad inmediata permite que la aduana verifique un lote en el momento.</td>
+          </tr>
+          <tr>
+            <td><strong>Cadena de frío farmacéutica</strong><br><span class="dim">vacunas entre 2 °C y 8 °C</span></td>
+            <td>PoA</td>
+            <td>Sensores IoT registran temperatura en cada tramo. Hace falta rendimiento alto y responsabilidad legal clara de cada validador identificado.</td>
+          </tr>
+          <tr>
+            <td><strong>Receta médica electrónica</strong><br><span class="dim">evitar que se surta dos veces</span></td>
+            <td>PoA</td>
+            <td>Los participantes tienen cédula profesional o licencia sanitaria: cada validador es una institución acreditada, que es justo el supuesto de PoA.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--note reveal" style="margin-top:clamp(22px,2.8vw,32px)">
+      <span class="callout__title">Un patrón que conviene notar</span>
+      Los casos de PoW comparten algo: pocas escrituras, de alto valor, que nadie debe poder
+      reescribir nunca. Los de PoA comparten lo contrario: muchas escrituras, de bajo valor
+      individual, entre entidades que ya están reguladas. La pregunta útil no es «¿cuál es el
+      mejor?» sino «¿quiénes van a escribir aquí, y qué pasa si uno miente?».
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 11 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 11</span>
+      <h2 class="section__title">Síntesis</h2>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <h3 style="margin-top:0">Lo que hay que llevarse</h3>
+        <ul class="plain-list">
+          <li>Un mecanismo de consenso responde quién escribe, cómo se verifica y qué pasa con el tramposo. Todo lo demás son detalles de implementación.</li>
+          <li style="--accent:var(--sky)">Seguridad, velocidad y descentralización no se consiguen las tres a la vez. Elegir mecanismo es elegir qué sacrificar.</li>
+          <li style="--accent:var(--mint)">Cuanto más abierta la red, más caro el consenso. La identidad conocida es un atajo: BFT y PoA son rápidos porque ya saben quién es quién.</li>
+          <li style="--accent:var(--coral)">En PoS, ganar el sorteo solo da derecho a <em>proponer</em>. El bloque entra cuando los votos llegan a dos tercios de la garantía.</li>
+          <li style="--accent:var(--amber)">La seguridad del PoW es física —electricidad quemada— y la del PoS es económica —garantía confiscable—. Las dos funcionan; fallan distinto.</li>
+          <li style="--accent:var(--violet)">Los cinco mecanismos modernos no rompen el trilema: mueven sus fronteras con matemáticas, y cada uno paga el movimiento en otra parte.</li>
+        </ul>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Glosario mínimo</span>
+        <dl class="params" style="margin:0;grid-template-columns:1fr">
+          <div><dt>Objetivo T</dt><dd>Umbral bajo el que debe caer el hash del bloque en PoW.</dd></div>
+          <div><dt>Dificultad D</dt><dd><var>T</var><sub>max</sub>/<var>T</var>. Cuanto mayor, más intentos por bloque.</dd></div>
+          <div><dt>Garantía (stake)</dt><dd>Monedas bloqueadas que dan boletos en el sorteo y pueden confiscarse.</dd></div>
+          <div><dt>Slot</dt><dd>Turno fijo en el que un proponente puede escribir un bloque.</dd></div>
+          <div><dt>Finalidad</dt><dd>Punto a partir del cual un bloque ya no puede revertirse.</dd></div>
+          <div><dt>Slashing</dt><dd>Castigo que recorta la garantía de un validador que firma en conflicto.</dd></div>
+          <div><dt>VRF</dt><dd>Función aleatoria verificable: azar privado que luego se demuestra legítimo.</dd></div>
+          <div><dt>DAG</dt><dd>Grafo dirigido acíclico; la estructura de Hashgraph en vez de una cadena.</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 12 · EJERCICIOS ============ -->
+<section class="section note" id="ejercicios">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 12</span>
+      <h2 class="section__title">Para trabajar</h2>
+      <p class="section__lead">
+        Los cuatro primeros se comprueban con los laboratorios de esta página. Los dos últimos
+        son de discusión.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body exlist reveal">
+
+        <h3 style="margin-top:0">Ejercicio 1 · El sorteo a mano</h3>
+        <p>
+          En la versión mínima, Ana tiene 3 monedas, Beto 2 y Carla 1. Enumera los boletos de
+          cada uno y di quién propone con <var>r</var> = 0, 2, 3, 4 y 5. Después explica por qué
+          el orden en que el algoritmo recorre a los validadores tiene que ser el mismo en todos
+          los nodos.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>Los intervalos se forman acumulando garantías en el orden fijo Ana, Beto, Carla:</p>
+          <div class="table-wrap" style="margin-top:.8rem">
+            <table class="nb" style="min-width:380px">
+              <thead><tr><th scope="col">Validador</th><th scope="col">Garantía</th><th scope="col">Boletos</th><th scope="col">Límite acumulado</th></tr></thead>
+              <tbody>
+                <tr><td>Ana</td><td class="num">3</td><td class="num">0, 1, 2</td><td class="num">3</td></tr>
+                <tr><td>Beto</td><td class="num">2</td><td class="num">3, 4</td><td class="num">5</td></tr>
+                <tr><td>Carla</td><td class="num">1</td><td class="num">5</td><td class="num">6</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Entonces <var>r</var> = 0 y 2 → <strong>Ana</strong>; <var>r</var> = 3 y 4 →
+            <strong>Beto</strong>; <var>r</var> = 5 → <strong>Carla</strong>.
+          </p>
+          <p>
+            El orden importa porque los intervalos dependen de él. Si un nodo recorriera Carla,
+            Beto, Ana, los boletos 0 sería de Carla y el sorteo daría otro proponente. Cada nodo
+            calcularía un bloque válido distinto para el mismo slot y <strong>no habría
+            acuerdo</strong>: el sorteo tiene que ser reproducible, no sorpresivo. Es la misma
+            razón por la que el generador es público y determinista.
+          </p>
+        </details>
+
+        <hr>
+
+        <h3>Ejercicio 2 · Validez no es finalidad</h3>
+        <p>
+          En la traza del PoS de juguete, el slot 3 produce un bloque de Dani que es
+          perfectamente válido y aun así no es final. Explica por qué, con los números, y di qué
+          tendría que haber pasado para que sí lo fuera.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            En el slot 3, Carla ya fue expulsada, así que <var>S</var> = 40 + 30 + 10 = 80. Beto
+            está desconectado, de modo que solo votan Ana y Dani:
+          </p>
+          <span class="eq">
+            <var>V</var> = 40 + 10 = 50, &nbsp; 3<var>V</var> = 150 &lt; 160 = 2<var>S</var>
+          </span>
+          <p>
+            Faltan votos para los dos tercios. El bloque de Dani cumple todas las reglas de
+            validez —las firmas son correctas, nadie gasta dos veces— pero
+            <strong>no alcanza la finalidad</strong>, así que no cuenta y Dani no cobra.
+          </p>
+          <p>
+            Habría bastado con que Beto estuviera conectado: entonces <var>V</var> = 80,
+            3<var>V</var> = 240 ≥ 160 y el bloque sería final. Nota que con solo 30 de garantía
+            Beto no podía proponer nada en ese slot, pero su voto era decisivo. En PoS la
+            disponibilidad de los validadores es parte de la seguridad, no un detalle operativo.
+          </p>
+        </details>
+
+        <hr>
+
+        <h3>Ejercicio 3 · Las seis confirmaciones</h3>
+        <p>
+          Usando la cota de Nakamoto, calcula el riesgo de que un atacante con el 10 % de la
+          potencia alcance la cadena honesta desde 1, 3 y 6 bloques atrás. ¿Cuántas
+          confirmaciones harían falta si controlara el 30 %? Comprueba con el laboratorio 1.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>Con <var>q</var> = 0.1 y <var>p</var> = 0.9, la razón <var>q</var>/<var>p</var> = 1/9:</p>
+          <div class="table-wrap" style="margin-top:.8rem">
+            <table class="nb" style="min-width:340px">
+              <thead><tr><th scope="col">z</th><th scope="col">(q/p)<sup>z</sup></th><th scope="col">Riesgo</th></tr></thead>
+              <tbody>
+                <tr><td class="num">1</td><td class="num">1/9</td><td class="num">11.1 %</td></tr>
+                <tr><td class="num">3</td><td class="num">1/729</td><td class="num">0.137 %</td></tr>
+                <tr><td class="num">6</td><td class="num">1/531 441</td><td class="num">0.000 19 %</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Con <var>q</var> = 0.3 la razón es 3/7 ≈ 0.4286, que cae mucho más despacio. Para
+            bajar del 0.1 % hacen falta <strong>9 confirmaciones</strong>, porque
+            0.4286<sup>8</sup> ≈ 0.0011 todavía supera el umbral y 0.4286<sup>9</sup> ≈ 0.00047 ya
+            no.
+          </p>
+          <p>
+            La lección: el número de confirmaciones «seguro» no es una constante, depende de
+            cuánta potencia supongas en manos del atacante. Seis es una convención calibrada para
+            un adversario modesto, no un teorema.
+          </p>
+        </details>
+
+        <hr>
+
+        <h3>Ejercicio 4 · La cota de DPoS</h3>
+        <p>
+          EOS usa 21 delegados. Calcula <var>f</var><sub>max</sub> y el umbral de
+          irreversibilidad, y explica por qué un bloque tarda 15 productores distintos en volverse
+          irreversible y no 11, que sería la mayoría simple.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <span class="eq">
+            <var>f</var><sub>max</sub> = ⌊(21−1)/3⌋ = ⌊6.67⌋ = <strong>6</strong>
+          </span>
+          <span class="eq">
+            irreversible con ⌊2·21/3⌋ + 1 = 14 + 1 = <strong>15</strong> productores distintos
+          </span>
+          <p>
+            La mayoría simple no basta por la misma razón que en los generales bizantinos. Si
+            hasta 6 delegados pueden ser maliciosos y respaldar dos historias en conflicto, dos
+            grupos de 11 podrían compartir hasta 6 tramposos y aun así tener 5 honestos cada uno
+            apoyando cadenas distintas. Con 15 el traslape obliga a que al menos
+            15 + 15 − 21 = 9 delegados estén en ambos grupos, y como los tramposos son a lo más
+            6, queda garantizado al menos un honesto en la intersección. Un honesto no firma dos
+            historias contradictorias, así que no puede haber dos bloques irreversibles en
+            conflicto.
+          </p>
+          <p>
+            En el laboratorio 4 se ve el costo: con turnos de <var>m</var> bloques, esperar 15
+            productores distintos son 15·<var>m</var> slots en el peor caso.
+          </p>
+        </details>
+
+        <hr>
+
+        <h3>Ejercicio 5 · Elegir con requisitos</h3>
+        <p>
+          Una universidad quiere registrar los títulos que emite para que cualquiera pueda
+          verificarlos durante décadas, incluso si la universidad desaparece. El volumen es bajo:
+          unos miles de títulos al año. Otra institución quiere registrar las entradas y salidas
+          de 40 000 sensores de temperatura, cada minuto. Elige mecanismo para cada una y
+          justifica.
+        </p>
+        <details>
+          <summary><strong>Ver respuesta</strong></summary>
+          <p>
+            <strong>Los títulos: PoW.</strong> Lo que se compra es permanencia e independencia de
+            la institución. El volumen es bajo, así que el costo por transacción es irrelevante,
+            y la propiedad que importa —que nadie pueda reescribir el registro, ni siquiera la
+            propia universidad dentro de veinte años— es exactamente lo que PoW ofrece. Basta con
+            anclar el hash de cada título; los datos personales no van en la cadena.
+          </p>
+          <p>
+            <strong>Los sensores: PoA.</strong> Son 40 000 escrituras por minuto de bajo valor
+            individual, entre dispositivos que pertenecen a entidades identificadas. No hay
+            adversario económico que combatir: lo que se necesita es rendimiento alto, costo
+            mínimo y responsabilidad legal clara de cada validador. Gastar electricidad en minar
+            lecturas de temperatura no compraría nada.
+          </p>
+          <p class="lab__note">
+            El patrón general: pocas escrituras de alto valor que nadie debe poder reescribir →
+            PoW. Muchas escrituras de bajo valor entre participantes regulados → PoA.
+          </p>
+        </details>
+
+        <hr>
+
+        <h3>Ejercicio 6 · Discusión</h3>
+        <p>
+          El efecto «el rico se hace más rico» del PoS es una crítica frecuente. Formúlala con
+          precisión usando la traza del laboratorio 3, y después construye el mejor argumento en
+          contra que se te ocurra. ¿Ocurre algo parecido en PoW?
+        </p>
+        <details>
+          <summary><strong>Guía para la discusión</strong></summary>
+          <p>
+            No tiene respuesta única; se evalúa que la crítica esté bien formulada y que el
+            contraargumento sea honesto. Elementos que deberían aparecer:
+          </p>
+          <ul class="plain-list">
+            <li><strong>La crítica, con números:</strong> Ana pasa de 40 a 46 monedas en ocho slots. Su probabilidad de proponer sube de 40/100 a 46/88, y cada recompensa realimenta la siguiente. En el límite, la participación tiende a concentrarse.</li>
+            <li style="--accent:var(--mint)"><strong>Contraargumento 1:</strong> la ganancia es proporcional, no exponencial. Todos los validadores honestos ganan en proporción a su garantía, así que las <em>proporciones</em> relativas apenas se mueven; lo que crece es el total. Aquí Ana sube rápido porque la muestra es de ocho slots y porque Carla fue expulsada.</li>
+            <li style="--accent:var(--sky)"><strong>Contraargumento 2:</strong> en PoW pasa lo mismo y además con economías de escala. Quien mina más compra hardware más barato por volumen, negocia mejor tarifa eléctrica y accede a financiamiento. El PoS al menos no tiene descuentos por volumen: duplicar la garantía cuesta exactamente el doble.</li>
+            <li style="--accent:var(--coral)"><strong>Matiz:</strong> la emisión diluye a quien no participa. Si la recompensa sale de monedas nuevas, los validadores ganan frente a los tenedores pasivos, que es una redistribución distinta de la que señala la crítica.</li>
+          </ul>
+        </details>
+
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-check"/></svg> Cómo usar los laboratorios</span>
+        <p><strong>Ejercicio 1:</strong> el laboratorio 2 dibuja los boletos antes de empezar. Avanza slot por slot y compara con tu cuenta.</p>
+        <p><strong>Ejercicio 2:</strong> en el laboratorio 3, mira la columna «3V vs 2S» del slot 3.</p>
+        <p><strong>Ejercicio 3:</strong> en el laboratorio 1, mueve q y z y lee el riesgo; el registro te dice cuántas confirmaciones hacen falta.</p>
+        <p><strong>Ejercicio 4:</strong> el laboratorio 4 no llega a 21 delegados, pero la fórmula es la misma; prueba con 7 y comprueba a mano.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 13 · FUENTES ============ -->
+<section class="section note" id="fuentes">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 13</span>
+      <h2 class="section__title">Referencias</h2>
+      <p class="section__lead">
+        Estado del material en noviembre de 2026. La fuente principal es el documento del curso;
+        lo demás son las fuentes primarias de cada mecanismo.
+      </p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="note__body">
+        <h3 style="margin-top:0">Fuente del apunte</h3>
+        <ul class="plain-list">
+          <li><em>Mecanismos de consenso en blockchain. Una primera descripción intuitiva para todo público.</em> Documento del curso, con las fichas de los diez mecanismos, la formulación de PoW, PoS y DPoS, y las dos trazas de PoS que reproducen los laboratorios 2 y 3.</li>
+          <li style="--accent:var(--sky)">Temario del Curso de Blockchain, MathCon. El consenso distribuido es la unidad 7. <a href="http://www.math.com.mx/curso_Blockchain.html" rel="noopener">math.com.mx/curso_Blockchain.html</a></li>
+        </ul>
+
+        <h3>Los cinco base</h3>
+        <ul class="plain-list">
+          <li>Nakamoto, S. <em>Bitcoin: A Peer-to-Peer Electronic Cash System</em>, 2008. La sección 11 contiene el cálculo de la probabilidad de alcance. <a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">bitcoin.org/bitcoin.pdf</a></li>
+          <li style="--accent:var(--sky)">Buterin, V. y Griffith, V. <em>Casper the Friendly Finality Gadget</em>, 2017. Origen de la regla de los dos tercios y del castigo por doble firma. <a href="https://arxiv.org/abs/1710.09437" rel="noopener">arxiv.org/abs/1710.09437</a></li>
+          <li style="--accent:var(--mint)">Lamport, L., Shostak, R. y Pease, M. <em>The Byzantine Generals Problem</em>, ACM TOPLAS, 1982. La cota n &gt; 3f y el algoritmo de mensajes orales.</li>
+          <li style="--accent:var(--coral)">Castro, M. y Liskov, B. <em>Practical Byzantine Fault Tolerance</em>, OSDI 1999. El PBFT al que se refiere la ficha del módulo 06.</li>
+          <li style="--accent:var(--amber)">Larimer, D. <em>Delegated Proof-of-Stake Consensus</em>. Descripción del esquema que usan EOS y TRON.</li>
+        </ul>
+      </div>
+
+      <div class="note__body">
+        <h3 style="margin-top:0">Los cinco con ingenio matemático</h3>
+        <ul class="plain-list">
+          <li>Gilad, Y. et al. <em>Algorand: Scaling Byzantine Agreements for Cryptocurrencies</em>, SOSP 2017. El sorteo criptográfico con VRF. <a href="https://dl.acm.org/doi/10.1145/3132747.3132757" rel="noopener">dl.acm.org</a></li>
+          <li style="--accent:var(--sky)">Rocket, T. et al. <em>Scalable and Probabilistic Leaderless BFT Consensus through Metastability</em>, 2019. La familia de protocolos de Avalanche. <a href="https://arxiv.org/abs/1906.08936" rel="noopener">arxiv.org/abs/1906.08936</a></li>
+          <li style="--accent:var(--mint)">Cohen, B. y Pietrzak, K. <em>The Chia Network Blockchain</em>, 2019. Pruebas de espacio combinadas con retardo verificable.</li>
+          <li style="--accent:var(--coral)">Yakovenko, A. <em>Solana: A new architecture for a high performance blockchain</em>. El reloj criptográfico de Proof of History. <a href="https://solana.com/solana-whitepaper.pdf" rel="noopener">solana.com</a></li>
+          <li style="--accent:var(--amber)">Baird, L. <em>The Swirlds Hashgraph Consensus Algorithm: Gossip-about-Gossip, Virtual Voting</em>, 2016. El voto virtual sobre el grafo de rumores.</li>
+        </ul>
+
+        <h3>Apuntes relacionados</h3>
+        <ul class="plain-list">
+          <li><a href="prueba-de-trabajo.html">La prueba de trabajo y el doble gasto</a> — el acertijo minado en vivo, el ajuste de dificultad y el ataque del 51 %.</li>
+          <li style="--accent:var(--sky)"><a href="generales-bizantinos.html">El problema de los generales bizantinos</a> — la cota n &gt; 3f demostrada y el algoritmo OM(1).</li>
+          <li style="--accent:var(--mint)"><a href="hash.html">Funciones hash</a> — la primitiva sobre la que se apoyan PoW, los relojes de PoH y los sorteos.</li>
+        </ul>
+
+        <div class="callout callout--note" style="margin-top:1.4rem">
+          <span class="callout__title">Sobre los laboratorios</span>
+          Los laboratorios 2 y 3 reproducen exactamente las dos trazas impresas en el documento
+          del curso: mismos parámetros, mismo generador y mismos eventos. La tabla del documento
+          sirve de verificación, slot por slot.
+        </div>
+
+        <p class="lab__note" style="margin-top:1.4rem">
+          El documento del curso advierte que es una primera descripción intuitiva: el análisis
+          formal de seguridad y tolerancia a fallos de cada mecanismo se desarrolla en una etapa
+          posterior.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Seguir por aquí</h2>
+        <p>Dos de estos mecanismos tienen apunte propio, con los laboratorios a fondo.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="prueba-de-trabajo.html">
+          Prueba de trabajo <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="generales-bizantinos.html">Generales bizantinos</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="compromisos.html">Compromisos</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="generales-bizantinos.html">Generales bizantinos</a></li>
+          <li><a href="consenso.html">Mecanismos de consenso</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="http://www.math.com.mx/curso_Blockchain.html" rel="noopener">Temario del curso</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/consenso.js" defer></script>
+</body>
+</html>
