@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelo UTXO y minería — ChainNotes</title>
+<meta name="description" content="Apunte en lenguaje sencillo: cómo guarda Bitcoin el dinero como monedas sin gastar (UTXO), cómo se arma una transacción con su cambio y su comisión, qué candado protege cada moneda, qué hace un minero, la lotería de la prueba de trabajo, el ajuste de dificultad y el halving. Con quiz final.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<!-- ?v=7 rompe la caché: la página usa .coins, .phases y el quiz -->
+<link rel="stylesheet" href="../assets/css/apuntes.css?v=7">
+</head>
+<body>
+
+<!-- ============ SPRITE DE ICONOS ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7L12 2.5Z"/><path d="M3.7 7 12 11.7 20.3 7M12 11.7V21.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/></symbol>
+  <symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><circle cx="4.8" cy="18" r="2.5"/><circle cx="19.2" cy="18" r="2.5"/><path d="M10.6 6.7 6.2 15.8M13.4 6.7l4.4 9.1M7.3 18h9.4"/></symbol>
+  <symbol id="i-bitcoin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.8h4.1a2.2 2.2 0 0 1 0 4.4H9.5m0 0h4.6a2.2 2.2 0 0 1 0 4.4H9.5m0-8.8v8.8M11 5.6v2.2m0 8.4v2.2m2.6-12.8v2.2m0 8.4v2.2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 8-4.6 4 4.6 4M15.5 8l4.6 4-4.6 4M13.6 4.8 10.4 19.2"/></symbol>
+  <symbol id="i-token" viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.2"/><path d="M13.9 6.6A5.2 5.2 0 1 1 11 18.7"/><path d="M9 6.6v4.8"/></symbol>
+  <symbol id="i-defi" viewBox="0 0 24 24"><path d="M3.5 19.5h17M6 19.5v-6M11 19.5V8M16 19.5v-9"/><path d="m5 10 5.6-5.2 4 2.6 4.6-4.1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 8.5 4.3L12 11.6 3.5 7.3 12 3Z"/><path d="m3.5 12 8.5 4.3 8.5-4.3M3.5 16.7 12 21l8.5-4.3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 6v6.1c0 4.2-3 7.5-7.5 9.1-4.5-1.6-7.5-4.9-7.5-9.1V6L12 2.8Z"/><path d="m8.8 12 2.3 2.4 4.1-4.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14l-2.5-3h-9L5 8Z"/><path d="M8.5 8 6 13.5a2.6 2.6 0 0 0 5 0L8.5 8ZM15.5 8 13 13.5a2.6 2.6 0 0 0 5 0L15.5 8Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.4 2.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.8 5.5 13.4h5.8l-.9 7.8 7.7-10.6h-5.8l.9-7.8Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2.6a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5L12 17"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4 8 7.1 4.6a1.7 1.7 0 0 0 1.8 0L20 8"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4 8.5 8.5 0 1 0 20 14.4Z"/></symbol>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+<a class="skip-link" href="#monedas">Saltar al contenido</a>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="../index.html" aria-label="ChainNotes, ir al inicio">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+      <span class="brand__text">Chain<em>Notes</em></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="../index.html">Inicio</a></li>
+        <li><a class="nav__link is-active" href="#monedas">UTXO</a></li>
+        <li><a class="nav__link" href="#transaccion">Transacciones</a></li>
+        <li><a class="nav__link" href="#mineria">Minería</a></li>
+        <li><a class="nav__link" href="#halving">Halving</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <button class="clay-btn clay-btn--icon" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="ico-sun" viewBox="0 0 24 24"><use href="#i-sun"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24"><use href="#i-moon"/></svg>
+      </button>
+      <a class="clay-btn clay-btn--primary header__cta" href="#monedas">
+        Leer el apunte <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ CABECERA DEL TEMA ============ -->
+<section class="topic-hero" id="inicio">
+  <div class="blobs" aria-hidden="true">
+    <span class="blob blob--1" data-parallax="0.16"></span>
+    <span class="blob blob--2" data-parallax="-0.10"></span>
+    <span class="blob blob--3" data-parallax="0.07"></span>
+    <span class="blob blob--4" data-parallax="-0.05"></span>
+  </div>
+
+  <div class="container topic-hero__inner">
+    <div>
+      <nav class="crumbs anim" style="--d:0ms" aria-label="Ruta de navegación">
+        <a href="../index.html">Apuntes</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <a href="../index.html#temas">Temario</a>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+        <span>06 · UTXO y minería</span>
+      </nav>
+
+      <span class="badge anim" style="--d:60ms">
+        <span class="badge__dot"></span> Módulo 06 · Bitcoin por dentro
+      </span>
+
+      <h1 class="topic-hero__title anim" style="--d:120ms">
+        Modelo <span class="grad">UTXO</span><br>
+        y <span class="underlined">minería</span>
+      </h1>
+
+      <p class="topic-hero__lead anim" style="--d:200ms">
+        Bitcoin no lleva una libreta con el saldo de cada persona. Guarda algo más parecido a
+        un montón de monedas sueltas, y cada pago rompe unas monedas y fabrica otras. Este
+        apunte explica cómo funciona eso, quién decide qué pagos entran en la cadena y por
+        qué cada diez minutos aparece un bloque nuevo.
+      </p>
+
+      <ul class="topic-hero__meta anim" style="--d:280ms">
+        <li><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> Monedas sin gastar</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg> Candados</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg> Minería</li>
+        <li><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Quiz de 12 preguntas</li>
+      </ul>
+    </div>
+
+    <!-- Tarjeta de portada: la cartera de Ana -->
+    <aside class="clay-card lab anim anim--scale" style="--d:240ms;margin-top:0" aria-label="Ejemplo: la cartera de Ana">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-token"/></svg> La cartera de Ana</h2>
+        <span class="lab__tag">antes y después</span>
+      </div>
+      <p class="lab__intro">
+        Ana quiere pagarle <strong>1 BTC</strong> a Beto. No tiene «un saldo»: tiene monedas
+        sueltas. Elige dos que juntas alcanzan.
+      </p>
+      <div class="coins" aria-label="Monedas de Ana antes del pago">
+        <span class="coin is-sel">0.8 BTC</span>
+        <span class="coin is-sel">0.5 BTC</span>
+        <span class="coin">0.15 BTC</span>
+      </div>
+      <p class="lab__note" style="margin-top:.9rem">Las dos monedas marcadas se destruyen y nacen tres cosas nuevas:</p>
+      <div class="coins" aria-label="Resultado del pago">
+        <span class="coin is-sel">1 BTC → Beto</span>
+        <span class="coin">0.29 BTC → Ana (cambio)</span>
+        <span class="coin is-dust">0.01 BTC → minero</span>
+      </div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num">1.3</span><span class="metric__label">Entra</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint">1.29</span><span class="metric__label">Sale</span></div>
+        <div class="metric"><span class="metric__num metric__num--coral">0.01</span><span class="metric__label">Comisión</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="container">
+    <nav class="clay-card toc reveal" aria-label="Contenido del apunte">
+      <h2>Contenido del apunte</h2>
+      <ul class="toc__list">
+        <li><a href="#monedas"><span class="toc__n">01</span> Dinero en monedas, no en saldos</a></li>
+        <li><a href="#utxo"><span class="toc__n">02</span> Qué es un UTXO</a></li>
+        <li><a href="#transaccion"><span class="toc__n">03</span> Anatomía de una transacción</a></li>
+        <li><a href="#candados"><span class="toc__n">04</span> Candados y llaves</a></li>
+        <li><a href="#mineria"><span class="toc__n">05</span> Qué hace un minero</a></li>
+        <li><a href="#loteria"><span class="toc__n">06</span> La lotería del hash</a></li>
+        <li><a href="#dificultad"><span class="toc__n">07</span> Diez minutos, pase lo que pase</a></li>
+        <li><a href="#halving"><span class="toc__n">08</span> Halving y los 21 millones</a></li>
+        <li><a href="#encaje"><span class="toc__n">09</span> Cómo encaja todo</a></li>
+        <li><a href="#sintesis"><span class="toc__n">10</span> Síntesis</a></li>
+        <li><a href="#quiz"><span class="toc__n">11</span> Quiz</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
+
+
+<!-- ============ 01 · DINERO EN MONEDAS ============ -->
+<section class="section note" id="monedas">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 01</span>
+      <h2 class="section__title">Dinero en monedas, no en saldos</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender que en Bitcoin nadie tiene «un
+        saldo» guardado. Lo que existe son monedas sueltas, y tu saldo es simplemente la suma
+        de las que puedes gastar.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cuando abres la app de tu banco ves un número: tu saldo. Detrás hay una tabla con una
+          fila por cliente, y cada vez que pagas, el banco borra ese número y escribe otro.
+        </p>
+        <p>
+          Bitcoin funciona distinto. No hay ninguna fila con tu nombre. Lo que la red guarda es
+          una lista enorme de <strong>monedas digitales</strong>, cada una con un valor y un
+          candado que dice quién puede gastarla. Tu cartera revisa esa lista, encuentra las
+          monedas que tus llaves pueden abrir y las suma. Ese total es lo que la app te muestra
+          como «saldo».
+        </p>
+        <p>
+          La comparación más útil es la del <strong>efectivo en la cartera</strong>. Si tienes un
+          billete de 200 y uno de 50, tienes 250, pero no existe ningún papel que diga «250».
+          Para pagar 220 entregas los dos billetes y te devuelven 30 de cambio.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Donde la analogía se queda corta</span>
+          Los billetes reales tienen valores fijos (20, 50, 100…). Las monedas de Bitcoin pueden
+          valer <em>cualquier</em> cantidad: 0.29 BTC, 0.0004 BTC o 3.7 BTC. El cambio no es un
+          billete de una denominación estándar: se fabrica a la medida en el momento del pago.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Banco frente a Bitcoin</span>
+        <p><strong>Banco:</strong> el saldo es un dato que alguien escribe y reescribe.</p>
+        <span class="eq">
+          saldo de Ana = 1.45
+          <small>un número guardado en una tabla</small>
+        </span>
+        <p><strong>Bitcoin:</strong> el saldo es una suma que tu cartera calcula.</p>
+        <span class="eq">
+          saldo de Ana = 0.8 + 0.5 + 0.15 = 1.45
+          <small>tres monedas que sólo Ana puede abrir</small>
+        </span>
+        <p class="lab__note" style="margin-top:1.1rem">
+          El resultado es el mismo número; lo que cambia es qué está guardado de verdad.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 02 · QUÉ ES UN UTXO ============ -->
+<section class="section note" id="utxo">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 02</span>
+      <h2 class="section__title">Qué es un UTXO</h2>
+      <p class="section__lead">
+        Esas «monedas» tienen un nombre técnico un poco feo. Vale la pena aprenderlo porque
+        aparece en todas partes.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          <strong>UTXO</strong> son las siglas en inglés de <em>Unspent Transaction Output</em>:
+          <strong>salida de transacción no gastada</strong>. Suena complicado, pero cada palabra
+          tiene sentido:
+        </p>
+        <ul class="plain-list">
+          <li><strong>Salida</strong>: toda moneda nace como resultado («salida») de algún pago anterior.</li>
+          <li style="--accent:var(--mint)"><strong>De transacción</strong>: ese pago quedó registrado en la cadena de bloques.</li>
+          <li style="--accent:var(--coral)"><strong>No gastada</strong>: nadie la ha usado todavía para pagar otra cosa.</li>
+        </ul>
+        <p>
+          A la lista de todas las monedas que siguen vivas se le llama <strong>conjunto
+          UTXO</strong>. Es lo que cada computadora de la red (cada <em>nodo</em>) consulta para
+          responder una pregunta muy sencilla: «¿esta moneda existe y nadie la ha gastado?».
+        </p>
+        <h3>Una moneda vive una sola vez</h3>
+        <p>
+          Una moneda de Bitcoin no se puede partir ni gastar a medias. Cuando se usa en un pago,
+          se gasta <em>completa</em>: sale del conjunto UTXO y en su lugar aparecen monedas
+          nuevas. Su vida tiene tres momentos:
+        </p>
+        <div class="phases">
+          <div class="phase">
+            <div><h4>Nace</h4><p>Un pago la crea como una de sus salidas y entra al conjunto UTXO.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Espera</h4><p>Queda disponible, quizá durante años, hasta que su dueño decida usarla.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Se gasta</h4><p>Un pago nuevo la consume entera. Sale del conjunto y deja en su lugar monedas nuevas.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-token"/></svg> La unidad mínima</span>
+        <p>
+          Igual que un peso tiene centavos, un bitcoin se divide en
+          <strong>satoshis</strong>, en honor a su creador.
+        </p>
+        <span class="eq">
+          1 BTC = 100 000 000 satoshis
+          <small>el satoshi es lo más pequeño que se puede enviar</small>
+        </span>
+        <p>
+          Internamente, cada moneda guarda su valor en satoshis, así que 0.29 BTC es en
+          realidad 29 000 000 satoshis.
+        </p>
+        <p class="lab__note">
+          Cada moneda se identifica por «de qué pago salió» y «qué número de salida era» en ese
+          pago, algo así como el número de serie de un billete.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 03 · ANATOMÍA DE UNA TRANSACCIÓN ============ -->
+<section class="section note" id="transaccion">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 03</span>
+      <h2 class="section__title">Anatomía de una transacción</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> saber leer cualquier pago de Bitcoin
+        como «monedas que entran, monedas que salen» y entender de dónde salen el cambio y la
+        comisión.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Una transacción tiene dos lados, como una balanza:
+        </p>
+        <ul class="plain-list">
+          <li><strong>Entradas</strong>: las monedas que vas a gastar. Cada entrada señala una moneda del conjunto UTXO y trae la prueba de que es tuya.</li>
+          <li style="--accent:var(--mint)"><strong>Salidas</strong>: las monedas nuevas que se crean. Cada salida dice cuánto vale y quién podrá gastarla después.</li>
+        </ul>
+        <h3>El ejemplo de Ana, paso a paso</h3>
+        <p>
+          Ana tiene monedas de 0.8, 0.5 y 0.15 BTC y quiere pagarle 1 BTC a Beto. Ninguna moneda
+          alcanza sola, así que su cartera junta la de 0.8 y la de 0.5 (1.3 BTC en total) y arma
+          esto:
+        </p>
+        <div class="table-wrap">
+          <table class="nb">
+            <thead><tr><th scope="col">Lado</th><th scope="col">Moneda</th><th scope="col">Para quién</th></tr></thead>
+            <tbody>
+              <tr><td>Entrada</td><td class="num">0.8 BTC</td><td>Ana la gasta</td></tr>
+              <tr><td>Entrada</td><td class="num">0.5 BTC</td><td>Ana la gasta</td></tr>
+              <tr><td>Salida</td><td class="num">1 BTC</td><td>Beto (el pago)</td></tr>
+              <tr><td>Salida</td><td class="num">0.29 BTC</td><td>Ana (su cambio)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Entraron 1.3 BTC y salieron 1.29 BTC. ¿Y los 0.01 que faltan? No se perdieron: son la
+          <strong>comisión</strong>, y se la queda el minero que meta este pago en un bloque.
+        </p>
+        <div class="callout callout--warn">
+          <span class="callout__title">La comisión no se escribe en ningún lado</span>
+          No existe un campo que diga «comisión: 0.01». La comisión es simplemente lo que sobra:
+          <em>entradas − salidas</em>. Por eso es crucial no olvidar el cambio. Si Ana hubiera
+          creado sólo la salida de 1 BTC para Beto, los 0.3 BTC restantes se habrían ido
+          completos al minero como «propina» gigante.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-scale"/></svg> Las dos reglas de la balanza</span>
+        <p><strong>1. No se crea dinero de la nada.</strong> Lo que sale nunca puede ser mayor
+          que lo que entra.</p>
+        <span class="eq">
+          salidas ≤ entradas
+          <small>1.29 ≤ 1.3 ✔</small>
+        </span>
+        <p><strong>2. Lo que sobra es para el minero.</strong></p>
+        <span class="eq">
+          comisión = entradas − salidas
+          <small>1.3 − 1.29 = 0.01 BTC</small>
+        </span>
+        <p class="lab__note" style="margin-top:1.1rem">
+          La comisión real no depende del monto que envías, sino de cuánto <em>espacio</em>
+          ocupa la transacción en el bloque. Un pago con muchas monedas pequeñas ocupa más y
+          cuesta más.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 04 · CANDADOS Y LLAVES ============ -->
+<section class="section note" id="candados">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 04</span>
+      <h2 class="section__title">Candados y llaves</h2>
+      <p class="section__lead">
+        Si las monedas están en una lista pública que todos pueden ver, ¿qué impide que
+        cualquiera las gaste? Un candado.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cada moneda viene con un pequeño programa, escrito en un lenguaje llamado
+          <strong>Script</strong>, que funciona como un <strong>candado</strong>. El más común
+          dice, en palabras simples: «sólo puede gastar esta moneda quien demuestre tener la
+          llave privada que corresponde a esta dirección».
+        </p>
+        <p>
+          Para gastar la moneda, la entrada de la transacción tiene que traer la
+          <strong>llave</strong> que abre ese candado: una <strong>firma digital</strong> hecha
+          con la llave privada del dueño. Cada nodo de la red junta el candado y la llave y
+          revisa que abra. Si no abre, el pago se rechaza.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Por qué la firma no se puede reutilizar</span>
+          La firma se calcula sobre la transacción completa: qué monedas se gastan y a quién
+          van. Si alguien copia la firma de Ana e intenta cambiar el destinatario, la firma ya
+          no coincide y la red la rechaza. La llave privada nunca se revela; sólo se demuestra
+          que se tiene.
+        </div>
+        <h3>Cómo se evita gastar dos veces la misma moneda</h3>
+        <p>
+          El gran problema del dinero digital es que los archivos se copian. ¿Qué impide que Ana
+          use la misma moneda de 0.8 BTC para pagarle a Beto <em>y</em> a Carla? El conjunto
+          UTXO. En cuanto el pago a Beto queda en un bloque, esa moneda sale de la lista. Si
+          luego llega un pago a Carla que intenta usarla, cualquier nodo responde: «esa moneda
+          ya no existe». El segundo pago es inválido.
+        </p>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-lock"/></svg> Lo que revisa cada nodo</span>
+        <p>Antes de aceptar un pago, cualquier nodo comprueba:</p>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Que cada moneda de entrada <strong>existe</strong> en el conjunto UTXO.</li>
+          <li style="--accent:var(--mint)">Que la firma <strong>abre el candado</strong> de cada una.</li>
+          <li style="--accent:var(--amber)">Que las salidas <strong>no suman más</strong> que las entradas.</li>
+          <li style="--accent:var(--coral)">Que ninguna moneda se use <strong>dos veces</strong> en el mismo bloque.</li>
+        </ul>
+        <p class="lab__note" style="margin-top:1.1rem">
+          Ninguna de estas revisiones necesita preguntarle nada a un banco: basta con la lista
+          de monedas vivas y un poco de cálculo.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 · QUÉ HACE UN MINERO ============ -->
+<section class="section note" id="mineria">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 05</span>
+      <h2 class="section__title">Qué hace un minero</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender que «minar» no es excavar
+        nada. Es armar un bloque con pagos pendientes y competir por el derecho a añadirlo a la
+        cadena, a cambio de una recompensa.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cuando Ana envía su pago, éste no entra de inmediato a la cadena. Primero viaja por la
+          red y llega a una especie de <strong>sala de espera</strong> que cada nodo tiene, el
+          <em>mempool</em>, donde se juntan todos los pagos que todavía no están en un bloque.
+        </p>
+        <p>
+          Un <strong>minero</strong> es un participante que hace este trabajo:
+        </p>
+        <div class="phases">
+          <div class="phase">
+            <div><h4>Escoge pagos de la sala de espera</h4><p>Un bloque tiene espacio limitado, así que el minero prefiere los pagos que dejan más comisión por cada byte que ocupan. Por eso, cuando la red está congestionada, pagar más comisión te hace entrar antes.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Se paga a sí mismo primero</h4><p>La primera transacción de todo bloque es especial: se llama <strong>coinbase</strong>, no tiene entradas y crea monedas nuevas para el minero. Ahí cobra la recompensa del bloque más todas las comisiones.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Compite por publicar el bloque</h4><p>Para que su bloque sea aceptado, debe resolver un acertijo muy costoso: la prueba de trabajo. El primero que lo resuelve se lleva el premio.</p></div>
+          </div>
+          <div class="phase">
+            <div><h4>Lo anuncia a la red</h4><p>Los demás nodos revisan el bloque. Si todo es correcto, lo añaden a su copia de la cadena y actualizan su conjunto UTXO.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bitcoin"/></svg> De dónde salen los bitcoins nuevos</span>
+        <p>
+          La transacción coinbase es la <strong>única forma</strong> en que nacen bitcoins
+          nuevos. No hay banco central ni imprenta: cada bloque emite una cantidad fija que el
+          protocolo marca.
+        </p>
+        <span class="eq">
+          pago al minero = recompensa + comisiones
+          <small>hoy la recompensa es de 3.125 BTC por bloque</small>
+        </span>
+        <p class="lab__note">
+          Las monedas de una coinbase no se pueden gastar hasta que pasen 100 bloques más
+          (unas 16 horas). Así, si ese bloque termina descartado, nadie habrá gastado dinero que
+          en realidad nunca existió.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 06 · LA LOTERÍA DEL HASH ============ -->
+<section class="section note" id="loteria">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 06</span>
+      <h2 class="section__title">La lotería del hash</h2>
+      <p class="section__lead">
+        El acertijo de la prueba de trabajo no requiere inteligencia, sólo intentos. Funciona
+        como una lotería en la que cada boleto cuesta electricidad.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Bitcoin usa una <strong>función hash</strong> llamada SHA-256 (aplicada dos veces).
+          Piensa en ella como una licuadora de datos: le das cualquier texto y te devuelve una
+          «huella» de tamaño fijo que parece ruido. Tiene dos propiedades que aquí importan:
+        </p>
+        <ul class="plain-list">
+          <li><strong>Es impredecible.</strong> Cambiar una sola letra de la entrada produce una huella totalmente distinta. No hay forma de adivinar el resultado sin calcularlo.</li>
+          <li style="--accent:var(--mint)"><strong>Es rápida de comprobar.</strong> Cualquiera puede recalcular la huella de un bloque en una fracción de segundo.</li>
+        </ul>
+        <p>
+          La regla del juego es: <strong>la huella del encabezado del bloque tiene que ser menor
+          que un número objetivo</strong>. Visto en hexadecimal, eso equivale más o menos a que
+          la huella <em>empiece con muchos ceros</em>. Como no se puede predecir, la única
+          estrategia es probar y probar.
+        </p>
+        <p>
+          Para eso, el encabezado tiene un campo llamado <strong>nonce</strong>, un número que
+          no significa nada y que el minero cambia en cada intento: 0, 1, 2, 3… Cada valor
+          produce una huella nueva. Casi todas fallan. De vez en cuando una cae por debajo del
+          objetivo, y ese minero gana.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">Una analogía con dados</span>
+          Imagina que la regla es «tira dos dados y gana quien saque menos de 3». La única forma
+          de ganar es tirar muchas veces. Quien tira más rápido gana más seguido, pero nadie
+          puede hacer trampa: cualquiera ve los dados y comprueba el resultado al instante. Bitcoin
+          es lo mismo con «dados» de 256 bits y un objetivo muchísimo más difícil.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-code"/></svg> Un intento, en cuatro pasos</span>
+        <div class="phases" style="margin-top:0">
+          <div class="phase"><div><h4>Arma el encabezado</h4><p>Incluye la huella del bloque anterior, un resumen de los pagos, la hora y el nonce.</p></div></div>
+          <div class="phase"><div><h4>Calcula la huella</h4><p>Aplica SHA-256 dos veces al encabezado.</p></div></div>
+          <div class="phase"><div><h4>Compara</h4><p>¿La huella es menor que el objetivo?</p></div></div>
+          <div class="phase"><div><h4>Repite o publica</h4><p>Si no, cambia el nonce y vuelve a empezar. Si sí, anuncia el bloque.</p></div></div>
+        </div>
+        <p class="lab__note" style="margin-top:1.1rem">
+          Encontrar la solución cuesta muchísimos intentos; comprobarla cuesta <strong>uno</strong>.
+          Esa asimetría es la esencia de la prueba de trabajo.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 · DIFICULTAD ============ -->
+<section class="section note" id="dificultad">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 07</span>
+      <h2 class="section__title">Diez minutos, pase lo que pase</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> entender por qué, aunque entren miles de
+        máquinas nuevas a minar, los bloques siguen saliendo más o menos cada diez minutos.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Si cada vez más gente mina, se hacen más intentos por segundo y la lotería se ganaría
+          cada vez más rápido. Bitcoin lo compensa con un termostato automático: el
+          <strong>ajuste de dificultad</strong>.
+        </p>
+        <p>
+          Cada <strong>2016 bloques</strong>, todos los nodos miran cuánto tardaron en salir.
+          La meta es que hayan tardado dos semanas (2016 bloques × 10 minutos). Entonces:
+        </p>
+        <ul class="plain-list">
+          <li><strong>Si salieron más rápido</strong>, el objetivo se vuelve más exigente (hacen falta «más ceros»).</li>
+          <li style="--accent:var(--mint)"><strong>Si salieron más lento</strong>, el objetivo se relaja.</li>
+        </ul>
+        <p>
+          El ajuste es proporcional. Si los 2016 bloques tardaron <strong>una semana</strong> en
+          lugar de dos, la dificultad se <strong>duplica</strong>. Si tardaron cuatro semanas,
+          baja a la <strong>mitad</strong>. Para evitar saltos bruscos, en un solo ajuste nunca
+          cambia más de cuatro veces hacia arriba ni hacia abajo.
+        </p>
+        <div class="callout callout--key">
+          <span class="callout__title">Nadie lo decide</span>
+          No hay un comité que suba o baje la dificultad. Cada nodo hace la misma cuenta con los
+          mismos datos de la cadena y llega al mismo resultado. Un bloque que no respete el
+          objetivo correcto es rechazado por todos.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-clock"/></svg> La cuenta del termostato</span>
+        <span class="eq">
+          nueva dificultad = vieja × (2 semanas ÷ tiempo real)
+          <small>limitado a un factor de 4 en cada ajuste</small>
+        </span>
+        <div class="table-wrap" style="margin-top:0">
+          <table class="nb">
+            <thead><tr><th scope="col">Tardaron</th><th scope="col">Dificultad</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1 semana</td><td>× 2</td></tr>
+              <tr><td class="num">2 semanas</td><td>sin cambio</td></tr>
+              <tr><td class="num">4 semanas</td><td>÷ 2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lab__note" style="margin-top:1.1rem">
+          ¿Por qué diez minutos? Es un equilibrio: suficiente para que un bloque nuevo llegue a
+          casi toda la red antes de que aparezca el siguiente y haya pocos «empates».
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 08 · HALVING ============ -->
+<section class="section note" id="halving">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 08</span>
+      <h2 class="section__title">Halving y los 21 millones</h2>
+      <p class="section__lead">
+        La cantidad de bitcoins que existirán está escrita desde el primer día. La regla que la
+        fija es sencilla: cada cierto tiempo, la recompensa se parte a la mitad.
+      </p>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>
+          Cada <strong>210 000 bloques</strong> (unos cuatro años) la recompensa que recibe el
+          minero en la coinbase se reduce a la mitad. A ese momento se le llama
+          <strong>halving</strong>. El primer bloque, de enero de 2009, pagaba 50 BTC.
+        </p>
+        <div class="table-wrap">
+          <table class="nb">
+            <thead><tr><th scope="col">Desde</th><th scope="col">Recompensa por bloque</th></tr></thead>
+            <tbody>
+              <tr><td class="num">2009</td><td>50 BTC</td></tr>
+              <tr><td class="num">2012</td><td>25 BTC</td></tr>
+              <tr><td class="num">2016</td><td>12.5 BTC</td></tr>
+              <tr><td class="num">2020</td><td>6.25 BTC</td></tr>
+              <tr><td class="num">2024</td><td>3.125 BTC (la actual)</td></tr>
+              <tr><td class="num">≈ 2028</td><td>1.5625 BTC</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Si sumas todo lo que se emitirá con esta regla, el total se acerca a
+          <strong>21 millones de BTC</strong> y nunca lo supera. Como cada halving emite la
+          mitad que el anterior, la emisión se va apagando poco a poco: el último satoshi se
+          creará alrededor del año 2140.
+        </p>
+        <div class="callout callout--note">
+          <span class="callout__title">¿Y después de 2140?</span>
+          Los mineros seguirán cobrando las <strong>comisiones</strong> de los pagos que metan
+          en sus bloques. La idea es que, para entonces, las comisiones sean suficientes para
+          pagar la seguridad de la red sin crear monedas nuevas.
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-layers"/></svg> Por qué da 21 millones</span>
+        <p>En cada etapa de 210 000 bloques se emite la mitad que en la anterior:</p>
+        <span class="eq">
+          210 000 × (50 + 25 + 12.5 + …)
+          <small>la suma entre paréntesis se acerca a 100</small>
+        </span>
+        <span class="eq">
+          210 000 × 100 = 21 000 000
+          <small>en la práctica queda un poco por debajo</small>
+        </span>
+        <p class="lab__note">
+          Ya se emitieron casi 20 millones. Lo que falta saldrá cada vez más despacio
+          durante más de un siglo.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 09 · CÓMO ENCAJA TODO ============ -->
+<section class="section note" id="encaje">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
+      <h2 class="section__title">Cómo encaja todo</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>Objetivo:</strong> unir las dos mitades del apunte. El
+        modelo UTXO dice <em>qué</em> se guarda; la minería decide <em>en qué orden</em> y
+        hace muy caro cambiar el pasado.</p>
+      </div>
+    </header>
+
+    <div class="note__grid">
+      <div class="note__body reveal">
+        <p>Sigamos el pago de Ana de principio a fin:</p>
+        <div class="phases">
+          <div class="phase"><div><h4>Ana firma</h4><p>Su cartera elige las monedas de 0.8 y 0.5, crea las salidas para Beto y para su cambio, y firma.</p></div></div>
+          <div class="phase"><div><h4>La red lo revisa</h4><p>Cada nodo comprueba que las monedas existen, que la firma abre los candados y que la balanza cuadra. Si todo está bien, el pago espera en el mempool.</p></div></div>
+          <div class="phase"><div><h4>Un minero lo incluye</h4><p>Lo mete en su bloque candidato porque deja una comisión razonable, y gana la lotería del hash.</p></div></div>
+          <div class="phase"><div><h4>El conjunto UTXO cambia</h4><p>Todos los nodos borran las monedas de 0.8 y 0.5, y añaden la de 1 BTC para Beto y la de 0.29 para Ana.</p></div></div>
+          <div class="phase"><div><h4>Se acumulan confirmaciones</h4><p>Cada bloque nuevo encima del de Ana es una «confirmación». Con unas seis, se considera prácticamente irreversible.</p></div></div>
+        </div>
+      </div>
+
+      <aside class="clay-card formal reveal" style="--d:80ms">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-shield"/></svg> Por qué es difícil hacer trampa</span>
+        <p>
+          Cada bloque guarda la huella del anterior. Si alguien quisiera borrar el pago de Ana
+          para volver a gastar sus monedas, tendría que rehacer la prueba de trabajo de ese
+          bloque <em>y</em> de todos los que vinieron después.
+        </p>
+        <p>
+          Además, la red sigue la cadena con <strong>más trabajo acumulado</strong>. Para que su
+          versión gane, el tramposo tendría que minar más rápido que todo el resto de la red
+          junta, algo carísimo en máquinas y electricidad.
+        </p>
+        <p class="lab__note">
+          Esta carrera se estudia con números en el apunte de
+          <a href="prueba-de-trabajo.html">prueba de trabajo y doble gasto</a>.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 10 · SÍNTESIS ============ -->
+<section class="section note" id="sintesis">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 10</span>
+      <h2 class="section__title">Síntesis</h2>
+      <p class="section__lead">Lo que conviene llevarse de este apunte, en una lista.</p>
+    </header>
+
+    <div class="two-col reveal">
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-token"/></svg> Modelo UTXO</span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Bitcoin no guarda saldos: guarda <strong>monedas sin gastar</strong> (UTXO). Tu saldo es la suma de las que puedes abrir.</li>
+          <li style="--accent:var(--mint)">Una moneda se gasta <strong>completa</strong>; lo que sobra vuelve como <strong>cambio</strong>.</li>
+          <li style="--accent:var(--amber)">La <strong>comisión</strong> es lo que sobra: entradas − salidas.</li>
+          <li style="--accent:var(--coral)">Cada moneda tiene un <strong>candado</strong> (Script) y se abre con una <strong>firma</strong>.</li>
+          <li style="--accent:var(--sky)">El doble gasto se evita porque una moneda gastada <strong>desaparece</strong> del conjunto UTXO.</li>
+        </ul>
+      </div>
+      <div class="clay-card formal">
+        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-bolt"/></svg> Minería</span>
+        <ul class="plain-list" style="margin-bottom:0">
+          <li>Un minero arma un bloque con pagos del <strong>mempool</strong> y se paga con la <strong>coinbase</strong>.</li>
+          <li style="--accent:var(--mint)">La <strong>prueba de trabajo</strong> es una lotería: cambiar el <strong>nonce</strong> hasta que la huella quede bajo el objetivo.</li>
+          <li style="--accent:var(--amber)">Cada <strong>2016 bloques</strong> la dificultad se ajusta para mantener unos <strong>10 minutos</strong> por bloque.</li>
+          <li style="--accent:var(--coral)">Cada <strong>210 000 bloques</strong> la recompensa se parte a la mitad: el <strong>halving</strong>.</li>
+          <li style="--accent:var(--sky)">El total nunca pasará de <strong>21 millones</strong> de BTC.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 11 · QUIZ ============ -->
+<section class="section note" id="quiz">
+  <div class="container">
+    <header class="note__head reveal">
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 11</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
+    </header>
+
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
+
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="cta-band">
+  <div class="container">
+    <div class="clay-card next-nav reveal">
+      <div>
+        <h2>Seguir por aquí</h2>
+        <p>Profundiza en la carrera del atacante o en la comparación con el modelo de cuentas de Ethereum.</p>
+      </div>
+      <div class="cta__actions">
+        <a class="clay-btn clay-btn--primary clay-btn--lg" href="prueba-de-trabajo.html">
+          Prueba de trabajo <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="clay-btn clay-btn--lg" href="utxo-vs-cuentas.html">UTXO frente a cuentas</a>
+        <a class="clay-btn clay-btn--lg" href="../index.html#temas">Volver al temario</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="../index.html">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-cube"/></svg></span>
+          <span class="brand__text">Chain<em>Notes</em></span>
+        </a>
+        <p>Portafolio de apuntes de Blockchain construido como proyecto académico. Material de libre consulta con fines educativos.</p>
+        <div class="footer__socials">
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><use href="#i-github"/></svg></a>
+          <a href="#" aria-label="Sitio web"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></a>
+          <a href="#" aria-label="Correo"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></a>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Navegación del pie">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="../index.html">Inicio</a></li>
+          <li><a href="../index.html#intro">Introducción</a></li>
+          <li><a href="../index.html#temas">Temario</a></li>
+          <li><a href="../index.html#equipo">Equipo</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Módulos destacados">
+        <h3>Módulos</h3>
+        <ul>
+          <li><a href="hash.html">Funciones hash</a></li>
+          <li><a href="firma-digital.html">Firma digital</a></li>
+          <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
+          <li><a href="utxo-vs-cuentas.html">UTXO frente a cuentas</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="https://bitcoin.org/bitcoin.pdf" rel="noopener">Whitepaper de Bitcoin</a></li>
+          <li><a href="#">Repositorio de código</a></li>
+          <li><a href="../index.html#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; <span id="year">2026</span> ChainNotes · Proyecto estudiantil de apuntes de Blockchain.</p>
+      <p class="footer__note">Hecho con HTML, CSS y JavaScript. Sin frameworks.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js" defer></script>
+<script src="../assets/js/quiz-utxo-y-mineria.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
+</body>
+</html>

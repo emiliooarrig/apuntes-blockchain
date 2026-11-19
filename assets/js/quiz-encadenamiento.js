@@ -91,6 +91,46 @@
         a: 0,
         e: 'El hash enlaza los bloques y permite detectar cambios, pero por sí solo no decide qué bloque acepta la red: esa función corresponde al consenso.',
         s: ['limites', '05']
+      },
+      {
+        q: 'Una cadena tiene los bloques 1 a 5. Se altera un dato del bloque 2 y nadie corrige nada más. Al verificar de izquierda a derecha, ¿dónde se detecta primero la discrepancia?',
+        o: ['En el bloque 1, que guarda el hash del bloque 2',
+            'En el bloque 5, porque es el más reciente',
+            'En ningún punto, porque la cadena sigue enlazada',
+            'En el bloque 3, cuyo <em>hash anterior</em> ya no coincide con el hash recalculado del bloque 2'],
+        a: 3,
+        e: 'El bloque 3 guarda el hash original del bloque 2. Al recalcular el hash del bloque 2 alterado, ambos valores difieren, y la verificación señala la alteración en ese enlace.',
+        s: ['verificacion', '04']
+      },
+      {
+        q: 'El bloque génesis no tiene bloque anterior. ¿Qué implica esto para la verificación?',
+        o: ['La comprobación del <em>hash anterior</em> empieza a partir del bloque que le sigue',
+            'La cadena no puede verificarse',
+            'Debe recalcularse el hash de un bloque 0 que está oculto',
+            'El génesis se compara con el último bloque'],
+        a: 0,
+        e: 'El génesis inicia la cadena y no apunta hacia atrás. La verificación enlace por enlace parte del bloque 2, que debe referenciar el hash del génesis.',
+        s: ['verificacion', '04']
+      },
+      {
+        q: '¿Qué hace que el encadenamiento por sí solo no baste para garantizar la seguridad final?',
+        o: ['Los hashes no pueden recalcularse',
+            'También depende de la función hash utilizada, del consenso y de la distribución de la red',
+            'Solo importa el tamaño de cada bloque',
+            'Las transacciones no se guardan en los bloques'],
+        a: 1,
+        e: 'El encadenamiento permite detectar cambios, pero la seguridad final depende también del hash empleado, del consenso y de que la red esté distribuida.',
+        s: ['integridad', '03']
+      },
+      {
+        q: 'El bloque 7 de una cadena es modificado. ¿Qué bloques dejan de ser consistentes con sus referencias si no se actualizan?',
+        o: ['Todos los bloques anteriores, del 1 al 6',
+            'Solo el propio bloque 7',
+            'El bloque 8 y, en cadena, los posteriores, porque cada hash propio depende del anterior',
+            'Ninguno: cada bloque es independiente'],
+        a: 2,
+        e: 'El hash del bloque 7 cambia, así que el bloque 8 deja de coincidir; al corregirlo cambiaría su propio hash y afectaría al 9, y así sucesivamente. Los bloques previos no se alteran porque apuntan hacia atrás.',
+        s: ['integridad', '03']
       }
     ]
   };

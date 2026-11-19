@@ -16,6 +16,7 @@ apuntes-blockchain/
 │  ├─ firma-digital.html        # 03 · Firma digital y red P2P
 │  ├─ encadenamiento.html       # 04 · Encadenamiento
 │  ├─ timestamping.html         # 05 · Time stamping
+│  ├─ utxo-y-mineria.html       # 06 · Modelo UTXO y minería
 │  ├─ prueba-de-trabajo.html    # 07 · Prueba de trabajo y doble gasto
 │  ├─ utxo-vs-cuentas.html      # 08 · Modelo UTXO frente a modelo de cuentas
 │  ├─ generales-bizantinos.html # 09 · El problema de los generales bizantinos
@@ -30,6 +31,7 @@ apuntes-blockchain/
 │     ├─ hash.js                # Laboratorios interactivos del tema de hash
 │     ├─ compromisos.js         # Laboratorios del tema de compromisos (Pedersen con BigInt)
 │     ├─ firma-digital.js       # Laboratorios de firma digital y red P2P
+│     ├─ timestamping.js        # Laboratorios de time stamping (huella y libreta de sellos encadenados)
 │     ├─ prueba-de-trabajo.js   # Laboratorios de prueba de trabajo (SHA-256d con midstate)
 │     ├─ utxo-vs-cuentas.js     # Laboratorios de UTXO frente a cuentas
 │     ├─ generales-bizantinos.js # Laboratorios de generales bizantinos (escenarios, quórums, OM(1), Sybil)

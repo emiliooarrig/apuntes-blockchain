@@ -58,6 +58,7 @@
         <li><a class="nav__link" href="#nonce">Nonce</a></li>
         <li><a class="nav__link" href="#paralelismo">Paralelismo</a></li>
         <li><a class="nav__link" href="#sintesis">Síntesis</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
       </ul>
     </nav>
 
@@ -174,7 +175,7 @@
         <li><a href="#privacidad"><span class="toc__n">08</span> Privacidad</a></li>
         <li><a href="#sintesis"><span class="toc__n">09</span> Síntesis</a></li>
         <li><a href="#hibridos"><span class="toc__n">10</span> Más allá de la dicotomía</a></li>
-        <li><a href="#ejercicios"><span class="toc__n">11</span> Ejercicios</a></li>
+        <li><a href="#quiz"><span class="toc__n">11</span> Quiz</a></li>
         <li><a href="#fuentes"><span class="toc__n">12</span> Fuentes</a></li>
       </ul>
     </nav>
@@ -864,7 +865,7 @@ firma      v, r, s</pre>
           reembolsos por liberarlo.
         </p>
         <p class="lab__note" style="margin-top:1.1rem">
-          Esta diferencia de incentivos es material del ejercicio 6.
+          Compruébalo en el quiz del final de la página.
         </p>
       </aside>
     </div>
@@ -1033,219 +1034,38 @@ firma      v, r, s</pre>
 </section>
 
 
-<!-- ============ 11 · EJERCICIOS ============ -->
-<section class="section note" id="ejercicios">
+<!-- ============ 11 · QUIZ ============ -->
+<section class="section note" id="quiz">
   <div class="container">
     <header class="note__head reveal">
-      <span class="eyebrow"><span class="eyebrow__line"></span> Ejercicios</span>
-      <h2 class="section__title">Para trabajar</h2>
-      <p class="section__lead">
-        Los tres primeros se verifican con los laboratorios de esta página. Los tres últimos son
-        de papel.
-      </p>
+      <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 11</span>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
     </header>
 
-    <div class="note__grid">
-      <div class="note__body reveal">
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
 
-        <!-- EJERCICIO 1 -->
-        <h3 style="margin-top:0">Ejercicio 1 · Enumerar a mano</h3>
-        <p>
-          Una cartera tiene monedas de 1, 3, 7, 12 y 20 mil satoshis. Se quiere pagar 15 mil a
-          una tasa de 20 sat/vB. Enumera todos los subconjuntos válidos, calcula el desperdicio
-          de cada uno y decide cuál elegiría Bitcoin Core. Verifica con el laboratorio 1.
-        </p>
-        <details>
-          <summary><strong>Ver respuesta</strong></summary>
-          <p>
-            Hay 20 subconjuntos que alcanzan. El costo del cambio a 20 sat/vB es
-            31 × 20 + 68 × 10 = <strong>1 300 sat</strong>. Los tres mejores:
-          </p>
-          <div class="table-wrap" style="margin-top:.8rem">
-            <table class="nb" style="min-width:420px">
-              <thead><tr><th scope="col">Selección</th><th scope="col">Entradas</th><th scope="col">Comisión</th><th scope="col">Cambio</th><th scope="col">Desperdicio</th></tr></thead>
-              <tbody>
-                <tr><td>7 000 + 12 000</td><td class="num">2</td><td class="num">4 000</td><td>sin cambio</td><td class="num"><strong>1 800</strong></td></tr>
-                <tr><td>20 000</td><td class="num">1</td><td class="num">2 820</td><td class="num">2 180</td><td class="num">1 980</td></tr>
-                <tr><td>1 000 + 7 000 + 12 000</td><td class="num">3</td><td class="num">5 000</td><td>sin cambio</td><td class="num">2 120</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            Gana <strong>{7 000, 12 000}</strong> sin cambio, con desperdicio 1 800. El cálculo:
-            2 × 68 × (20 − 10) = 1 360 del término temporal, más 440 de exceso que se va a
-            comisión. La opción de una sola entrada paga menos comisión <em>hoy</em> (2 820
-            frente a 4 000) y aun así pierde, porque arrastra el costo del cambio: 1 300 sat que
-            tendrás que pagar mañana. Es justo el punto de la métrica.
-          </p>
-        </details>
-
-        <hr>
-
-        <!-- EJERCICIO 2 -->
-        <h3>Ejercicio 2 · Independencia del orden</h3>
-        <p>
-          Demuestra que si dos transacciones UTXO tienen conjuntos de entradas disjuntos,
-          entonces el resultado de aplicarlas no depende del orden. Muestra con un contraejemplo
-          que la propiedad análoga es falsa en el modelo de cuentas.
-        </p>
-        <details>
-          <summary><strong>Ver respuesta</strong></summary>
-          <p>
-            <strong>UTXO.</strong> Sean <var>t</var><sub>1</sub> y <var>t</var><sub>2</sub> con
-            entradas <var>E</var><sub>1</sub> ∩ <var>E</var><sub>2</sub> = ∅ y salidas
-            <var>O</var><sub>1</sub>, <var>O</var><sub>2</sub> (distintas entre sí, porque el
-            outpoint incluye el txid). Aplicar las dos en cualquier orden da
-          </p>
-          <span class="eq">(<var>U</var> ∖ (<var>E</var><sub>1</sub> ∪ <var>E</var><sub>2</sub>)) ∪ <var>O</var><sub>1</sub> ∪ <var>O</var><sub>2</sub></span>
-          <p>
-            porque la diferencia y la unión de conjuntos conmutan cuando los conjuntos retirados
-            son disjuntos y ninguna salida de una es entrada de la otra. La validez también se
-            conserva: <var>E</var><sub>2</sub> ⊆ <var>U</var> sigue cumpliéndose después de
-            quitar <var>E</var><sub>1</sub>, justo porque son disjuntos.
-          </p>
-          <p>
-            <strong>Cuentas.</strong> Alicia tiene saldo 5. <var>t</var><sub>1</sub> paga 4 a
-            Beto, <var>t</var><sub>2</sub> paga 3 a Caro. Por separado cada una es válida. En el
-            orden (<var>t</var><sub>1</sub>, <var>t</var><sub>2</sub>) la segunda falla por saldo
-            insuficiente; en el orden inverso falla la otra. El estado final difiere. Y eso
-            antes de considerar el nonce, que directamente <em>prohíbe</em> el orden inverso.
-          </p>
-        </details>
-
-        <hr>
-
-        <!-- EJERCICIO 3 -->
-        <h3>Ejercicio 3 · El grafo de transacciones</h3>
-        <p>
-          Modela el conjunto UTXO como un grafo dirigido donde cada transacción es un vértice.
-          ¿Qué tipo de grafo resulta? ¿Puede tener ciclos? Justifica usando el hecho de que el
-          identificador de una transacción es el hash de su contenido.
-        </p>
-        <details>
-          <summary><strong>Ver respuesta</strong></summary>
-          <p>
-            Resulta un <strong>grafo acíclico dirigido</strong> (DAG). Hay una arista de
-            <var>t</var><sub>1</sub> a <var>t</var><sub>2</sub> cuando <var>t</var><sub>2</sub>
-            gasta una salida de <var>t</var><sub>1</sub>, y entonces <var>t</var><sub>2</sub>
-            contiene el txid de <var>t</var><sub>1</sub> entre sus entradas.
-          </p>
-          <p>
-            Un ciclo exigiría que el contenido de <var>t</var><sub>1</sub> incluyera el hash de
-            <var>t</var><sub>2</sub>, cuyo contenido a su vez incluye el hash de
-            <var>t</var><sub>1</sub>. Eso es una preimagen circular: construirlo equivale a
-            romper la resistencia a preimagen de la función hash, igual que en el argumento del
-            encadenamiento de bloques. Los UTXO vigentes son exactamente las <em>hojas</em> del
-            DAG: salidas a las que todavía no apunta ninguna arista.
-          </p>
-        </details>
-
-        <hr>
-
-        <!-- EJERCICIO 4 -->
-        <h3>Ejercicio 4 · Un mundo sin nonce</h3>
-        <p>
-          Si el nonce no existiera en Ethereum, diseña un ataque concreto de repetición. Después
-          explica por qué el mismo ataque es imposible en Bitcoin <em>sin</em> invocar ninguna
-          propiedad criptográfica adicional.
-        </p>
-        <details>
-          <summary><strong>Ver respuesta</strong></summary>
-          <p>
-            <strong>El ataque.</strong> Alicia paga 2 ETH a una tienda. La transacción firmada es
-            pública: está en la mempool y luego en un bloque. Sin nonce, la tienda —o cualquiera
-            que lea la cadena— puede reenviar esa misma transacción, byte por byte, tantas veces
-            como quiera. Cada reenvío es válido: la firma verifica, el origen es correcto y el
-            saldo alcanza. Alicia pierde 2 ETH por repetición hasta quedarse en cero. No hace
-            falta falsificar nada; basta con copiar.
-          </p>
-          <p>
-            <strong>Por qué no aplica en Bitcoin.</strong> La transacción de Alicia consume
-            outpoints concretos. Tras el primer minado esos outpoints ya no están en
-            <var>U</var>, así que la copia falla en la primera regla de validez —«cada entrada
-            existe en <var>U</var>»— antes de que nadie mire la firma. Es un argumento puramente
-            estructural sobre conjuntos: no se usa ninguna propiedad de la función hash ni del
-            esquema de firma.
-          </p>
-        </details>
-
-        <hr>
-
-        <!-- EJERCICIO 5 -->
-        <h3>Ejercicio 5 · Tamaño de las pruebas</h3>
-        <p>
-          Una prueba de acceso en el árbol hexario actual ronda 3 kB. Estima el tamaño con un
-          árbol binario de la misma profundidad efectiva y explica de dónde sale el factor de
-          reducción que reporta el EIP-7864.
-        </p>
-        <details>
-          <summary><strong>Ver respuesta</strong></summary>
-          <p>
-            La prueba es la lista de hermanos en cada nivel. En un árbol de aridad <var>k</var>
-            cada nodo del camino aporta <var>k</var> − 1 hermanos de 32 bytes; para cubrir el
-            mismo espacio de claves hacen falta log<sub><var>k</var></sub>(<var>N</var>) niveles.
-            El tamaño va entonces como
-          </p>
-          <span class="eq">
-            (<var>k</var> − 1) · log<sub><var>k</var></sub> <var>N</var> · 32 B
-            <small>el factor (k−1)/log₂k decide</small>
-          </span>
-          <p>
-            Para <var>k</var> = 16 el factor es 15/4 ≈ 3.75; para <var>k</var> = 2 es 1/1 = 1.
-            La razón entre ambos es ≈ 3.75, de donde sale el «unas cuatro veces más cortas». Con
-            3 kB de partida quedan unos 800 bytes. Lo que se paga a cambio es profundidad: más
-            niveles, más hashes que calcular al verificar. Es un intercambio de ancho de banda
-            por cómputo, y en este caso el ancho de banda era el recurso escaso.
-          </p>
-        </details>
-
-        <hr>
-
-        <!-- EJERCICIO 6 -->
-        <h3>Ejercicio 6 · Discusión</h3>
-        <p>
-          ¿El crecimiento irreversible del conjunto UTXO es un problema peor o mejor que el
-          crecimiento del estado de contratos en Ethereum? Considera quién paga el costo en cada
-          caso.
-        </p>
-        <details>
-          <summary><strong>Guía para la discusión</strong></summary>
-          <p>
-            No tiene respuesta única; lo que se evalúa es que el argumento distinga
-            <em>quién paga</em> de <em>cuánto crece</em>. Elementos que deberían aparecer:
-          </p>
-          <ul class="plain-list">
-            <li>En UTXO el costo recae por completo en quien opera un nodo, y es una
-            externalidad: el que creó el polvo ya pagó su comisión y no vuelve.</li>
-            <li style="--accent:var(--mint)">En Ethereum el gas de almacenamiento internaliza
-            parte del costo y los reembolsos premian liberar estado, aunque siguen siendo
-            insuficientes frente a un estado que solo crece.</li>
-            <li style="--accent:var(--coral)">El conjunto UTXO tiene un techo natural ligado al
-            número de salidas económicamente viables; el estado de contratos no lo tiene, porque
-            cualquier contrato puede escribir lo que quiera mientras pague.</li>
-            <li style="--accent:var(--amber)">Las soluciones van en direcciones distintas:
-            acumuladores (Utreexo) para no guardar el conjunto en UTXO, y caducidad o expiración
-            de estado en el lado de cuentas.</li>
-          </ul>
-        </details>
-
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
       </div>
-
-      <aside class="clay-card formal reveal" style="--d:80ms">
-        <span class="formal__tag"><svg viewBox="0 0 24 24" style="width:1em;height:1em"><use href="#i-check"/></svg> Cómo usar los laboratorios</span>
-        <p>
-          <strong>Ejercicio 1:</strong> escribe el monto 15 000 y la tasa 20 en el laboratorio 1.
-          Como la cartera del lab es otra, compara el método, no los números.
-        </p>
-        <p>
-          <strong>Ejercicio 2:</strong> el laboratorio 3 en modo UTXO es el caso disjunto; en
-          modo cuentas, los carriles muestran dónde se rompe la independencia.
-        </p>
-        <p>
-          <strong>Ejercicio 4:</strong> el laboratorio 2 ya trae el ataque montado. T4 es la
-          copia exacta de T1; quita mentalmente el nonce y mira qué la detendría.
-        </p>
-      </aside>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1304,7 +1124,7 @@ firma      v, r, s</pre>
         <p class="lab__note" style="margin-top:1.6rem">
           <strong>Fuente temática del apunte:</strong>
           <a href="http://math.com.mx/u_vs_c.html" rel="noopener">math.com.mx/u_vs_c.html</a>.
-          Los tres laboratorios, el modelo de tarifas y las respuestas de los ejercicios se
+          Los tres laboratorios, el modelo de tarifas y las respuestas del quiz se
           implementaron y verificaron para esta página.
         </p>
       </div>
@@ -1366,7 +1186,7 @@ firma      v, r, s</pre>
         <ul>
           <li><a href="hash.html">Funciones hash</a></li>
           <li><a href="compromisos.html">Compromisos</a></li>
-          <li><a href="timestamping.html">Time stamping</a></li>
+          <li><a href="utxo-y-mineria.html">UTXO y minería</a></li>
           <li><a href="prueba-de-trabajo.html">Prueba de trabajo</a></li>
           <li><a href="utxo-vs-cuentas.html">UTXO frente a cuentas</a></li>
         </ul>
@@ -1392,5 +1212,7 @@ firma      v, r, s</pre>
 
 <script src="../assets/js/main.js" defer></script>
 <script src="../assets/js/utxo-vs-cuentas.js" defer></script>
+<script src="../assets/js/quiz-utxo-vs-cuentas.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* ==========================================================
-   ChainNotes · datos del quiz de la página "Modelo UTXO y minería"
+   ChainNotes · datos del quiz de la página "Time stamping"
    (temas/timestamping.html). Lo consume assets/js/quiz.js, que
    debe cargarse DESPUÉS de este archivo.
    ========================================================== */
@@ -7,152 +7,152 @@
   'use strict';
 
   window.CN_QUIZ = {
-    perfecto: '¡Perfecto! Tienes claro qué es un UTXO y cómo la minería busca una solución de Proof of Work.',
-    repasa: 'Te conviene empezar por la sección 01 (¿qué es el modelo UTXO?) y seguir con la minería y el Proof of Work.',
+    perfecto: '¡Perfecto! Sabes qué demuestra un sello de tiempo, por qué encadenarlos impide antedatar y cómo Bitcoin funciona como notario sin dueño.',
+    repasa: 'Te conviene repasar desde la sección 02 (sellar la huella) y la 04 (sellos encadenados): son la base de todo lo demás.',
     preguntas: [
       {
-        q: '¿Qué es un <em>UTXO</em>?',
+        q: '¿Por qué la fecha de «modificado» que muestra tu computadora no sirve para demostrar cuándo existía un archivo?',
         o: [
-          'Una salida de transacción que todavía no ha sido gastada',
-          'Un bloque que ya fue minado y aceptado por la red',
-          'Una clave privada con la que se firman las transacciones',
-          'El hash del encabezado de un bloque'
-        ],
-        a: 0,
-        e: 'UTXO significa <em>unspent transaction output</em>: una salida creada por una transacción que aún no se ha usado como entrada de otra. El conjunto de esas salidas representa lo que sigue disponible.',
-        s: ['utxo', '01']
-      },
-      {
-        q: 'Una salida se gasta en una nueva transacción. ¿Qué pasa con ella respecto al conjunto UTXO?',
-        o: [
-          'Permanece en el conjunto, marcada como usada',
-          'Deja de formar parte del conjunto de salidas disponibles',
-          'Se duplica, una copia para cada participante',
-          'Se convierte en un nonce'
+          'Porque sólo guarda el año, no el día.',
+          'Porque la escribe tu propia computadora y se puede cambiar en segundos.',
+          'Porque se borra cada vez que copias el archivo a una USB.',
+          'Porque sólo funciona con documentos de texto.'
         ],
         a: 1,
-        e: 'Una salida gastada ya no es una salida no gastada: sale del conjunto UTXO, y las nuevas salidas que produce la transacción pasan a formar parte del nuevo estado.',
-        s: ['utxo', '01']
+        e: 'Esa fecha la controla quien tiene el archivo. Un sello de tiempo, en cambio, depende de algo que el dueño no puede alterar después.',
+        s: ['problema', '01']
       },
       {
-        q: '¿Cuál de estas cadenas resume mejor el flujo de un UTXO en el apunte?',
+        q: 'Un documento tiene un sello de tiempo válido del 10 de marzo. ¿Qué demuestra exactamente?',
         o: [
-          'Nonce → hash → bloque → salida',
-          'Salida gastada → salida creada → hash → umbral',
-          'Encabezado → double-SHA256 → comparación con la dificultad',
-          'Salida creada → salida disponible → salida gastada → nuevas salidas disponibles'
+          'Que lo escribió la persona que lo selló.',
+          'Que su contenido es verdadero.',
+          'Que fue creado exactamente el 10 de marzo.',
+          'Que ya existía, tal como está, a más tardar el 10 de marzo.'
         ],
         a: 3,
-        e: 'La opción correcta es el ciclo de vida de una salida. Las otras mezclan conceptos de la minería (nonce, hash, umbral) o invierten el orden de creación y gasto.',
-        s: ['utxo', '01']
+        e: 'Un sello sólo habla de <em>cuándo</em>, y como límite superior: pudo existir desde antes. No dice nada de autoría ni de veracidad.',
+        s: ['problema', '01']
       },
       {
-        q: 'Ana tiene dos UTXO, de 0.8 BTC y 0.5 BTC, y quiere enviar 1 BTC (sin comisiones). ¿Qué ocurre?',
+        q: '¿Por qué se sella la huella (hash) del documento y no el documento completo?',
         o: [
-          'Se usa solo el UTXO de 0.8 BTC y se pierde el resto',
-          'Ambos UTXO se gastan como entradas y se crean una salida de 1 BTC y otra de 0.3 BTC de cambio',
-          'Se divide cada UTXO en dos, sin gastar ninguno',
-          'Ambos UTXO permanecen en el conjunto y se crea una salida de 1 BTC'
+          'Porque así el contenido se mantiene privado y el sello mide siempre lo mismo, sin importar el tamaño del archivo.',
+          'Porque la huella es más fácil de leer para las personas.',
+          'Porque las autoridades de sellado no aceptan archivos de más de 1 MB.',
+          'Porque la huella guarda la fecha dentro.'
+        ],
+        a: 0,
+        e: 'La huella no revela el contenido y siempre tiene 256 bits. Además, cualquier cambio al documento produce una huella distinta, así que sigue representándolo fielmente.',
+        s: ['huella', '02']
+      },
+      {
+        q: 'Sellaste tu tesis hace un año. Hoy le corriges un acento y vuelves a calcular la huella. ¿Qué pasa?',
+        o: [
+          'La huella es casi igual; sólo cambia el último carácter.',
+          'La huella es idéntica, porque el contenido es prácticamente el mismo.',
+          'La huella es totalmente distinta y ya no coincide con la sellada: el sello no protege la versión corregida.',
+          'El sello se actualiza solo con la nueva versión.'
+        ],
+        a: 2,
+        e: 'Cualquier cambio, por mínimo que sea, produce una huella completamente distinta. Por eso hay que guardar el archivo original intacto. Pruébalo en el laboratorio 1.',
+        s: ['huella', '02']
+      },
+      {
+        q: 'Con una autoridad de sellado de tiempo (TSA), ¿qué es exactamente el sello?',
+        o: [
+          'Una copia del documento guardada en sus servidores.',
+          'La firma digital de la autoridad sobre «huella del documento + fecha y hora».',
+          'Un número de folio escrito en un libro físico.',
+          'La huella del documento sin nada más.'
         ],
         a: 1,
-        e: 'Los dos UTXO suman 1.3 BTC. Se consumen completos como entradas, y la transacción crea 1 BTC para el destinatario y 0.3 BTC de cambio para Ana. Los UTXO originales dejan de formar parte del conjunto.',
-        s: ['ejercicios', '07']
+        e: 'La autoridad recibe sólo la huella, le añade la hora de su reloj y firma el conjunto. Cualquiera puede verificar esa firma con la llave pública de la autoridad.',
+        s: ['autoridad', '03']
       },
       {
-        q: 'Una transacción crea tres salidas (A, B y C). Después se gastan A y C. ¿Qué queda en el conjunto UTXO?',
+        q: '¿Cuál es el principal punto débil de depender de una sola autoridad de sellado?',
         o: [
-          'Solo la salida B',
-          'Solo las salidas A y C',
-          'Las tres salidas',
-          'Ninguna, porque la transacción original ya terminó'
-        ],
-        a: 0,
-        e: 'Solo la salida B sigue sin gastar, así que es la única que continúa en el conjunto UTXO. A y C ya se consumieron.',
-        s: ['ejercicios', '07']
-      },
-      {
-        q: '¿Por qué importa el conjunto UTXO, según el apunte (tomando Mimblewimble como ejemplo)?',
-        o: [
-          'Porque permite que el minero elija el nonce más rápido',
-          'Porque elimina la necesidad de verificar las transacciones',
-          'Porque el tamaño de la cadena puede relacionarse con el estado actual y no solo con conservar todo el historial',
-          'Porque garantiza que ningún bloque tenga que contener firmas'
-        ],
-        a: 2,
-        e: 'Si las salidas creadas y luego gastadas pueden cancelarse, sobreviven principalmente las salidas sin gastar y lo necesario para verificar la validez. El estado actual, y no todo el historial, domina el tamaño.',
-        s: ['utxo-importancia', '02']
-      },
-      {
-        q: '¿Qué función hash usa Bitcoin en su mecanismo de Proof of Work?',
-        o: [
-          'SHA-256 aplicado una sola vez',
-          'MD5 aplicado dos veces',
-          'SHA-256 aplicado dos veces (double-SHA256)',
-          'Una firma de anillo sobre el bloque'
-        ],
-        a: 2,
-        e: 'Bitcoin aplica <em>double-SHA256</em>, tanto en la estructura de bloques como en el Proof of Work.',
-        s: ['mineria', '03']
-      },
-      {
-        q: '¿Qué busca el minero al variar el <em>nonce</em>?',
-        o: [
-          'Que el hash del encabezado del bloque quede por debajo del umbral de dificultad',
-          'Que el hash del encabezado sea idéntico al del bloque anterior',
-          'Que el bloque contenga el mayor número posible de UTXO',
-          'Que el hash tenga la mayor cantidad de ceros posibles al final'
-        ],
-        a: 0,
-        e: 'Cada nonce distinto produce un hash distinto del encabezado. La condición de Proof of Work es encontrar uno cuyo hash quede <em>por debajo</em> del umbral definido por la dificultad.',
-        s: ['mineria', '03']
-      },
-      {
-        q: 'Un minero calcula el double-SHA256 del encabezado y el hash NO cumple el umbral. ¿Qué hace?',
-        o: [
-          'Acepta el bloque de todos modos, porque hizo el trabajo',
-          'Elimina el bloque candidato y la cadena se detiene',
-          'Cambia el umbral de dificultad hasta que el hash lo cumpla',
-          'Modifica valores del encabezado, como el nonce, y vuelve a calcular el hash'
+          'Que es muy lenta: tarda días en sellar.',
+          'Que no puede sellar archivos de imagen.',
+          'Que obliga a revelar el contenido del documento.',
+          'Que hay que confiar en ella: si la sobornan o le roban la llave, puede emitir sellos con fechas falsas.'
         ],
         a: 3,
-        e: 'El proceso se repite: se cambia el nonce (u otros valores del encabezado), se vuelve a aplicar double-SHA256 y se compara de nuevo. El umbral lo fija la red, el minero no lo cambia.',
-        s: ['proceso-mineria', '04']
+        e: 'El esquema es tan confiable como la autoridad. Eso motivó buscar formas de sellar sin depender ciegamente de una sola entidad.',
+        s: ['autoridad', '03']
       },
       {
-        q: 'Con un umbral simplificado de <code>0000FFFF...</code>, ¿cumple el hash <code>00001234...</code>?',
+        q: 'En los sellos encadenados de Haber y Stornetta, ¿qué incluye cada sello nuevo?',
         o: [
-          'No, porque tiene más ceros que el umbral',
-          'Sí, porque es numéricamente menor que el umbral',
-          'No, porque el hash debe ser siempre mayor que el umbral',
-          'No se puede saber sin conocer el nonce'
+          'Una copia completa de todos los documentos anteriores.',
+          'La huella del sello anterior, además de la huella del documento y la hora.',
+          'Sólo la hora, para ahorrar espacio.',
+          'El nombre de la persona que pidió el sello.'
         ],
         a: 1,
-        e: 'La condición es hash menor que el umbral, y <code>00001234...</code> es numéricamente menor que <code>0000FFFF...</code>. Tener más ceros al inicio hace al número más pequeño, no menos válido.',
-        s: ['ejercicios', '07']
+        e: 'Cada eslabón «abraza» al anterior: sello nuevo = huella(sello anterior + huella del documento + hora). Así todos quedan conectados.',
+        s: ['encadenar', '04']
       },
       {
-        q: 'El ejemplo de blockchain artesanal del material se presenta sin minería, sin consenso distribuido y sin red P2P. ¿Qué hace falta para llegar a una blockchain real con varios participantes?',
+        q: 'En una libreta de 10 sellos encadenados, alguien altera el documento del sello 4. ¿Qué sellos dejan de cuadrar?',
         o: [
-          'Solo agregar más bloques encadenados con hash',
-          'Mecanismos de consenso como Proof of Work y una red que comparta los nuevos bloques',
-          'Eliminar las funciones hash y las firmas digitales',
-          'Que un único participante firme todos los bloques'
+          'Sólo el sello 4.',
+          'Los sellos 1 a 4.',
+          'El sello 4 y todos los posteriores, del 5 al 10.',
+          'Ninguno, porque los sellos ya estaban guardados.'
         ],
-        a: 1,
-        e: 'El encadenamiento criptográfico explica cómo se relacionan los bloques, pero un sistema distribuido necesita además consenso (aquí, Proof of Work) y una red P2P para propagar los bloques.',
-        s: ['blockchain-real', '05']
+        a: 2,
+        e: 'Cambiar el sello 4 cambia el valor que usa el 5, que cambia el 6, y así hasta el final. Los anteriores no se ven afectados. Compruébalo en el laboratorio 2.',
+        s: ['encadenar', '04']
       },
       {
-        q: 'Resume el apunte: ¿cuál es la relación entre UTXO y minería?',
+        q: 'Quieres sellar un millón de documentos de una sola vez con un árbol de Merkle. ¿Qué se sella?',
         o: [
-          'UTXO identifica las salidas disponibles; la minería busca una solución válida de Proof of Work',
-          'UTXO es el resultado de la minería y no existe sin ella',
-          'La minería elimina el conjunto UTXO en cada bloque',
-          'Son dos nombres para el mismo concepto'
+          'Sólo la raíz del árbol; cada documento se demuestra después con unas 20 huellas «hermanas».',
+          'Un millón de huellas, una por documento.',
+          'La mitad de las huellas, elegidas al azar.',
+          'El documento más grande, que representa a los demás.'
         ],
         a: 0,
-        e: 'Son ideas distintas: el modelo UTXO describe el estado (qué salidas siguen disponibles) y la minería es el proceso que, mediante Proof of Work, produce bloques válidos en una red distribuida.',
-        s: ['resumen', '06']
+        e: 'Las huellas se juntan de dos en dos hasta quedar una sola, la raíz. Para un millón de documentos el camino a la raíz tiene unos 20 pasos, porque 2<sup>20</sup> ≈ 1 millón.',
+        s: ['arbol', '05']
+      },
+      {
+        q: '¿Por qué es tan difícil antedatar un documento sellado en Bitcoin?',
+        o: [
+          'Porque una empresa revisa cada sello a mano.',
+          'Porque Bitcoin guarda el documento completo cifrado.',
+          'Porque las huellas en Bitcoin caducan después de un año.',
+          'Porque habría que meter la huella en un bloque viejo y rehacer la prueba de trabajo de ese bloque y de todos los posteriores, más rápido que toda la red.'
+        ],
+        a: 3,
+        e: 'No hay llave que robar ni autoridad que sobornar: la seguridad del sello es la misma que protege los pagos de Bitcoin.',
+        s: ['bitcoin', '06']
+      },
+      {
+        q: 'Dos personas sellan la misma idea en Bitcoin con diez segundos de diferencia. ¿Puede el sello decidir quién fue primero?',
+        o: [
+          'No, porque Bitcoin no guarda horas, sólo números de bloque.',
+          'Sí: cada bloque registra la hora exacta al segundo.',
+          'Sí: gana quien pagó más comisión.',
+          'No con seguridad: la hora de un bloque tiene un margen de minutos u horas.'
+        ],
+        a: 3,
+        e: 'La hora de un bloque debe ser posterior a la mediana de los 11 anteriores y no adelantarse más de 2 horas. Es precisa en días, no en segundos.',
+        s: ['reloj', '07']
+      },
+      {
+        q: 'Quieres demostrar que una foto se tomó <em>después</em> del 1 de junio, no antes. ¿Qué haces?',
+        o: [
+          'Sellarla dos veces el mismo día.',
+          'Cambiar la fecha del archivo al 1 de junio.',
+          'Incluir en la foto algo imposible de conocer antes de esa fecha, como el periódico del día o la huella del último bloque de Bitcoin.',
+          'No se puede: un sello sólo demuestra fechas anteriores.'
+        ],
+        a: 2,
+        e: 'Un dato impredecible da el límite inferior y el sello da el superior: la foto nació entre ambos. El primer bloque de Bitcoin hizo esto con un titular de periódico.',
+        s: ['ventana', '08']
       }
     ]
   };

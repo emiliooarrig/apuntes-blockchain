@@ -53,7 +53,7 @@
         <li><a class="nav__link" href="#cueva">Cueva</a></li>
         <li><a class="nav__link" href="#grafo">Grafo</a></li>
         <li><a class="nav__link" href="#schnorr">Schnorr</a></li>
-        <li><a class="nav__link" href="#ejercicios">Ejercicios</a></li>
+        <li><a class="nav__link" href="#quiz">Quiz</a></li>
       </ul>
     </nav>
 
@@ -164,7 +164,7 @@
         <li><a href="#shamir"><span class="toc__n">06</span> Shamir: repartir un secreto</a></li>
         <li><a href="#mundo-real"><span class="toc__n">07</span> Del juguete al mundo real</a></li>
         <li><a href="#sintesis"><span class="toc__n">08</span> Síntesis</a></li>
-        <li><a href="#ejercicios"><span class="toc__n">09</span> Ejercicios</a></li>
+        <li><a href="#quiz"><span class="toc__n">09</span> Quiz</a></li>
         <li><a href="#referencias"><span class="toc__n">10</span> Referencias</a></li>
       </ul>
     </nav>
@@ -936,97 +936,38 @@
 </section>
 
 
-<!-- ============ 09 · EJERCICIOS ============ -->
-<section class="section note" id="ejercicios">
+<!-- ============ 09 · QUIZ ============ -->
+<section class="section note" id="quiz">
   <div class="container">
     <header class="note__head reveal">
       <span class="eyebrow"><span class="eyebrow__line"></span> Módulo 09</span>
-      <h2 class="section__title">Ejercicios</h2>
+      <h2 class="section__title">Pon a prueba lo aprendido</h2>
+      <div class="goal">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+        <p style="margin:0"><strong>12 preguntas</strong> sobre los conceptos clave. Al
+        responder verás si acertaste, por qué, y qué sección repasar.</p>
+      </div>
     </header>
 
-    <div class="note__body exlist reveal" style="max-width:80ch">
-      <h3 style="margin-top:0">Ejercicio 1 · ¿Cuántas rondas en la cueva?</h3>
-      <p>¿Cuántas rondas superadas necesita Víctor para que la suerte de una impostora sea menor que 1 en un millón?</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Se busca el menor <var>n</var> con (1/2)<sup><var>n</var></sup> &lt; 10<sup>−6</sup>, es
-          decir, 2<sup><var>n</var></sup> &gt; 1 000 000. Como 2<sup>19</sup> = 524 288 y
-          2<sup>20</sup> = 1 048 576, hacen falta <strong>20 rondas</strong>.</p>
-      </details>
+    <div class="quiz" id="quizList">
+      <noscript><p class="lab__note">El quiz necesita JavaScript activado.</p></noscript>
+    </div>
 
-      <hr>
-
-      <h3>Ejercicio 2 · El video que no convence</h3>
-      <p>Víctor grabó las 20 rondas de la cueva y se las enseña a su amiga Alicia. ¿Por qué Alicia no debería creerle?</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Porque Víctor y una actriz que no conoce la palabra pueden fabricar ese video: se
-          ponen de acuerdo en qué pasillo pedirá en cada ronda, o graban muchas tomas y cortan las
-          fallidas. El video falso es idéntico al real. A Víctor lo convenció que <em>él</em>
-          eligió los retos al azar en vivo; Alicia no tiene esa garantía. Esa misma idea, la de
-          que se puede simular, es la que demuestra que la prueba no filtra la palabra.</p>
-      </details>
-
-      <hr>
-
-      <h3>Ejercicio 3 · El grafo sin barajar</h3>
-      <p>(a) Si Peggy no baraja los colores entre rondas, ¿qué aprende Víctor? (b) Con 14 aristas y una sola mala, ¿cuántas rondas hacen falta para 99.9 % de certeza?</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>(a) Cada vértice muestra siempre el mismo color, así que tras suficientes rondas Víctor
-          anota los colores de todos los vértices y reconstruye la coloración completa. Ya no es
-          conocimiento cero. Lo puedes ver en el «cuaderno de Víctor» del laboratorio 3.</p>
-        <p>(b) Se pide (13/14)<sup><var>n</var></sup> ≤ 0.001, es decir,
-          <var>n</var> ≥ ln(0.001)/ln(13/14) ≈ 6.908/0.0741 ≈ 93.2. Hacen falta
-          <strong>94 rondas</strong>.</p>
-      </details>
-
-      <hr>
-
-      <h3>Ejercicio 4 · Schnorr a mano</h3>
-      <p>Con <var>p</var> = 23, <var>q</var> = 11, <var>g</var> = 2 y <var>x</var> = 7, Peggy elige <var>r</var> = 5 y Víctor reta con <var>c</var> = 8. Calcula <var>t</var>, <var>s</var> y verifica.</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <ul class="plain-list">
-          <li><var>y</var> = 2<sup>7</sup> mod 23 = 128 − 115 = <strong>13</strong></li>
-          <li style="--accent:var(--sky)"><var>t</var> = 2<sup>5</sup> mod 23 = 32 − 23 = <strong>9</strong></li>
-          <li style="--accent:var(--mint)"><var>s</var> = 5 + 8·7 mod 11 = 61 mod 11 = <strong>6</strong></li>
-        </ul>
-        <p>Lado izquierdo: 2<sup>6</sup> mod 23 = 64 − 46 = 18. Lado derecho: 13<sup>8</sup> mod 23.
-          Como 13<sup>2</sup> ≡ 8, 13<sup>4</sup> ≡ 64 ≡ 18 y 13<sup>8</sup> ≡ 18<sup>2</sup> = 324 ≡ 2,
-          queda 9·2 = <strong>18</strong>. Coinciden: Víctor acepta.</p>
-      </details>
-
-      <hr>
-
-      <h3>Ejercicio 5 · Atrapar a Peggy por repetir r</h3>
-      <p>Peggy usó el mismo <var>r</var> en dos rondas: con <var>c</var><sub>1</sub> = 3 respondió <var>s</var><sub>1</sub> = 4 y con <var>c</var><sub>2</sub> = 8 respondió <var>s</var><sub>2</sub> = 6 (módulo <var>q</var> = 11). Recupera <var>x</var>.</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Restando las dos respuestas, <var>r</var> se cancela:
-          <var>s</var><sub>1</sub> − <var>s</var><sub>2</sub> = (<var>c</var><sub>1</sub> − <var>c</var><sub>2</sub>)·<var>x</var> (mod 11).</p>
-        <span class="eq">
-          <var>x</var> = (4 − 6)·(3 − 8)<sup>−1</sup> = 9·6<sup>−1</sup> = 9·2 = 18 ≡ <strong>7</strong> (mod 11)
-          <small>6⁻¹ = 2 porque 6·2 = 12 ≡ 1</small>
-        </span>
-        <p>Es exactamente el secreto de los ejercicios anteriores. Por eso el número aleatorio
-          debe ser nuevo en cada ronda, igual que el nonce de una firma ECDSA.</p>
-      </details>
-
-      <hr>
-
-      <h3>Ejercicio 6 · Shamir con un pedazo de menos</h3>
-      <p>Con umbral <var>k</var> = 3 tienes sólo dos fragmentos: (1, 13) y (2, 12). Encuentra una parábola que pase por ellos y esconda el secreto <var>S</var> = 0. ¿Qué te dice eso?</p>
-      <details>
-        <summary><strong>Ver respuesta</strong></summary>
-        <p>Buscamos <var>f</var>(<var>x</var>) = <var>a</var><var>x</var><sup>2</sup> + <var>b</var><var>x</var>
-          (sin término independiente, para que <var>f</var>(0) = 0). Las condiciones son
-          <var>a</var> + <var>b</var> = 13 y 4<var>a</var> + 2<var>b</var> = 12. Restando el doble de la
-          primera: 2<var>a</var> = −14, así que <var>a</var> = −7 y <var>b</var> = 20.</p>
-        <p><var>f</var>(<var>x</var>) = 20<var>x</var> − 7<var>x</var><sup>2</sup> pasa por (1, 13) y (2, 12)
-          con secreto 0, igual que 12 + 2<var>x</var> − <var>x</var><sup>2</sup> pasa por ellos con secreto 12.
-          Con dos fragmentos, <strong>cualquier</strong> secreto es posible: no aprendiste nada.</p>
-      </details>
+    <div class="clay-card lab quiz__score reveal" id="quizScore">
+      <div class="lab__head">
+        <h2 class="lab__title"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg> Tu resultado</h2>
+        <span class="lab__tag" id="quizTag">sin empezar</span>
+      </div>
+      <div class="quiz__bar" aria-hidden="true"><span id="quizBar"></span></div>
+      <div class="readout">
+        <div class="metric"><span class="metric__num" id="quizDone">0 / 12</span><span class="metric__label">Respondidas</span></div>
+        <div class="metric"><span class="metric__num metric__num--mint" id="quizRight">0</span><span class="metric__label">Aciertos</span></div>
+        <div class="metric"><span class="metric__num metric__num--violet" id="quizGrade">—</span><span class="metric__label">Calificación</span></div>
+      </div>
+      <p class="lab__note" id="quizMsg" aria-live="polite">Responde todas las preguntas para ver tu resultado final.</p>
+      <div class="controls" style="margin:1.2rem 0 0">
+        <div class="field field--auto"><button class="clay-btn" id="quizReset" type="button">Volver a intentarlo</button></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1139,5 +1080,7 @@
 
 <script src="../assets/js/main.js" defer></script>
 <script src="../assets/js/conocimiento-cero.js" defer></script>
+<script src="../assets/js/quiz-conocimiento-cero.js" defer></script>
+<script src="../assets/js/quiz.js" defer></script>
 </body>
 </html>
